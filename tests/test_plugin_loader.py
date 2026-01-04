@@ -230,7 +230,7 @@ capabilities:
 execution:
   type: python
   python:
-    module: {name.replace('-', '_')}
+    module: {name.replace("-", "_")}
     class: Plugin
 """)
 

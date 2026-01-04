@@ -261,7 +261,9 @@ class TestPluginManifest:
                 CapabilitySpec(name="read", description="Read"),
                 CapabilitySpec(name="write", description="Write"),
             ],
-            execution=ExecutionSpec(type=ExecutionType.PYTHON, python=PythonExecutionSpec(module="t", **{"class": "T"})),
+            execution=ExecutionSpec(
+                type=ExecutionType.PYTHON, python=PythonExecutionSpec(module="t", **{"class": "T"})
+            ),
         )
 
         assert manifest.get_capability("read") is not None
@@ -277,7 +279,9 @@ class TestPluginManifest:
                 CapabilitySpec(name="a", description="A"),
                 CapabilitySpec(name="b", description="B"),
             ],
-            execution=ExecutionSpec(type=ExecutionType.PYTHON, python=PythonExecutionSpec(module="m", **{"class": "M"})),
+            execution=ExecutionSpec(
+                type=ExecutionType.PYTHON, python=PythonExecutionSpec(module="m", **{"class": "M"})
+            ),
         )
 
         schemas = manifest.get_all_anthropic_schemas()
