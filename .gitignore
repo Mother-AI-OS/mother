@@ -40,6 +40,7 @@ env/
 # Testing
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 .tox/
 .nox/
@@ -47,6 +48,9 @@ htmlcov/
 # Type checking
 .mypy_cache/
 .pytype/
+
+# Linting
+.ruff_cache/
 
 # Distribution
 *.tar.gz
