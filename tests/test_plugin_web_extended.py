@@ -1,10 +1,10 @@
 """Extended tests for the web plugin to increase coverage."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from mother.plugins.builtin.web import WebPlugin
-from mother.plugins.base import PluginResult
 
 
 class TestWebPluginCapabilities:

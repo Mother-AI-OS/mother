@@ -3,14 +3,12 @@
 import asyncio
 import os
 import sys
-import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from mother.plugins.base import PluginBase, PluginResult
-from mother.plugins.exceptions import ExecutionError, PluginLoadError, PluginTimeoutError
+from mother.plugins.exceptions import ExecutionError, PluginLoadError
 from mother.plugins.executor import (
     BuiltinExecutor,
     CLIExecutor,
@@ -64,9 +62,7 @@ def sample_manifest():
         ],
         execution=ExecutionSpec(
             type=ExecutionType.PYTHON,
-            python=PythonExecutionSpec.model_validate(
-                {"module": "test_module", "class": "TestPlugin"}
-            ),
+            python=PythonExecutionSpec.model_validate({"module": "test_module", "class": "TestPlugin"}),
         ),
     )
 
@@ -328,9 +324,7 @@ class TestBuiltinExecutor:
         """Create a mock plugin instance."""
         plugin = MagicMock(spec=PluginBase)
         plugin.initialize = AsyncMock()
-        plugin.execute = AsyncMock(
-            return_value=PluginResult.success_result(data={"test": True})
-        )
+        plugin.execute = AsyncMock(return_value=PluginResult.success_result(data={"test": True}))
         plugin.shutdown = AsyncMock()
         return plugin
 
@@ -420,9 +414,7 @@ class TestCLIExecutor:
         """Test initialize raises error when binary not found."""
         manifest = PluginManifest(
             plugin=PluginMetadata(name="missing", version="1.0.0", description="Missing", author="Test"),
-            capabilities=[
-                CapabilitySpec(name="test", description="Test capability", parameters=[])
-            ],
+            capabilities=[CapabilitySpec(name="test", description="Test capability", parameters=[])],
             execution=ExecutionSpec(
                 type=ExecutionType.CLI,
                 cli=CLIExecutionSpec(binary="nonexistent_binary_xyz"),
@@ -510,9 +502,7 @@ class TestCLIExecutor:
         """Test environment variable substitution."""
         manifest = PluginManifest(
             plugin=PluginMetadata(name="env-test", version="1.0.0", description="Test", author="Test"),
-            capabilities=[
-                CapabilitySpec(name="test", description="Test capability", parameters=[])
-            ],
+            capabilities=[CapabilitySpec(name="test", description="Test capability", parameters=[])],
             execution=ExecutionSpec(
                 type=ExecutionType.CLI,
                 cli=CLIExecutionSpec(
@@ -524,9 +514,7 @@ class TestCLIExecutor:
                 ),
             ),
         )
-        executor = CLIExecutor(
-            manifest, manifest.execution.cli, config={"API_KEY": "test_key"}
-        )
+        executor = CLIExecutor(manifest, manifest.execution.cli, config={"API_KEY": "test_key"})
 
         env = executor._build_environment()
         assert env["FROM_CONFIG"] == "test_key"
@@ -543,7 +531,7 @@ class TestCLIExecutor:
         """Test JSON array output parsing."""
         executor = CLIExecutor(cli_manifest, cli_manifest.execution.cli)
 
-        result = executor._parse_output('[1, 2, 3]', "test")
+        result = executor._parse_output("[1, 2, 3]", "test")
         assert result == [1, 2, 3]
 
     def test_parse_output_text(self, cli_manifest):
@@ -568,19 +556,17 @@ class TestPythonExecutor:
     async def test_initialize_plugin_base_subclass(self, sample_manifest, tmp_path):
         """Test initialization with PluginBase subclass."""
         # Create a test module
-        module_code = '''
+        module_code = """
 from mother.plugins.base import PluginBase, PluginResult
 
 class TestPlugin(PluginBase):
     async def execute(self, capability, params):
         return PluginResult.success_result(data={"test": True})
-'''
+"""
         module_file = tmp_path / "test_module.py"
         module_file.write_text(module_code)
 
-        spec = PythonExecutionSpec.model_validate(
-            {"module": "test_module", "class": "TestPlugin"}
-        )
+        spec = PythonExecutionSpec.model_validate({"module": "test_module", "class": "TestPlugin"})
         executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
 
         await executor.initialize()
@@ -591,9 +577,7 @@ class TestPlugin(PluginBase):
     @pytest.mark.asyncio
     async def test_initialize_module_not_found(self, sample_manifest):
         """Test initialization with non-existent module."""
-        spec = PythonExecutionSpec.model_validate(
-            {"module": "nonexistent_module_xyz", "class": "TestPlugin"}
-        )
+        spec = PythonExecutionSpec.model_validate({"module": "nonexistent_module_xyz", "class": "TestPlugin"})
         executor = PythonExecutor(sample_manifest, spec)
 
         with pytest.raises(PluginLoadError) as exc_info:
@@ -607,9 +591,7 @@ class TestPlugin(PluginBase):
         module_file = tmp_path / "test_module2.py"
         module_file.write_text(module_code)
 
-        spec = PythonExecutionSpec.model_validate(
-            {"module": "test_module2", "class": "MissingClass"}
-        )
+        spec = PythonExecutionSpec.model_validate({"module": "test_module2", "class": "MissingClass"})
         executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
 
         with pytest.raises(PluginLoadError) as exc_info:
@@ -623,19 +605,17 @@ class TestPlugin(PluginBase):
     @pytest.mark.asyncio
     async def test_shutdown_removes_from_path(self, sample_manifest, tmp_path):
         """Test shutdown removes plugin dir from sys.path."""
-        module_code = '''
+        module_code = """
 from mother.plugins.base import PluginBase, PluginResult
 
 class TestPlugin(PluginBase):
     async def execute(self, capability, params):
         return PluginResult.success_result()
-'''
+"""
         module_file = tmp_path / "test_mod_cleanup.py"
         module_file.write_text(module_code)
 
-        spec = PythonExecutionSpec.model_validate(
-            {"module": "test_mod_cleanup", "class": "TestPlugin"}
-        )
+        spec = PythonExecutionSpec.model_validate({"module": "test_mod_cleanup", "class": "TestPlugin"})
         executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
 
         await executor.initialize()

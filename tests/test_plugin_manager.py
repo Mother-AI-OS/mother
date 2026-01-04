@@ -470,6 +470,7 @@ class TestPluginManagerIntegration:
 
         # Create a temp directory
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             result = await manager.execute(
                 "filesystem_list_directory",
