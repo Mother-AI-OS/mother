@@ -59,10 +59,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lawkraft/mother"
-Documentation = "https://github.com/lawkraft/mother#readme"
-Repository = "https://github.com/lawkraft/mother.git"
-Issues = "https://github.com/lawkraft/mother/issues"
+Homepage = "https://github.com/Mother-AI-OS/mother"
+Documentation = "https://github.com/Mother-AI-OS/mother#readme"
+Repository = "https://github.com/Mother-AI-OS/mother.git"
+Issues = "https://github.com/Mother-AI-OS/mother/issues"
 
 [project.scripts]
 mother = "mother.cli:main"

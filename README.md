@@ -24,7 +24,7 @@ pip install mother-ai-os
 Or install from source:
 
 ```bash
-git clone https://github.com/lawkraft/mother.git
+git clone https://github.com/Mother-AI-OS/mother.git
 cd mother
 pip install -e .
 ```
