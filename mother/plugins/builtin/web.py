@@ -27,7 +27,7 @@ from ..manifest import (
 
 
 # Default user agent
-DEFAULT_USER_AGENT = "Mother-AI/1.0 (https://github.com/lawkraft/mother)"
+DEFAULT_USER_AGENT = "Mother-AI/1.0 (https://github.com/Mother-AI-OS/mother)"
 
 # Maximum response size (10MB)
 MAX_RESPONSE_SIZE = 10 * 1024 * 1024
