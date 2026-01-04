@@ -78,9 +78,9 @@ mother plugin search [query]  # Search PyPI for plugins
 
 | Plugin | Capabilities |
 |--------|-------------|
-| **filesystem** | read_file, write_file, list_directory, file_info, search_files |
-| **shell** | run_command |
-| **web** | fetch_url |
+| **filesystem** | read_file, write_file, append_file, list_directory, file_info, delete_file, copy_file, move_file, create_directory, exists |
+| **shell** | run_command, run_script, get_env, list_env, which, get_cwd, hostname, whoami, command_exists, system_info |
+| **web** | fetch, get, post, head, download, check_url, get_json, extract_links, parse_url, encode_url |
 
 ## Creating Plugins
 
@@ -148,8 +148,8 @@ Environment variables:
 | `ANTHROPIC_API_KEY` | Anthropic API key | Required |
 | `MOTHER_API_KEY` | API authentication key | Required |
 | `CLAUDE_MODEL` | Claude model to use | claude-sonnet-4-20250514 |
-| `API_HOST` | Server host | 127.0.0.1 |
-| `API_PORT` | Server port | 8080 |
+| `MOTHER_HOST` | Server host | 127.0.0.1 |
+| `MOTHER_PORT` | Server port | 8080 |
 | `OPENAI_API_KEY` | OpenAI key (for memory) | Optional |
 
 ## Development
