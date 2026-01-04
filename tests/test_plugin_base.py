@@ -226,3 +226,207 @@ class TestPluginResultMethods:
         assert d["status"] == "success"
         assert d["data"] == {"key": "value"}
         assert "timestamp" in d
+
+
+class TestPluginBaseProperties:
+    """Tests for PluginBase property accessors."""
+
+    def create_plugin(self):
+        """Create a test plugin instance."""
+        class TestPlugin(PluginBase):
+            async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
+                return PluginResult.success_result()
+
+        manifest = PluginManifest(
+            schema_version="1.0",
+            plugin=PluginMetadata(
+                name="property-test",
+                version="2.0.0",
+                description="Property test plugin",
+                author="Test Author",
+            ),
+            capabilities=[
+                CapabilitySpec(
+                    name="test_cap",
+                    description="Test capability",
+                    confirmation_required=True,
+                    parameters=[
+                        ParameterSpec(name="required_str", type=ParameterType.STRING, required=True),
+                        ParameterSpec(name="optional_int", type=ParameterType.INTEGER),
+                        ParameterSpec(name="number_val", type=ParameterType.NUMBER),
+                        ParameterSpec(name="bool_val", type=ParameterType.BOOLEAN),
+                        ParameterSpec(name="array_val", type=ParameterType.ARRAY),
+                        ParameterSpec(name="object_val", type=ParameterType.OBJECT),
+                        ParameterSpec(name="choice_val", type=ParameterType.STRING, choices=["a", "b"]),
+                    ],
+                ),
+            ],
+            execution=ExecutionSpec(
+                type=ExecutionType.PYTHON,
+                python=PythonExecutionSpec(module="test", **{"class": "TestPlugin"}),
+            ),
+        )
+        return TestPlugin(manifest, config={"setting": "value"})
+
+    def test_version_property(self):
+        """Test version property."""
+        plugin = self.create_plugin()
+        assert plugin.version == "2.0.0"
+
+    def test_config_property(self):
+        """Test config property."""
+        plugin = self.create_plugin()
+        assert plugin.config == {"setting": "value"}
+
+    def test_get_capabilities(self):
+        """Test get_capabilities method."""
+        plugin = self.create_plugin()
+        caps = plugin.get_capabilities()
+        assert len(caps) == 1
+        assert caps[0].name == "test_cap"
+
+    def test_get_capability(self):
+        """Test get_capability method."""
+        plugin = self.create_plugin()
+        cap = plugin.get_capability("test_cap")
+        assert cap is not None
+        assert cap.name == "test_cap"
+
+    def test_get_capability_not_found(self):
+        """Test get_capability returns None for unknown."""
+        plugin = self.create_plugin()
+        cap = plugin.get_capability("unknown")
+        assert cap is None
+
+    def test_has_capability_true(self):
+        """Test has_capability returns True."""
+        plugin = self.create_plugin()
+        assert plugin.has_capability("test_cap") is True
+
+    def test_has_capability_false(self):
+        """Test has_capability returns False."""
+        plugin = self.create_plugin()
+        assert plugin.has_capability("unknown") is False
+
+    def test_get_anthropic_schemas(self):
+        """Test get_anthropic_schemas."""
+        plugin = self.create_plugin()
+        schemas = plugin.get_anthropic_schemas()
+        assert len(schemas) == 1
+        assert schemas[0]["name"] == "property-test_test_cap"
+
+    def test_requires_confirmation_true(self):
+        """Test requires_confirmation returns True."""
+        plugin = self.create_plugin()
+        assert plugin.requires_confirmation("test_cap") is True
+
+    def test_requires_confirmation_false(self):
+        """Test requires_confirmation returns False for unknown."""
+        plugin = self.create_plugin()
+        assert plugin.requires_confirmation("unknown") is False
+
+    def test_repr(self):
+        """Test __repr__ method."""
+        plugin = self.create_plugin()
+        assert repr(plugin) == "<Plugin property-test@2.0.0>"
+
+
+class TestPluginBaseValidateParams:
+    """Tests for PluginBase.validate_params method."""
+
+    def create_plugin(self):
+        """Create a test plugin instance."""
+        class TestPlugin(PluginBase):
+            async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
+                return PluginResult.success_result()
+
+        manifest = PluginManifest(
+            schema_version="1.0",
+            plugin=PluginMetadata(
+                name="validate-test",
+                version="1.0.0",
+                description="Validation test plugin",
+                author="Test Author",
+            ),
+            capabilities=[
+                CapabilitySpec(
+                    name="validate_cap",
+                    description="Validation capability",
+                    parameters=[
+                        ParameterSpec(name="required_str", type=ParameterType.STRING, required=True),
+                        ParameterSpec(name="optional_int", type=ParameterType.INTEGER),
+                        ParameterSpec(name="number_val", type=ParameterType.NUMBER),
+                        ParameterSpec(name="bool_val", type=ParameterType.BOOLEAN),
+                        ParameterSpec(name="array_val", type=ParameterType.ARRAY),
+                        ParameterSpec(name="object_val", type=ParameterType.OBJECT),
+                        ParameterSpec(name="choice_val", type=ParameterType.STRING, choices=["a", "b"]),
+                    ],
+                ),
+            ],
+            execution=ExecutionSpec(
+                type=ExecutionType.PYTHON,
+                python=PythonExecutionSpec(module="test", **{"class": "TestPlugin"}),
+            ),
+        )
+        return TestPlugin(manifest)
+
+    def test_validate_unknown_capability(self):
+        """Test validation returns error for unknown capability."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("unknown", {})
+        assert len(errors) == 1
+        assert "Unknown capability" in errors[0]
+
+    def test_validate_missing_required(self):
+        """Test validation catches missing required parameter."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {})
+        assert any("required_str" in e for e in errors)
+
+    def test_validate_valid_params(self):
+        """Test validation passes for valid params."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": "hello"})
+        assert len(errors) == 0
+
+    def test_validate_wrong_string_type(self):
+        """Test validation catches wrong string type."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": 123})
+        assert any("must be a string" in e for e in errors)
+
+    def test_validate_wrong_integer_type(self):
+        """Test validation catches wrong integer type."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": "ok", "optional_int": "bad"})
+        assert any("must be an integer" in e for e in errors)
+
+    def test_validate_wrong_number_type(self):
+        """Test validation catches wrong number type."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": "ok", "number_val": "bad"})
+        assert any("must be a number" in e for e in errors)
+
+    def test_validate_wrong_boolean_type(self):
+        """Test validation catches wrong boolean type."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": "ok", "bool_val": "bad"})
+        assert any("must be a boolean" in e for e in errors)
+
+    def test_validate_wrong_array_type(self):
+        """Test validation catches wrong array type."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": "ok", "array_val": "bad"})
+        assert any("must be an array" in e for e in errors)
+
+    def test_validate_wrong_object_type(self):
+        """Test validation catches wrong object type."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": "ok", "object_val": "bad"})
+        assert any("must be an object" in e for e in errors)
+
+    def test_validate_invalid_choice(self):
+        """Test validation catches invalid choice."""
+        plugin = self.create_plugin()
+        errors = plugin.validate_params("validate_cap", {"required_str": "ok", "choice_val": "c"})
+        assert any("must be one of" in e for e in errors)

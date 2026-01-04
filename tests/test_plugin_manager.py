@@ -196,3 +196,308 @@ class TestPluginManager:
         # Second discover should not be affected
         discovered2 = manager.discover()
         assert "fake" not in discovered2
+
+
+class TestPluginManagerIntegration:
+    """Integration tests for PluginManager."""
+
+    @pytest.mark.asyncio
+    async def test_full_lifecycle(self) -> None:
+        """Test full plugin lifecycle: discover -> load -> execute -> unload."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        # Initialize
+        await manager.initialize()
+
+        # Should have plugins loaded
+        plugins = manager.list_plugins()
+        assert len(plugins) > 0
+
+        # Should have capabilities
+        caps = manager.list_capabilities()
+        assert len(caps) > 0
+
+        # Search for a capability
+        results = manager.search_capabilities("read")
+        assert isinstance(results, list)
+
+        # Shutdown
+        await manager.shutdown()
+        assert manager._initialized is False
+
+    @pytest.mark.asyncio
+    async def test_execute_filesystem_list(self) -> None:
+        """Test executing filesystem list_directory capability."""
+        import tempfile
+
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # Create a temp directory
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = await manager.execute(
+                "filesystem_list_directory",
+                {"path": tmpdir},
+            )
+
+            assert result.success is True
+            assert result.data is not None
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_get_all_schemas(self) -> None:
+        """Test getting all schemas."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        schemas = manager.get_all_schemas()
+        assert isinstance(schemas, list)
+        assert len(schemas) > 0
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_get_plugin_info(self) -> None:
+        """Test getting plugin info."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        info = manager.get_plugin_info("filesystem")
+        assert info is not None
+        assert info.name == "filesystem"
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_reload_plugin(self) -> None:
+        """Test reloading a plugin."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # Reload filesystem
+        await manager.reload("filesystem")
+
+        # Should still be loaded
+        assert manager.is_loaded("filesystem")
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_list_discovered(self) -> None:
+        """Test listing discovered plugins."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        discovered = manager.list_discovered()
+        assert isinstance(discovered, dict)
+        assert len(discovered) > 0
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_parse_capability_name(self) -> None:
+        """Test parsing capability names."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # Parse an existing capability name
+        plugin, cap = manager.parse_capability_name("filesystem_read_file")
+        assert plugin == "filesystem"
+        assert cap == "read_file"
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_contains_capability(self) -> None:
+        """Test __contains__ for capabilities."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        assert "filesystem_list_directory" in manager
+        assert "nonexistent_capability" not in manager
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_len(self) -> None:
+        """Test __len__ returns capability count."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        assert len(manager) > 0
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_requires_confirmation(self) -> None:
+        """Test checking if capability requires confirmation."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # filesystem_read_file should not require confirmation
+        assert manager.requires_confirmation("filesystem_read_file") is False
+
+        # shell_run_command should require confirmation
+        assert manager.requires_confirmation("shell_run_command") is True
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_get_capability(self) -> None:
+        """Test getting a capability entry."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        entry = manager.get_capability("filesystem_read_file")
+        assert entry is not None
+        assert entry.plugin_name == "filesystem"
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_list_capabilities_filtered(self) -> None:
+        """Test listing capabilities filtered by plugin."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        caps = manager.list_capabilities("filesystem")
+        assert len(caps) > 0
+        for cap in caps:
+            assert cap.startswith("filesystem_")
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_load_and_unload(self) -> None:
+        """Test loading and unloading a plugin."""
+        config = PluginConfig(require_permissions=False, auto_load=False)
+        manager = PluginManager(config)
+
+        # Discover but don't load
+        manager.discover()
+
+        # Manually load filesystem
+        await manager.load("filesystem")
+        assert manager.is_loaded("filesystem")
+
+        # Unload
+        await manager.unload("filesystem")
+        assert not manager.is_loaded("filesystem")
+
+    @pytest.mark.asyncio
+    async def test_load_all_after_discover(self) -> None:
+        """Test load_all loads all discovered plugins."""
+        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        manager = PluginManager(config)
+
+        # Discover plugins
+        discovered = manager.discover()
+        assert len(discovered) > 0
+
+        # Load all
+        loaded = await manager.load_all()
+        assert len(loaded) > 0
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_discover_with_enabled_plugins_filter(self) -> None:
+        """Test discover filters by enabled_plugins list."""
+        config = PluginConfig(
+            enabled_plugins=["filesystem"],
+            auto_discover=False,
+            auto_load=False,
+            require_permissions=False,
+        )
+        manager = PluginManager(config)
+
+        discovered = manager.discover()
+
+        # Should only have filesystem
+        assert "filesystem" in discovered
+        assert "shell" not in discovered
+        assert "web" not in discovered
+
+    @pytest.mark.asyncio
+    async def test_discover_with_disabled_plugins_filter(self) -> None:
+        """Test discover filters out disabled_plugins."""
+        config = PluginConfig(
+            disabled_plugins=["web"],
+            auto_discover=False,
+            auto_load=False,
+            require_permissions=False,
+        )
+        manager = PluginManager(config)
+
+        discovered = manager.discover()
+
+        # web should be filtered out
+        assert "web" not in discovered
+        # but others should be there
+        assert "filesystem" in discovered
+
+    @pytest.mark.asyncio
+    async def test_execute_with_permission_check(self) -> None:
+        """Test execute with permission checking enabled."""
+        config = PluginConfig(require_permissions=True)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # Create a temp directory
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = await manager.execute(
+                "filesystem_list_directory",
+                {"path": tmpdir},
+            )
+
+            # Should succeed (filesystem has appropriate permissions)
+            assert result.success is True
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_execute_confirmation_required(self) -> None:
+        """Test execute returns pending confirmation for destructive action."""
+        from mother.plugins import ResultStatus
+
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # shell_run_command requires confirmation
+        result = await manager.execute(
+            "shell_run_command",
+            {"command": "echo hello"},
+        )
+
+        # Should return pending confirmation
+        assert result.status == ResultStatus.PENDING_CONFIRMATION
+
+        await manager.shutdown()
