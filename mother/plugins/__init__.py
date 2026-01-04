@@ -25,7 +25,6 @@ Example usage:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -213,9 +212,7 @@ class PluginManager:
         # Filter based on config
         if self.config.enabled_plugins is not None:
             self._discovered = {
-                name: info
-                for name, info in self._discovered.items()
-                if name in self.config.enabled_plugins
+                name: info for name, info in self._discovered.items() if name in self.config.enabled_plugins
             }
 
         # Remove disabled plugins

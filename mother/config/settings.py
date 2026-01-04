@@ -2,11 +2,9 @@
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
 
 # Central credentials file location
 CREDENTIALS_FILE = Path.home() / ".config" / "mother" / "credentials.env"
@@ -24,18 +22,16 @@ class Settings(BaseSettings):
     # API Settings
     api_host: str = Field(default="127.0.0.1", alias="MOTHER_HOST")
     api_port: int = Field(default=8080, alias="MOTHER_PORT")
-    api_key: Optional[str] = Field(default=None, alias="MOTHER_API_KEY")
+    api_key: str | None = Field(default=None, alias="MOTHER_API_KEY")
 
     # Claude Settings
-    anthropic_api_key: Optional[str] = Field(None, alias="ANTHROPIC_API_KEY")
-    claude_model: str = Field(
-        default="claude-sonnet-4-20250514", alias="CLAUDE_MODEL"
-    )
+    anthropic_api_key: str | None = Field(None, alias="ANTHROPIC_API_KEY")
+    claude_model: str = Field(default="claude-sonnet-4-20250514", alias="CLAUDE_MODEL")
     max_iterations: int = Field(default=10, alias="MAX_ITERATIONS")
 
     # Tool Credentials
-    mailcraft_password: Optional[str] = Field(None, alias="MAILCRAFT_PASSWORD")
-    openai_api_key: Optional[str] = Field(None, alias="OPENAI_API_KEY")
+    mailcraft_password: str | None = Field(None, alias="MAILCRAFT_PASSWORD")
+    openai_api_key: str | None = Field(None, alias="OPENAI_API_KEY")
 
     # Paths
     config_dir: Path = Field(

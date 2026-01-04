@@ -1,11 +1,11 @@
 """Base class for tool wrappers."""
 
+import os
+import subprocess
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Optional
-import subprocess
-import os
-import time
+from typing import Any
 
 
 @dataclass
@@ -16,7 +16,7 @@ class ToolParameter:
     type: str  # string, integer, boolean, array, choice
     description: str = ""
     required: bool = False
-    flag: Optional[str] = None  # e.g., "--account"
+    flag: str | None = None  # e.g., "--account"
     positional: bool = False
     default: Any = None
     choices: list[str] = field(default_factory=list)
@@ -30,8 +30,8 @@ class ToolResult:
     exit_code: int
     stdout: str
     stderr: str
-    parsed_data: Optional[Any] = None
-    error_message: Optional[str] = None
+    parsed_data: Any | None = None
+    error_message: str | None = None
     execution_time: float = 0.0
     command: list[str] = field(default_factory=list)
 
@@ -43,7 +43,7 @@ class ToolWrapper(ABC):
         self,
         binary: str,
         env_vars: dict[str, str] | None = None,
-        cwd: Optional[str] = None,
+        cwd: str | None = None,
         timeout: int = 300,
         extra_args: list[str] | None = None,
     ):
@@ -233,15 +233,14 @@ class ToolWrapper(ABC):
             )
 
     @abstractmethod
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse command output into structured data."""
         pass
 
-    def extract_error(self, output: str) -> Optional[str]:
+    def extract_error(self, output: str) -> str | None:
         """Extract error message from output."""
         import re
+
         from ..parsers.output import strip_ansi
 
         clean = strip_ansi(output)

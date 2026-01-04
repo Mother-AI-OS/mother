@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .base import PluginInfo
 from .exceptions import CapabilityNotFoundError
@@ -27,8 +27,8 @@ class CapabilityEntry:
     plugin_name: str
     capability_name: str
     full_name: str  # plugin_capability format
-    spec: "CapabilitySpec"
-    executor: "ExecutorBase"
+    spec: CapabilitySpec
+    executor: ExecutorBase
     confirmation_required: bool = False
 
     @property
@@ -46,15 +46,15 @@ class PluginRegistry:
 
     def __init__(self):
         """Initialize the registry."""
-        self._plugins: dict[str, "ExecutorBase"] = {}
-        self._manifests: dict[str, "PluginManifest"] = {}
+        self._plugins: dict[str, ExecutorBase] = {}
+        self._manifests: dict[str, PluginManifest] = {}
         self._capabilities: dict[str, CapabilityEntry] = {}  # full_name -> entry
         self._plugin_capabilities: dict[str, list[str]] = {}  # plugin -> [full_names]
 
     def register(
         self,
-        manifest: "PluginManifest",
-        executor: "ExecutorBase",
+        manifest: PluginManifest,
+        executor: ExecutorBase,
     ) -> None:
         """Register a plugin and its capabilities.
 
@@ -87,10 +87,7 @@ class PluginRegistry:
 
             logger.debug(f"Registered capability: {full_name}")
 
-        logger.info(
-            f"Registered plugin '{plugin_name}' with "
-            f"{len(manifest.capabilities)} capabilities"
-        )
+        logger.info(f"Registered plugin '{plugin_name}' with {len(manifest.capabilities)} capabilities")
 
     def unregister(self, plugin_name: str) -> None:
         """Unregister a plugin and its capabilities.
@@ -112,7 +109,7 @@ class PluginRegistry:
 
         logger.info(f"Unregistered plugin: {plugin_name}")
 
-    def get_plugin(self, plugin_name: str) -> "ExecutorBase | None":
+    def get_plugin(self, plugin_name: str) -> ExecutorBase | None:
         """Get a registered plugin's executor.
 
         Args:
@@ -123,7 +120,7 @@ class PluginRegistry:
         """
         return self._plugins.get(plugin_name)
 
-    def get_manifest(self, plugin_name: str) -> "PluginManifest | None":
+    def get_manifest(self, plugin_name: str) -> PluginManifest | None:
         """Get a registered plugin's manifest.
 
         Args:

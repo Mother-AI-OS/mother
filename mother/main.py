@@ -3,16 +3,15 @@
 import logging
 from contextlib import asynccontextmanager
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
+from . import __version__
+from .agent.core import MotherAgent
+from .api.routes import init_dependencies, router
 from .config.settings import get_settings
 from .tools.registry import ToolRegistry
-from .agent.core import MotherAgent
-from .api.routes import router, init_dependencies
-from . import __version__
-
 
 # Configure logging
 logging.basicConfig(
@@ -64,7 +63,6 @@ async def lifespan(app: FastAPI):
     # Shutdown plugin system
     if registry.plugin_manager:
         try:
-            import asyncio
             await registry.plugin_manager.shutdown()
             logger.info("Plugin system shutdown complete")
         except Exception as e:

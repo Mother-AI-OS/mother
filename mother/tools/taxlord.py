@@ -1,10 +1,10 @@
 """Taxlord CLI tool wrapper."""
 
 import re
-from typing import Any, Optional
+from typing import Any
 
-from .base import ToolWrapper
 from ..parsers.output import OutputParser, strip_ansi
+from .base import ToolWrapper
 
 
 class TaxlordTool(ToolWrapper):
@@ -251,9 +251,7 @@ class TaxlordTool(ToolWrapper):
             },
         }
 
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse taxlord output into structured data."""
         if command == "search":
             return self._parse_search_results(stdout)
@@ -279,13 +277,15 @@ class TaxlordTool(ToolWrapper):
         if table and table.rows:
             results = []
             for row in table.rows:
-                results.append({
-                    "id": row.get("ID", ""),
-                    "title": row.get("Title", row.get("Name", "")),
-                    "type": row.get("Type", ""),
-                    "score": row.get("Score", ""),
-                    "date": row.get("Date", ""),
-                })
+                results.append(
+                    {
+                        "id": row.get("ID", ""),
+                        "title": row.get("Title", row.get("Name", "")),
+                        "type": row.get("Type", ""),
+                        "score": row.get("Score", ""),
+                        "date": row.get("Date", ""),
+                    }
+                )
             return {"results": results, "count": len(results)}
 
         summary = self._parser.extract_summary(output)
@@ -301,7 +301,7 @@ class TaxlordTool(ToolWrapper):
             return {"answer": answer_match.group(1).strip()}
 
         # Fallback: return everything that's not a header
-        lines = [l for l in clean.split("\n") if l.strip() and not l.strip().endswith(":")]
+        lines = [line for line in clean.split("\n") if line.strip() and not line.strip().endswith(":")]
         return {"answer": "\n".join(lines)}
 
     def _parse_list(self, output: str) -> dict:
@@ -320,12 +320,14 @@ class TaxlordTool(ToolWrapper):
         if table and table.rows:
             accounts = []
             for row in table.rows:
-                accounts.append({
-                    "number": row.get("Account", row.get("Konto", "")),
-                    "name": row.get("Name", row.get("Bezeichnung", "")),
-                    "debit": row.get("Debit", row.get("Soll", "")),
-                    "credit": row.get("Credit", row.get("Haben", "")),
-                })
+                accounts.append(
+                    {
+                        "number": row.get("Account", row.get("Konto", "")),
+                        "name": row.get("Name", row.get("Bezeichnung", "")),
+                        "debit": row.get("Debit", row.get("Soll", "")),
+                        "credit": row.get("Credit", row.get("Haben", "")),
+                    }
+                )
             return {"accounts": accounts}
 
         return {"accounts": [], "raw_output": strip_ansi(output)}

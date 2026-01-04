@@ -5,7 +5,7 @@ Transmit documents via Email, Fax, Post, or beA.
 
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .base import ToolWrapper
 
@@ -288,9 +288,7 @@ class TransmitTool(ToolWrapper):
 
         return cmd
 
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse transmit output."""
         output = stdout + stderr
 

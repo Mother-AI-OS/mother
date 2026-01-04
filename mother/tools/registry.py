@@ -4,24 +4,25 @@ This module bridges legacy ToolWrapper-based tools with the new plugin system.
 Both systems work together, with plugins taking precedence for overlapping names.
 """
 
-from typing import Any, Optional
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import Any, Optional
 
-from .base import ToolWrapper
-from .mailcraft import MailcraftTool
-from .leads import LeadsTool
-from .taxlord import TaxlordTool
-from .gcp_draft import GCPDraftTool
-from .acnjxn import AcnjxnWrapper
-from .datacraft import DatacraftTool
-from .pdf_merge import PDFMergeTool
-from .transmit import TransmitTool
 from ..config.settings import Settings
+from .acnjxn import AcnjxnWrapper
+from .base import ToolWrapper
+from .datacraft import DatacraftTool
+from .gcp_draft import GCPDraftTool
+from .leads import LeadsTool
+from .mailcraft import MailcraftTool
+from .pdf_merge import PDFMergeTool
+from .taxlord import TaxlordTool
+from .transmit import TransmitTool
 
 # Import plugin system (optional, for graceful degradation)
 try:
-    from ..plugins import PluginManager, PluginConfig, PluginResult
+    from ..plugins import PluginConfig, PluginManager, PluginResult
+
     PLUGINS_AVAILABLE = True
 except ImportError:
     PLUGINS_AVAILABLE = False
@@ -44,13 +45,13 @@ class ToolRegistry:
 
     def __init__(
         self,
-        settings: Optional[Settings] = None,
+        settings: Settings | None = None,
         plugin_config: Optional["PluginConfig"] = None,
         enable_plugins: bool = True,
     ):
         self.wrappers: dict[str, ToolWrapper] = {}
         self._settings = settings
-        self._plugin_manager: Optional["PluginManager"] = None
+        self._plugin_manager: PluginManager | None = None
         self._plugins_enabled = enable_plugins and PLUGINS_AVAILABLE
 
         # Load legacy tools
@@ -87,9 +88,7 @@ class ToolRegistry:
         if self._plugin_manager is not None:
             try:
                 await self._plugin_manager.initialize()
-                logger.info(
-                    f"Plugin system initialized: {len(self._plugin_manager)} capabilities"
-                )
+                logger.info(f"Plugin system initialized: {len(self._plugin_manager)} capabilities")
             except Exception as e:
                 logger.error(f"Failed to initialize plugins: {e}")
 
@@ -189,7 +188,7 @@ class ToolRegistry:
             )
 
         # Acnjxn (Action Jackson)
-        acnjxn_bin = s.acnjxn_bin if hasattr(s, 'acnjxn_bin') else Path.home() / ".local" / "bin" / "acnjxn"
+        acnjxn_bin = s.acnjxn_bin if hasattr(s, "acnjxn_bin") else Path.home() / ".local" / "bin" / "acnjxn"
         acnjxn_venv = Path.home() / "projects" / "acnjxn" / ".venv" / "bin" / "acnjxn"
         if acnjxn_bin.exists():
             self.wrappers["acnjxn"] = AcnjxnWrapper(acnjxn_bin=acnjxn_bin)
@@ -223,7 +222,7 @@ class ToolRegistry:
                 timeout=120,
             )
 
-    def get_wrapper(self, name: str) -> Optional[ToolWrapper]:
+    def get_wrapper(self, name: str) -> ToolWrapper | None:
         """Get a tool wrapper by name."""
         return self.wrappers.get(name)
 
@@ -284,7 +283,7 @@ class ToolRegistry:
 
         return result
 
-    def get_tool_details(self, name: str) -> Optional[dict]:
+    def get_tool_details(self, name: str) -> dict | None:
         """Get detailed information about a tool."""
         wrapper = self.wrappers.get(name)
         if not wrapper:
@@ -304,7 +303,7 @@ class ToolRegistry:
             "commands": commands,
         }
 
-    def parse_tool_name(self, full_name: str) -> tuple[Optional[str], Optional[str]]:
+    def parse_tool_name(self, full_name: str) -> tuple[str | None, str | None]:
         """Parse a full tool name into wrapper/plugin name and command/capability.
 
         Example: "mailcraft_list" -> ("mailcraft", "list")
@@ -323,7 +322,7 @@ class ToolRegistry:
         # Check legacy wrappers
         for wrapper_name in self.wrappers:
             if full_name.startswith(f"{wrapper_name}_"):
-                command_part = full_name[len(wrapper_name) + 1:]
+                command_part = full_name[len(wrapper_name) + 1 :]
                 # Handle nested commands (elster_vat -> elster.vat)
                 wrapper = self.wrappers[wrapper_name]
                 commands = wrapper.get_commands()

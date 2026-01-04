@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .base import ToolWrapper
 
@@ -222,9 +222,7 @@ class DatacraftTool(ToolWrapper):
             },
         }
 
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse datacraft output into structured data."""
         clean = strip_ansi(stdout)
 
@@ -290,13 +288,15 @@ class DatacraftTool(ToolWrapper):
         # Pattern: #N XX% | type | filename followed by content
         pattern = r"#(\d+)\s+(\d+)%\s*\|\s*(\w+)\s*\|\s*([^\n]+)\n(.*?)(?=(?:#\d+|$))"
         for match in re.finditer(pattern, output, re.DOTALL):
-            results.append({
-                "rank": int(match.group(1)),
-                "score": int(match.group(2)) / 100,
-                "doc_type": match.group(3).strip(),
-                "filename": match.group(4).strip(),
-                "content_preview": match.group(5).strip()[:300],
-            })
+            results.append(
+                {
+                    "rank": int(match.group(1)),
+                    "score": int(match.group(2)) / 100,
+                    "doc_type": match.group(3).strip(),
+                    "filename": match.group(4).strip(),
+                    "content_preview": match.group(5).strip()[:300],
+                }
+            )
 
         return {
             "count": count,
@@ -360,19 +360,23 @@ class DatacraftTool(ToolWrapper):
             if in_entities:
                 match = re.match(entity_pattern, line.strip())
                 if match:
-                    entities.append({
-                        "id": match.group(1),
-                        "type": match.group(2),
-                        "value": match.group(3).strip(),
-                    })
+                    entities.append(
+                        {
+                            "id": match.group(1),
+                            "type": match.group(2),
+                            "value": match.group(3).strip(),
+                        }
+                    )
             elif in_relationships:
                 parts = line.strip().split()
                 if len(parts) >= 3:
-                    relationships.append({
-                        "from_id": parts[0],
-                        "relationship": parts[1],
-                        "to_id": parts[2],
-                    })
+                    relationships.append(
+                        {
+                            "from_id": parts[0],
+                            "relationship": parts[1],
+                            "to_id": parts[2],
+                        }
+                    )
 
         return {
             "entities": entities,
@@ -390,12 +394,14 @@ class DatacraftTool(ToolWrapper):
 
             parts = line.split()
             if len(parts) >= 4:
-                docs.append({
-                    "doc_id": parts[0],
-                    "doc_type": parts[1] if len(parts) > 1 else "unknown",
-                    "chunks": int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0,
-                    "filename": parts[3] if len(parts) > 3 else "",
-                })
+                docs.append(
+                    {
+                        "doc_id": parts[0],
+                        "doc_type": parts[1] if len(parts) > 1 else "unknown",
+                        "chunks": int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0,
+                        "filename": parts[3] if len(parts) > 3 else "",
+                    }
+                )
 
         return {
             "count": len(docs),

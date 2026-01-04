@@ -5,7 +5,6 @@ Provides file and directory operations with security controls.
 
 from __future__ import annotations
 
-import os
 import shutil
 import stat
 from datetime import datetime
@@ -14,13 +13,13 @@ from typing import Any
 
 from ..base import PluginBase, PluginResult
 from ..manifest import (
-    PluginManifest,
-    PluginMetadata,
     CapabilitySpec,
-    ParameterSpec,
-    ParameterType,
     ExecutionSpec,
     ExecutionType,
+    ParameterSpec,
+    ParameterType,
+    PluginManifest,
+    PluginMetadata,
     PythonExecutionSpec,
 )
 
@@ -303,10 +302,7 @@ class FilesystemPlugin(PluginBase):
             return True  # No restrictions
 
         resolved = path.resolve()
-        return any(
-            resolved == allowed or allowed in resolved.parents
-            for allowed in self._allowed_paths
-        )
+        return any(resolved == allowed or allowed in resolved.parents for allowed in self._allowed_paths)
 
     def _resolve_path(self, path_str: str) -> Path:
         """Resolve and expand a path string."""
@@ -515,21 +511,25 @@ class FilesystemPlugin(PluginBase):
 
             try:
                 stat_info = item.stat()
-                entries.append({
-                    "name": item.name,
-                    "path": str(item),
-                    "type": "directory" if item.is_dir() else "file",
-                    "size": stat_info.st_size if item.is_file() else None,
-                    "modified": datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
-                })
+                entries.append(
+                    {
+                        "name": item.name,
+                        "path": str(item),
+                        "type": "directory" if item.is_dir() else "file",
+                        "size": stat_info.st_size if item.is_file() else None,
+                        "modified": datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+                    }
+                )
             except (PermissionError, OSError):
                 # Skip files we can't access
-                entries.append({
-                    "name": item.name,
-                    "path": str(item),
-                    "type": "unknown",
-                    "error": "permission denied",
-                })
+                entries.append(
+                    {
+                        "name": item.name,
+                        "path": str(item),
+                        "type": "unknown",
+                        "error": "permission denied",
+                    }
+                )
 
         return PluginResult.success_result(
             data={

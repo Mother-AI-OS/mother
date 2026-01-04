@@ -2,10 +2,9 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Optional
 
-from .store import MemoryStore, Memory
 from .embeddings import EmbeddingGenerator
+from .store import Memory, MemoryStore
 
 logger = logging.getLogger("mother.memory")
 
@@ -22,7 +21,7 @@ class MemoryManager:
 
     def __init__(
         self,
-        openai_api_key: Optional[str] = None,
+        openai_api_key: str | None = None,
         embedding_model: str = "text-embedding-3-small",
     ):
         self.store = MemoryStore()
@@ -37,9 +36,9 @@ class MemoryManager:
         session_id: str,
         role: str,
         content: str,
-        tool_name: Optional[str] = None,
-        tool_args: Optional[dict] = None,
-        metadata: Optional[dict] = None,
+        tool_name: str | None = None,
+        tool_args: dict | None = None,
+        metadata: dict | None = None,
         generate_embedding: bool = True,
     ) -> int:
         """
@@ -87,7 +86,7 @@ class MemoryManager:
         self,
         session_id: str,
         content: str,
-        tool_calls: Optional[list[dict]] = None,
+        tool_calls: list[dict] | None = None,
     ) -> int:
         """Store assistant response."""
         metadata = {"tool_calls": tool_calls} if tool_calls else None
@@ -117,7 +116,7 @@ class MemoryManager:
         query: str,
         limit: int = 5,
         min_similarity: float = 0.6,
-        exclude_session: Optional[str] = None,
+        exclude_session: str | None = None,
     ) -> list[dict]:
         """
         Recall relevant memories based on semantic similarity.
@@ -194,9 +193,7 @@ class MemoryManager:
                 timestamp = mem["timestamp"][:10]  # Just date
                 similarity = mem["similarity"]
 
-                context_parts.append(
-                    f"\n### Memory {i} (relevance: {similarity:.0%}, from {timestamp})"
-                )
+                context_parts.append(f"\n### Memory {i} (relevance: {similarity:.0%}, from {timestamp})")
                 context_parts.append(f"**{role.title()}**: {content}")
 
         # Optionally include recent memories for continuity
@@ -215,7 +212,7 @@ class MemoryManager:
 
         return ""
 
-    def get_session_summary(self, session_id: str) -> Optional[str]:
+    def get_session_summary(self, session_id: str) -> str | None:
         """Get a summary of a past session."""
         memories = self.store.get_session_history(session_id)
 

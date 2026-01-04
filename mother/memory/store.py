@@ -5,7 +5,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+
 import numpy as np
 
 
@@ -13,15 +13,15 @@ import numpy as np
 class Memory:
     """A single memory/observation."""
 
-    id: Optional[int]
+    id: int | None
     timestamp: datetime
     session_id: str
     role: str  # 'user', 'assistant', 'tool_result'
     content: str
-    embedding: Optional[list[float]]
-    tool_name: Optional[str] = None
-    tool_args: Optional[dict] = None
-    metadata: Optional[dict] = None
+    embedding: list[float] | None
+    tool_name: str | None = None
+    tool_args: dict | None = None
+    metadata: dict | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -39,7 +39,7 @@ class Memory:
 class MemoryStore:
     """SQLite-based memory store with vector search capabilities."""
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Path | None = None):
         if db_path is None:
             db_path = Path.home() / ".local" / "share" / "mother" / "memory.db"
 
@@ -100,26 +100,23 @@ class MemoryStore:
                     memory.tool_name,
                     json.dumps(memory.tool_args) if memory.tool_args else None,
                     json.dumps(memory.metadata) if memory.metadata else None,
-                )
+                ),
             )
             conn.commit()
             return cursor.lastrowid
 
-    def get(self, memory_id: int) -> Optional[Memory]:
+    def get(self, memory_id: int) -> Memory | None:
         """Get a specific memory by ID."""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
-            cursor = conn.execute(
-                "SELECT * FROM memories WHERE id = ?",
-                (memory_id,)
-            )
+            cursor = conn.execute("SELECT * FROM memories WHERE id = ?", (memory_id,))
             row = cursor.fetchone()
 
             if row:
                 return self._row_to_memory(row)
         return None
 
-    def get_recent(self, limit: int = 20, session_id: Optional[str] = None) -> list[Memory]:
+    def get_recent(self, limit: int = 20, session_id: str | None = None) -> list[Memory]:
         """Get recent memories, optionally filtered by session."""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
@@ -132,7 +129,7 @@ class MemoryStore:
                     ORDER BY timestamp DESC
                     LIMIT ?
                     """,
-                    (session_id, limit)
+                    (session_id, limit),
                 )
             else:
                 cursor = conn.execute(
@@ -141,7 +138,7 @@ class MemoryStore:
                     ORDER BY timestamp DESC
                     LIMIT ?
                     """,
-                    (limit,)
+                    (limit,),
                 )
 
             return [self._row_to_memory(row) for row in cursor.fetchall()]
@@ -151,7 +148,7 @@ class MemoryStore:
         query_embedding: list[float],
         limit: int = 10,
         min_similarity: float = 0.5,
-        exclude_session: Optional[str] = None,
+        exclude_session: str | None = None,
     ) -> list[tuple[Memory, float]]:
         """
         Search memories by semantic similarity.
@@ -171,7 +168,7 @@ class MemoryStore:
                     ORDER BY timestamp DESC
                     LIMIT 1000
                     """,
-                    (exclude_session,)
+                    (exclude_session,),
                 )
             else:
                 cursor = conn.execute(
@@ -214,7 +211,7 @@ class MemoryStore:
                 ORDER BY timestamp DESC
                 LIMIT ?
                 """,
-                (f"%{query}%", limit)
+                (f"%{query}%", limit),
             )
 
             return [self._row_to_memory(row) for row in cursor.fetchall()]
@@ -229,7 +226,7 @@ class MemoryStore:
                 WHERE session_id = ?
                 ORDER BY timestamp ASC
                 """,
-                (session_id,)
+                (session_id,),
             )
 
             return [self._row_to_memory(row) for row in cursor.fetchall()]
@@ -243,9 +240,7 @@ class MemoryStore:
             cursor = conn.execute("SELECT COUNT(DISTINCT session_id) FROM memories")
             sessions = cursor.fetchone()[0]
 
-            cursor = conn.execute(
-                "SELECT COUNT(*) FROM memories WHERE embedding IS NOT NULL"
-            )
+            cursor = conn.execute("SELECT COUNT(*) FROM memories WHERE embedding IS NOT NULL")
             with_embeddings = cursor.fetchone()[0]
 
             return {
@@ -254,13 +249,13 @@ class MemoryStore:
                 "memories_with_embeddings": with_embeddings,
             }
 
-    def _serialize_embedding(self, embedding: Optional[list[float]]) -> Optional[bytes]:
+    def _serialize_embedding(self, embedding: list[float] | None) -> bytes | None:
         """Serialize embedding to bytes for storage."""
         if embedding is None:
             return None
         return np.array(embedding, dtype=np.float32).tobytes()
 
-    def _deserialize_embedding(self, data: Optional[bytes]) -> Optional[list[float]]:
+    def _deserialize_embedding(self, data: bytes | None) -> list[float] | None:
         """Deserialize embedding from bytes."""
         if data is None:
             return None

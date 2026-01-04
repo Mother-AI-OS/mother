@@ -4,9 +4,8 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
 
-from ..plugins import PluginManager, PluginConfig, PluginInfo
+from ..plugins import PluginConfig, PluginInfo, PluginManager
 
 
 def _get_plugin_manager() -> PluginManager:
@@ -23,8 +22,8 @@ def _format_plugin_row(name: str, info: PluginInfo, loaded: bool = False) -> str
     status = "loaded" if loaded else ("ready" if info.loaded else "error")
     status_icon = {
         "loaded": "\033[32m●\033[0m",  # Green
-        "ready": "\033[33m○\033[0m",   # Yellow
-        "error": "\033[31m✗\033[0m",   # Red
+        "ready": "\033[33m○\033[0m",  # Yellow
+        "error": "\033[31m✗\033[0m",  # Red
     }.get(status, "?")
 
     caps = len(info.capabilities)
@@ -36,7 +35,7 @@ def _format_plugin_row(name: str, info: PluginInfo, loaded: bool = False) -> str
 def _print_table_header():
     """Print table header for plugin list."""
     print(f"  {'S':<1} {'Name':<20} {'Version':<10} {'Capabilities':>14}")
-    print(f"  {'-'*1} {'-'*20} {'-'*10} {'-'*14}")
+    print(f"  {'-' * 1} {'-' * 20} {'-' * 10} {'-' * 14}")
 
 
 async def plugin_list(show_all: bool = False, json_output: bool = False) -> int:
@@ -162,28 +161,30 @@ async def plugin_info(name: str, json_output: bool = False) -> int:
         for cap_name in capabilities:
             entry = manager.get_capability(cap_name)
             if entry:
-                output["capabilities"].append({
-                    "name": entry.capability_name,
-                    "full_name": cap_name,
-                    "description": entry.spec.description,
-                    "confirmation_required": entry.confirmation_required,
-                    "parameters": [
-                        {
-                            "name": p.name,
-                            "type": p.type.value if hasattr(p.type, 'value') else str(p.type),
-                            "required": p.required,
-                            "description": p.description,
-                        }
-                        for p in entry.spec.parameters
-                    ],
-                })
+                output["capabilities"].append(
+                    {
+                        "name": entry.capability_name,
+                        "full_name": cap_name,
+                        "description": entry.spec.description,
+                        "confirmation_required": entry.confirmation_required,
+                        "parameters": [
+                            {
+                                "name": p.name,
+                                "type": p.type.value if hasattr(p.type, "value") else str(p.type),
+                                "required": p.required,
+                                "description": p.description,
+                            }
+                            for p in entry.spec.parameters
+                        ],
+                    }
+                )
 
         print(json.dumps(output, indent=2))
     else:
         # Text output
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Plugin: {name}")
-        print(f"{'='*50}")
+        print(f"{'=' * 50}")
         print(f"  Version:     {info.version or '-'}")
         print(f"  Description: {info.description or '-'}")
         print(f"  Author:      {info.author or '-'}")
@@ -243,7 +244,7 @@ async def plugin_enable(name: str) -> int:
             json.dump(config, f, indent=2)
 
         print(f"Plugin '{name}' enabled.")
-        print(f"Restart the server for changes to take effect.")
+        print("Restart the server for changes to take effect.")
     else:
         print(f"Plugin '{name}' is already enabled.")
 
@@ -288,7 +289,7 @@ async def plugin_disable(name: str) -> int:
             json.dump(config, f, indent=2)
 
         print(f"Plugin '{name}' disabled.")
-        print(f"Restart the server for changes to take effect.")
+        print("Restart the server for changes to take effect.")
     else:
         print(f"Plugin '{name}' is already disabled.")
 
@@ -296,7 +297,7 @@ async def plugin_disable(name: str) -> int:
 
 
 async def plugin_capabilities(
-    name: Optional[str] = None,
+    name: str | None = None,
     json_output: bool = False,
 ) -> int:
     """List capabilities of a plugin or all plugins.
@@ -332,13 +333,15 @@ async def plugin_capabilities(
         for cap_name in capabilities:
             entry = manager.get_capability(cap_name)
             if entry:
-                output["capabilities"].append({
-                    "name": cap_name,
-                    "plugin": entry.plugin_name,
-                    "capability": entry.capability_name,
-                    "description": entry.spec.description,
-                    "confirmation_required": entry.confirmation_required,
-                })
+                output["capabilities"].append(
+                    {
+                        "name": cap_name,
+                        "plugin": entry.plugin_name,
+                        "capability": entry.capability_name,
+                        "description": entry.spec.description,
+                        "confirmation_required": entry.confirmation_required,
+                    }
+                )
         print(json.dumps(output, indent=2))
     else:
         # Group by plugin
@@ -467,8 +470,8 @@ async def plugin_search(query: str = "mother-plugin") -> int:
     Returns:
         Exit code (0 for success)
     """
-    import urllib.request
     import urllib.error
+    import urllib.request
 
     print(f"\nSearching PyPI for: {query}")
     print("-" * 50)

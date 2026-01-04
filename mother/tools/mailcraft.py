@@ -1,16 +1,16 @@
 """Mailcraft CLI tool wrapper."""
 
 import re
-from typing import Any, Optional
+from typing import Any
 
-from .base import ToolWrapper, ToolResult
 from ..parsers.output import OutputParser, strip_ansi
+from .base import ToolWrapper
 
 
 class MailcraftTool(ToolWrapper):
     """Wrapper for mailcraft CLI - email management."""
 
-    def __init__(self, binary: str, password: Optional[str] = None, timeout: int = 300):
+    def __init__(self, binary: str, password: str | None = None, timeout: int = 300):
         env_vars = {}
         if password:
             env_vars["MAILCRAFT_PASSWORD"] = password
@@ -344,9 +344,7 @@ class MailcraftTool(ToolWrapper):
             },
         }
 
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse mailcraft output into structured data."""
         if command == "list":
             return self._parse_email_list(stdout)
@@ -428,7 +426,7 @@ class MailcraftTool(ToolWrapper):
 
         for line in clean.split("\n"):
             line = line.strip()
-            if line and not line.startswith("-") and not "folder" in line.lower():
+            if line and not line.startswith("-") and "folder" not in line.lower():
                 folders.append(line)
 
         return {"folders": folders}

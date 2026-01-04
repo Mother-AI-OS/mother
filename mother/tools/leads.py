@@ -1,10 +1,10 @@
 """LeadEngine CLI tool wrapper."""
 
 import re
-from typing import Any, Optional
+from typing import Any
 
-from .base import ToolWrapper
 from ..parsers.output import OutputParser, strip_ansi
+from .base import ToolWrapper
 
 
 class LeadsTool(ToolWrapper):
@@ -127,9 +127,7 @@ class LeadsTool(ToolWrapper):
             },
         }
 
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse leads output into structured data."""
         if command == "list":
             return self._parse_leads_list(stdout)
@@ -236,7 +234,11 @@ class LeadsTool(ToolWrapper):
         result["documents_processed"] = doc_count
 
         # Extract AI summary if present
-        summary_match = re.search(r"(?:Summary|Analysis)[:\s]+(.+?)(?=\n\n|Recommendations?|\Z)", clean, re.DOTALL | re.IGNORECASE)
+        summary_match = re.search(
+            r"(?:Summary|Analysis)[:\s]+(.+?)(?=\n\n|Recommendations?|\Z)",
+            clean,
+            re.DOTALL | re.IGNORECASE,
+        )
         if summary_match:
             result["summary"] = summary_match.group(1).strip()
 
@@ -257,5 +259,6 @@ class LeadsTool(ToolWrapper):
             "cache_leads": summary.get("leads", 0),
             "last_fetch": details.get("Last fetch", details.get("Last Fetch", "")),
             "upwork_configured": "upwork" in strip_ansi(output).lower(),
-            "tenders_configured": "tenders" in strip_ansi(output).lower() or "it-ausschreibung" in strip_ansi(output).lower(),
+            "tenders_configured": "tenders" in strip_ansi(output).lower()
+            or "it-ausschreibung" in strip_ansi(output).lower(),
         }

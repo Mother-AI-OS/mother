@@ -1,12 +1,11 @@
 """Status CLI command."""
 
 import json
-from pathlib import Path
 
-from ..plugins import PluginManager, PluginConfig
-from ..tools.registry import ToolRegistry
-from ..config.settings import get_settings
 from .. import __version__
+from ..config.settings import get_settings
+from ..plugins import PluginConfig, PluginManager
+from ..tools.registry import ToolRegistry
 
 
 async def show_status(json_output: bool = False) -> int:
@@ -45,16 +44,18 @@ async def show_status(json_output: bool = False) -> int:
     if json_output:
         print(json.dumps(status, indent=2))
     else:
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Mother AI OS v{__version__}")
-        print(f"{'='*50}")
+        print(f"{'=' * 50}")
         print()
         print("Configuration:")
         print(f"  Model:    {status['model']}")
         print(f"  Server:   {status['api_host']}:{status['api_port']}")
         print()
         print("Tools:")
-        print(f"  Legacy:   {status['legacy_tools']} ({', '.join(status['legacy_tools_list'][:5])}{'...' if len(status['legacy_tools_list']) > 5 else ''})")
+        print(
+            f"  Legacy:   {status['legacy_tools']} ({', '.join(status['legacy_tools_list'][:5])}{'...' if len(status['legacy_tools_list']) > 5 else ''})"
+        )
         print(f"  Plugins:  {status['plugins']} ({', '.join(status['plugins_list'])})")
         print(f"  Total capabilities: {status['plugin_capabilities']}")
         print()

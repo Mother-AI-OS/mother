@@ -2,8 +2,7 @@
 
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
-
+from typing import Any
 
 # ANSI escape code pattern
 ANSI_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
@@ -23,7 +22,7 @@ class TableParseResult:
 
     headers: list[str]
     rows: list[dict[str, Any]]
-    title: Optional[str] = None
+    title: str | None = None
 
 
 class OutputParser:
@@ -39,14 +38,14 @@ class OutputParser:
             return False
         return all(c in horiz_chars for c in non_space)
 
-    def get_cell_separator(self, line: str) -> Optional[str]:
+    def get_cell_separator(self, line: str) -> str | None:
         """Find the cell separator character in a line."""
         for sep in ["┃", "│", "║"]:
             if sep in line:
                 return sep
         return None
 
-    def parse_table(self, output: str) -> Optional[TableParseResult]:
+    def parse_table(self, output: str) -> TableParseResult | None:
         """Parse Rich table output into structured data."""
         lines = output.split("\n")
 
@@ -91,7 +90,7 @@ class OutputParser:
                 # Split by separator and clean up
                 cells = [c.strip() for c in clean.split(sep_char)]
                 # Remove empty edge cells
-                cells = [c for c in cells if c or cells.index(c) not in [0, len(cells)-1]]
+                cells = [c for c in cells if c or cells.index(c) not in [0, len(cells) - 1]]
                 cells = [c.strip() for c in cells]
 
                 if not header_found:
@@ -134,11 +133,9 @@ class OutputParser:
         lines = clean.split("\n")
 
         # Find account/folder header
-        account_folder = None
         for line in lines:
             line = line.strip()
             if "@" in line and ("INBOX" in line or "Sent" in line or "Drafts" in line):
-                account_folder = line
                 break
 
         # Look for table rows - mailcraft uses ┃ or │

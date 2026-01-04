@@ -1,12 +1,11 @@
 """Action Jackson (acnjxn) tool wrapper for Mother agent."""
 
-import json
 import os
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
-from .base import ToolWrapper, ToolResult
+from .base import ToolResult, ToolWrapper
 
 
 class AcnjxnWrapper(ToolWrapper):
@@ -18,7 +17,7 @@ class AcnjxnWrapper(ToolWrapper):
     - Life context-aware scheduling
     """
 
-    def __init__(self, acnjxn_bin: Optional[Path] = None):
+    def __init__(self, acnjxn_bin: Path | None = None):
         """Initialize acnjxn wrapper."""
         self.acnjxn_bin = acnjxn_bin or Path.home() / ".local" / "bin" / "acnjxn"
 
@@ -46,7 +45,7 @@ Key capabilities:
 - Add and manage tasks with rich context
 - Provide AI-powered advice on task management"""
 
-    def get_commands(self) -> Dict[str, Dict[str, Any]]:
+    def get_commands(self) -> dict[str, dict[str, Any]]:
         """Return available commands with their schemas."""
         return {
             "focus": {
@@ -250,7 +249,7 @@ Key capabilities:
             },
         }
 
-    def build_command(self, command: str, args: Dict[str, Any]) -> list:
+    def build_command(self, command: str, args: dict[str, Any]) -> list:
         """Build CLI command from arguments."""
         cmd = [str(self.acnjxn_bin), command]
 
@@ -334,7 +333,7 @@ Key capabilities:
 
         return cmd
 
-    def execute(self, command: str, args: Dict[str, Any]) -> ToolResult:
+    def execute(self, command: str, args: dict[str, Any]) -> ToolResult:
         """Execute an acnjxn command."""
         import time
 
@@ -391,11 +390,11 @@ Key capabilities:
                 execution_time=time.time() - start_time,
             )
 
-    def parse_output(self, command: str, output: str) -> Optional[Dict[str, Any]]:
+    def parse_output(self, command: str, output: str) -> dict[str, Any] | None:
         """Parse command output into structured data."""
         from ..parsers.output import OutputParser, strip_ansi
 
-        parser = OutputParser()
+        OutputParser()
 
         # Strip ANSI codes
         clean_output = strip_ansi(output)
@@ -413,7 +412,7 @@ Key capabilities:
         else:
             return {"raw": clean_output}
 
-    def _parse_focus_output(self, output: str) -> Dict[str, Any]:
+    def _parse_focus_output(self, output: str) -> dict[str, Any]:
         """Parse focus command output."""
         result = {
             "has_task": False,
@@ -460,7 +459,7 @@ Key capabilities:
 
         return result
 
-    def _parse_top_output(self, output: str) -> Dict[str, Any]:
+    def _parse_top_output(self, output: str) -> dict[str, Any]:
         """Parse top priorities output."""
         tasks = []
         lines = output.strip().split("\n")
@@ -472,7 +471,7 @@ Key capabilities:
 
         return {"tasks": tasks, "count": len(tasks)}
 
-    def _parse_status_output(self, output: str) -> Dict[str, Any]:
+    def _parse_status_output(self, output: str) -> dict[str, Any]:
         """Parse status output."""
         result = {}
         lines = output.strip().split("\n")
@@ -496,7 +495,7 @@ Key capabilities:
 
         return result
 
-    def _parse_conflict_output(self, output: str) -> Dict[str, Any]:
+    def _parse_conflict_output(self, output: str) -> dict[str, Any]:
         """Parse conflict check output."""
         result = {
             "has_conflicts": False,
@@ -531,7 +530,7 @@ Key capabilities:
 
         return result
 
-    def _parse_weigh_output(self, output: str) -> Dict[str, Any]:
+    def _parse_weigh_output(self, output: str) -> dict[str, Any]:
         """Parse weigh command output."""
         import re
 
@@ -550,11 +549,11 @@ Key capabilities:
 
             if "VALUE SCORE" in line_clean.upper():
                 # Extract score from line like "VALUE SCORE    ██████████ 75/100"
-                match = re.search(r'(\d+)/100', line_clean)
+                match = re.search(r"(\d+)/100", line_clean)
                 if match:
                     result["value_score"] = int(match.group(1))
             elif "VISION SCORE" in line_clean.upper():
-                match = re.search(r'(\d+)/100', line_clean)
+                match = re.search(r"(\d+)/100", line_clean)
                 if match:
                     result["vision_score"] = int(match.group(1))
             elif any(v in line_clean.upper() for v in ["PROCEED", "CAUTION", "DEFER", "SKIP"]):

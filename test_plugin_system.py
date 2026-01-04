@@ -9,9 +9,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from mother.plugins import (
-    PluginManager,
     PluginConfig,
-    PluginResult,
+    PluginManager,
     ResultStatus,
 )
 
@@ -75,20 +74,26 @@ async def test_plugin_system():
 
     # Test calculate
     print("\n   [demo_calculate]")
-    result = await manager.execute("demo_calculate", {
-        "operation": "multiply",
-        "a": 7,
-        "b": 6,
-    })
+    result = await manager.execute(
+        "demo_calculate",
+        {
+            "operation": "multiply",
+            "a": 7,
+            "b": 6,
+        },
+    )
     print(f"   Success: {result.success}")
     print(f"   Data: {result.data}")
 
     # Test echo
     print("\n   [demo_echo]")
-    result = await manager.execute("demo_echo", {
-        "message": "Hello Plugin System!",
-        "uppercase": True,
-    })
+    result = await manager.execute(
+        "demo_echo",
+        {
+            "message": "Hello Plugin System!",
+            "uppercase": True,
+        },
+    )
     print(f"   Success: {result.success}")
     print(f"   Data: {result.data}")
 

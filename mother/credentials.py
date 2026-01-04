@@ -2,11 +2,9 @@
 """Mother Credentials Manager - Centralized credential management."""
 
 import os
-import sys
 import re
+import sys
 from pathlib import Path
-from typing import Optional
-
 
 CREDENTIALS_FILE = Path.home() / ".config" / "mother" / "credentials.env"
 
@@ -33,7 +31,7 @@ def read_credentials() -> dict[str, str]:
     ensure_file_exists()
     credentials = {}
     if CREDENTIALS_FILE.exists():
-        with open(CREDENTIALS_FILE, "r") as f:
+        with open(CREDENTIALS_FILE) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
@@ -66,9 +64,9 @@ def write_credentials(credentials: dict[str, str]):
                         break
 
             if category_items:
-                f.write(f"# ============================================================\n")
+                f.write("# ============================================================\n")
                 f.write(f"# {category}\n")
-                f.write(f"# ============================================================\n")
+                f.write("# ============================================================\n")
                 for key, value in sorted(category_items):
                     f.write(f"{key}={value}\n")
                 f.write("\n")
@@ -112,7 +110,7 @@ def list_credentials(show_values: bool = False):
     print(f"File: {CREDENTIALS_FILE}")
 
 
-def get_credential(key: str) -> Optional[str]:
+def get_credential(key: str) -> str | None:
     """Get a specific credential."""
     credentials = read_credentials()
     return credentials.get(key)

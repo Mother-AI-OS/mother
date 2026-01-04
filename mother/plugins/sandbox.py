@@ -18,11 +18,9 @@ from __future__ import annotations
 import fnmatch
 import logging
 import os
-import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any
 
 from .exceptions import PermissionError
 
@@ -64,7 +62,7 @@ class Permission:
     granted: bool = True
 
     @classmethod
-    def parse(cls, permission_str: str) -> "Permission":
+    def parse(cls, permission_str: str) -> Permission:
         """Parse a permission string.
 
         Examples:
@@ -81,7 +79,7 @@ class Permission:
         else:
             return cls(type=f"{parts[0]}:{parts[1]}", scope=parts[2])
 
-    def matches(self, required: "Permission") -> bool:
+    def matches(self, required: Permission) -> bool:
         """Check if this permission satisfies a required permission.
 
         Args:
@@ -188,7 +186,7 @@ class PluginSandbox:
         cls,
         plugin_name: str,
         permissions: list[str],
-    ) -> "PluginSandbox":
+    ) -> PluginSandbox:
         """Create a sandbox from manifest permission strings.
 
         Args:
@@ -221,16 +219,12 @@ class PluginSandbox:
             if granted.matches(required):
                 if self.audit_enabled:
                     logger.debug(
-                        f"[{self.plugin_name}] Permission granted: {action}"
-                        + (f" on {target}" if target else "")
+                        f"[{self.plugin_name}] Permission granted: {action}" + (f" on {target}" if target else "")
                     )
                 return True
 
         if self.audit_enabled:
-            logger.warning(
-                f"[{self.plugin_name}] Permission denied: {action}"
-                + (f" on {target}" if target else "")
-            )
+            logger.warning(f"[{self.plugin_name}] Permission denied: {action}" + (f" on {target}" if target else ""))
 
         return False
 

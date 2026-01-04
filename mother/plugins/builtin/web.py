@@ -5,7 +5,6 @@ Provides HTTP requests and web content fetching.
 
 from __future__ import annotations
 
-import asyncio
 import re
 from pathlib import Path
 from typing import Any
@@ -15,16 +14,15 @@ import httpx
 
 from ..base import PluginBase, PluginResult
 from ..manifest import (
-    PluginManifest,
-    PluginMetadata,
     CapabilitySpec,
-    ParameterSpec,
-    ParameterType,
     ExecutionSpec,
     ExecutionType,
+    ParameterSpec,
+    ParameterType,
+    PluginManifest,
+    PluginMetadata,
     PythonExecutionSpec,
 )
-
 
 # Default user agent
 DEFAULT_USER_AGENT = "Mother-AI/1.0 (https://github.com/Mother-AI-OS/mother)"
@@ -343,12 +341,8 @@ class WebPlugin(PluginBase):
         super().__init__(_create_manifest(), config)
 
         # Configuration
-        self._user_agent = (
-            config.get("user_agent", DEFAULT_USER_AGENT) if config else DEFAULT_USER_AGENT
-        )
-        self._max_response_size = (
-            config.get("max_response_size", MAX_RESPONSE_SIZE) if config else MAX_RESPONSE_SIZE
-        )
+        self._user_agent = config.get("user_agent", DEFAULT_USER_AGENT) if config else DEFAULT_USER_AGENT
+        self._max_response_size = config.get("max_response_size", MAX_RESPONSE_SIZE) if config else MAX_RESPONSE_SIZE
 
         # Security: blocked domains
         self._blocked_domains: list[str] = []

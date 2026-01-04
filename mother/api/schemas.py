@@ -1,6 +1,7 @@
 """Pydantic schemas for API requests and responses."""
 
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -8,12 +9,8 @@ class CommandRequest(BaseModel):
     """Request to execute a natural language command."""
 
     command: str = Field(..., description="Natural language command to execute")
-    session_id: Optional[str] = Field(
-        None, description="Session ID for context continuity"
-    )
-    pre_confirmed: bool = Field(
-        False, description="Pre-confirm destructive actions (use with caution)"
-    )
+    session_id: str | None = Field(None, description="Session ID for context continuity")
+    pre_confirmed: bool = Field(False, description="Pre-confirm destructive actions (use with caution)")
 
 
 class ConfirmRequest(BaseModel):
@@ -46,10 +43,10 @@ class ErrorResponse(BaseModel):
 
     category: str
     message: str
-    tool_name: Optional[str] = None
-    command: Optional[str] = None
+    tool_name: str | None = None
+    command: str | None = None
     recoverable: bool = True
-    suggestion: Optional[str] = None
+    suggestion: str | None = None
 
 
 class CommandResponse(BaseModel):
@@ -59,7 +56,7 @@ class CommandResponse(BaseModel):
     response: str
     session_id: str
     tool_calls: list[ToolCall] = Field(default_factory=list)
-    pending_confirmation: Optional[PendingConfirmationResponse] = None
+    pending_confirmation: PendingConfirmationResponse | None = None
     errors: list[ErrorResponse] = Field(default_factory=list)
 
 
@@ -97,7 +94,7 @@ class ToolExecuteResponse(BaseModel):
     success: bool
     exit_code: int
     output: Any
-    error: Optional[str] = None
+    error: str | None = None
     execution_time: float
 
 
@@ -108,7 +105,7 @@ class StatusResponse(BaseModel):
     version: str
     available_tools: int
     model: str
-    memory_stats: Optional[dict] = None
+    memory_stats: dict | None = None
 
 
 class MemorySearchRequest(BaseModel):
@@ -124,7 +121,7 @@ class MemoryItem(BaseModel):
     content: str
     role: str
     timestamp: str
-    similarity: Optional[float] = None
+    similarity: float | None = None
 
 
 class MemorySearchResponse(BaseModel):
@@ -143,6 +140,7 @@ class MemoryStatsResponse(BaseModel):
 
 
 # Planning mode schemas
+
 
 class PlanStepResponse(BaseModel):
     """A single step in an execution plan."""
@@ -170,9 +168,7 @@ class PlanCommandRequest(BaseModel):
     """Request to create or execute a plan."""
 
     command: str = Field(..., description="Natural language command to plan")
-    session_id: Optional[str] = Field(
-        None, description="Session ID for context continuity"
-    )
+    session_id: str | None = Field(None, description="Session ID for context continuity")
 
 
 class PlanCommandResponse(BaseModel):
@@ -181,7 +177,7 @@ class PlanCommandResponse(BaseModel):
     success: bool
     response: str
     session_id: str
-    plan: Optional[PlanResponse] = None
+    plan: PlanResponse | None = None
     tool_calls: list[ToolCall] = Field(default_factory=list)
     errors: list[ErrorResponse] = Field(default_factory=list)
 

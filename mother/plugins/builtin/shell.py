@@ -6,23 +6,22 @@ Provides shell command execution with security controls.
 from __future__ import annotations
 
 import asyncio
+import getpass
 import os
 import shutil
-import subprocess
 import socket
-import getpass
 from pathlib import Path
 from typing import Any
 
 from ..base import PluginBase, PluginResult
 from ..manifest import (
-    PluginManifest,
-    PluginMetadata,
     CapabilitySpec,
-    ParameterSpec,
-    ParameterType,
     ExecutionSpec,
     ExecutionType,
+    ParameterSpec,
+    ParameterType,
+    PluginManifest,
+    PluginMetadata,
     PythonExecutionSpec,
 )
 
@@ -261,10 +260,7 @@ class ShellPlugin(PluginBase):
             return True
 
         cwd_path = Path(cwd).resolve()
-        return any(
-            cwd_path == allowed or allowed in cwd_path.parents
-            for allowed in self._allowed_cwd
-        )
+        return any(cwd_path == allowed or allowed in cwd_path.parents for allowed in self._allowed_cwd)
 
     async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
         """Execute a shell capability."""
@@ -335,7 +331,7 @@ class ShellPlugin(PluginBase):
                     process.communicate(),
                     timeout=timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 await process.wait()
                 return PluginResult.timeout_result(timeout)
@@ -397,7 +393,7 @@ class ShellPlugin(PluginBase):
                     process.communicate(),
                     timeout=timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 await process.wait()
                 return PluginResult.timeout_result(timeout)

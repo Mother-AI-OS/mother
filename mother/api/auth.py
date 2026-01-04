@@ -1,19 +1,17 @@
 """API key authentication middleware."""
 
-from typing import Optional
 from fastapi import HTTPException, Security, status
 from fastapi.security import APIKeyHeader
 
 from ..config.settings import get_settings
-
 
 # API key header
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 async def verify_api_key(
-    api_key: Optional[str] = Security(api_key_header),
-) -> Optional[str]:
+    api_key: str | None = Security(api_key_header),
+) -> str | None:
     """Verify the API key from header.
 
     Returns the API key if valid, raises HTTPException if invalid.
@@ -43,7 +41,7 @@ async def verify_api_key(
 
 
 def optional_api_key(
-    api_key: Optional[str] = Security(api_key_header),
-) -> Optional[str]:
+    api_key: str | None = Security(api_key_header),
+) -> str | None:
     """Optional API key - doesn't raise if missing."""
     return api_key
