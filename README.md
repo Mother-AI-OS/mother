@@ -2,6 +2,7 @@
 
 An extensible AI agent operating system that orchestrates CLI tools via natural language.
 
+[![CI](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml/badge.svg)](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/mother-ai-os.svg)](https://badge.fury.io/py/mother-ai-os)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
