@@ -1,9 +1,8 @@
 """Tests for PluginResult and PluginInfo classes."""
 
-import pytest
 from datetime import datetime
 
-from mother.plugins.base import PluginResult, PluginInfo, ResultStatus
+from mother.plugins.base import PluginInfo, PluginResult, ResultStatus
 
 
 class TestPluginResult:
@@ -73,10 +72,7 @@ class TestPluginResult:
 
     def test_pending_confirmation(self) -> None:
         """Test pending confirmation result."""
-        result = PluginResult.pending_confirmation(
-            action_description="Delete all files",
-            params={"path": "/tmp/test"}
-        )
+        result = PluginResult.pending_confirmation(action_description="Delete all files", params={"path": "/tmp/test"})
         assert result.success is True
         assert result.status == ResultStatus.PENDING_CONFIRMATION
         assert result.data["action"] == "Delete all files"
@@ -85,9 +81,7 @@ class TestPluginResult:
     def test_pending_confirmation_with_metadata(self) -> None:
         """Test pending confirmation with extra metadata."""
         result = PluginResult.pending_confirmation(
-            action_description="Send email",
-            params={"to": "test@example.com"},
-            severity="high"
+            action_description="Send email", params={"to": "test@example.com"}, severity="high"
         )
         assert result.metadata["severity"] == "high"
 
@@ -99,11 +93,7 @@ class TestPluginResult:
 
     def test_to_dict(self) -> None:
         """Test serialization to dictionary."""
-        result = PluginResult.success_result(
-            data={"key": "value"},
-            raw_output="output",
-            execution_time=1.0
-        )
+        result = PluginResult.success_result(data={"key": "value"}, raw_output="output", execution_time=1.0)
         d = result.to_dict()
         assert d["success"] is True
         assert d["status"] == "success"
@@ -126,10 +116,7 @@ class TestPluginResult:
 
     def test_str_representation_pending(self) -> None:
         """Test pending confirmation string representation."""
-        result = PluginResult.pending_confirmation(
-            action_description="Delete files",
-            params={}
-        )
+        result = PluginResult.pending_confirmation(action_description="Delete files", params={})
         s = str(result)
         assert "PENDING" in s
 
@@ -145,7 +132,7 @@ class TestPluginInfo:
             description="A test plugin",
             author="Test Author",
             source="builtin",
-            capabilities=["read", "write"]
+            capabilities=["read", "write"],
         )
         assert info.name == "test-plugin"
         assert info.version == "1.0.0"
@@ -165,17 +152,13 @@ class TestPluginInfo:
             author="Author",
             source="entry_point",
             capabilities=[],
-            loaded=True
+            loaded=True,
         )
         assert info.loaded is True
 
     def test_plugin_info_failed(self) -> None:
         """Test creating failed plugin info."""
-        info = PluginInfo.failed(
-            name="broken-plugin",
-            source="user",
-            error="Module not found"
-        )
+        info = PluginInfo.failed(name="broken-plugin", source="user", error="Module not found")
         assert info.name == "broken-plugin"
         assert info.source == "user"
         assert info.error == "Module not found"
