@@ -2,12 +2,12 @@
 
 import pytest
 
+from mother.plugins.exceptions import PermissionError
 from mother.plugins.sandbox import (
     Permission,
     PluginSandbox,
     SandboxManager,
 )
-from mother.plugins.exceptions import PermissionError
 
 
 class TestPermission:
@@ -67,16 +67,13 @@ class TestPluginSandbox:
             granted_permissions=[
                 Permission(type="network"),
                 Permission(type="filesystem:read"),
-            ]
+            ],
         )
         assert len(sandbox.granted_permissions) == 2
 
     def test_check_permission_granted(self) -> None:
         """Test checking granted permission."""
-        sandbox = PluginSandbox(
-            plugin_name="test-plugin",
-            granted_permissions=[Permission(type="network")]
-        )
+        sandbox = PluginSandbox(plugin_name="test-plugin", granted_permissions=[Permission(type="network")])
         assert sandbox.check_permission("network") is True
 
     def test_check_permission_denied(self) -> None:
@@ -86,10 +83,7 @@ class TestPluginSandbox:
 
     def test_require_permission_granted(self) -> None:
         """Test requiring granted permission (no exception)."""
-        sandbox = PluginSandbox(
-            plugin_name="test-plugin",
-            granted_permissions=[Permission(type="network")]
-        )
+        sandbox = PluginSandbox(plugin_name="test-plugin", granted_permissions=[Permission(type="network")])
         # Should not raise
         sandbox.require_permission("network")
 
@@ -102,8 +96,7 @@ class TestPluginSandbox:
     def test_from_manifest_permissions(self) -> None:
         """Test creating sandbox from manifest permission strings."""
         sandbox = PluginSandbox.from_manifest_permissions(
-            plugin_name="manifest-plugin",
-            permissions=["network", "filesystem:read"]
+            plugin_name="manifest-plugin", permissions=["network", "filesystem:read"]
         )
         assert sandbox.check_permission("network") is True
         assert sandbox.check_permission("filesystem:read") is True
@@ -120,10 +113,7 @@ class TestSandboxManager:
     def test_create_sandbox(self) -> None:
         """Test creating a sandbox through manager."""
         manager = SandboxManager()
-        sandbox = manager.create_sandbox(
-            plugin_name="test-plugin",
-            permissions=["network"]
-        )
+        sandbox = manager.create_sandbox(plugin_name="test-plugin", permissions=["network"])
         assert sandbox is not None
         assert sandbox.plugin_name == "test-plugin"
         assert sandbox.check_permission("network") is True
