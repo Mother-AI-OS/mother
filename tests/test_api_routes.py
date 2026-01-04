@@ -5,13 +5,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
 
 from mother.api.routes import (
     get_agent,
     get_registry,
     init_dependencies,
-    router,
 )
 from mother.api.schemas import (
     CommandRequest,
@@ -371,9 +369,7 @@ class TestExecuteToolDirectlyEndpoint:
 
         request = ToolExecuteRequest(args={"path": "/tmp/file"})
 
-        response = await execute_tool_directly(
-            "filesystem", "read", request, "test-key", mock_registry
-        )
+        response = await execute_tool_directly("filesystem", "read", request, "test-key", mock_registry)
 
         assert response.success is True
         mock_wrapper.execute.assert_called_once_with("read", {"path": "/tmp/file"})
@@ -388,9 +384,7 @@ class TestExecuteToolDirectlyEndpoint:
         request = ToolExecuteRequest(args={})
 
         with pytest.raises(HTTPException) as exc_info:
-            await execute_tool_directly(
-                "nonexistent", "cmd", request, "test-key", mock_registry
-            )
+            await execute_tool_directly("nonexistent", "cmd", request, "test-key", mock_registry)
 
         assert exc_info.value.status_code == 404
 
@@ -406,9 +400,7 @@ class TestExecuteToolDirectlyEndpoint:
         request = ToolExecuteRequest(args={})
 
         with pytest.raises(HTTPException) as exc_info:
-            await execute_tool_directly(
-                "filesystem", "invalid", request, "test-key", mock_registry
-            )
+            await execute_tool_directly("filesystem", "invalid", request, "test-key", mock_registry)
 
         assert exc_info.value.status_code == 404
         assert "Command" in exc_info.value.detail

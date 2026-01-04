@@ -1,10 +1,6 @@
 """Tests for the agent core module."""
 
-import uuid
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from mother.agent.core import (
     AgentResponse,

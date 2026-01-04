@@ -233,6 +233,7 @@ class TestPluginBaseProperties:
 
     def create_plugin(self):
         """Create a test plugin instance."""
+
         class TestPlugin(PluginBase):
             async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
                 return PluginResult.success_result()
@@ -336,6 +337,7 @@ class TestPluginBaseValidateParams:
 
     def create_plugin(self):
         """Create a test plugin instance."""
+
         class TestPlugin(PluginBase):
             async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
                 return PluginResult.success_result()

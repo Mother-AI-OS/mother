@@ -1,8 +1,5 @@
 """Tests for the memory embeddings module."""
 
-import json
-import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -21,7 +18,7 @@ class TestEmbeddingCache:
     def test_init_creates_directory(self, tmp_path):
         """Test cache directory is created."""
         cache_dir = tmp_path / "embeddings"
-        cache = EmbeddingCache(cache_dir=cache_dir)
+        _cache = EmbeddingCache(cache_dir=cache_dir)  # noqa: F841
         assert cache_dir.exists()
 
     def test_get_key_generates_hash(self, cache):

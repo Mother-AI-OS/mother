@@ -1,9 +1,6 @@
 """Tests for the memory store module."""
 
-import json
-import tempfile
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -113,7 +110,7 @@ class TestMemoryStore:
     def test_init_creates_db_path(self, tmp_path):
         """Test initialization creates database directory."""
         db_path = tmp_path / "subdir" / "memory.db"
-        store = MemoryStore(db_path=db_path)
+        _store = MemoryStore(db_path=db_path)  # noqa: F841
         assert db_path.parent.exists()
 
     def test_init_creates_tables(self, store):
@@ -121,9 +118,7 @@ class TestMemoryStore:
         import sqlite3
 
         with sqlite3.connect(store.db_path) as conn:
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='memories'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='memories'")
             assert cursor.fetchone() is not None
 
     def test_add_memory(self, store, sample_memory):
@@ -315,9 +310,7 @@ class TestMemoryStore:
         )
         store.add(included)
 
-        results = store.search_semantic(
-            embedding, limit=10, min_similarity=0.5, exclude_session="excluded-session"
-        )
+        results = store.search_semantic(embedding, limit=10, min_similarity=0.5, exclude_session="excluded-session")
 
         assert all(m.session_id != "excluded-session" for m, _ in results)
 

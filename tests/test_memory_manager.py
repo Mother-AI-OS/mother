@@ -15,16 +15,16 @@ class TestMemoryManager:
     @pytest.fixture
     def manager(self, tmp_path):
         """Create a memory manager with mocked embeddings."""
-        with patch("mother.memory.manager.MemoryStore") as MockStore:
-            with patch("mother.memory.manager.EmbeddingGenerator") as MockEmbeddings:
+        with patch("mother.memory.manager.MemoryStore") as mock_store_class:
+            with patch("mother.memory.manager.EmbeddingGenerator") as mock_embeddings_class:
                 # Setup mock store
                 mock_store = MagicMock()
-                MockStore.return_value = mock_store
+                mock_store_class.return_value = mock_store
 
                 # Setup mock embeddings
                 mock_embeddings = MagicMock()
                 mock_embeddings.generate.return_value = [0.1, 0.2, 0.3]
-                MockEmbeddings.return_value = mock_embeddings
+                mock_embeddings_class.return_value = mock_embeddings
 
                 mgr = MemoryManager(openai_api_key="test-key")
                 mgr._mock_store = mock_store
@@ -119,9 +119,7 @@ class TestMemoryManager:
         """Test remember_assistant_response convenience method."""
         manager._mock_store.add.return_value = 1
 
-        memory_id = manager.remember_assistant_response(
-            "session-1", "Response", tool_calls=[{"name": "test"}]
-        )
+        memory_id = manager.remember_assistant_response("session-1", "Response", tool_calls=[{"name": "test"}])
 
         assert memory_id == 1
         call_args = manager._mock_store.add.call_args[0][0]
