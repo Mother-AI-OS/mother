@@ -12,32 +12,32 @@ from __future__ import annotations
 import importlib.metadata
 import importlib.util
 import logging
-import sys
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .base import PluginBase, PluginInfo
 from .exceptions import (
     DependencyError,
-    ManifestNotFoundError,
-    PluginLoadError,
     PluginNotFoundError,
 )
+from .executor import BuiltinExecutor, ExecutorBase, create_executor
 from .manifest import (
-    ExecutionType,
     PluginManifest,
     find_manifest,
     load_manifest,
 )
-from .executor import BuiltinExecutor, CLIExecutor, ExecutorBase, PythonExecutor, create_executor
 
 # Import built-in plugins registry
 try:
     from .builtin import get_builtin_plugin_classes
+
     BUILTINS_AVAILABLE = True
 except ImportError:
     BUILTINS_AVAILABLE = False
-    get_builtin_plugin_classes = lambda: {}
+
+    def get_builtin_plugin_classes():
+        return {}
+
 
 if TYPE_CHECKING:
     pass
@@ -77,9 +77,7 @@ class PluginLoader:
         """
         self.user_plugins_dir = user_plugins_dir or DEFAULT_USER_PLUGINS_DIR
         self.project_plugins_dir = project_plugins_dir or DEFAULT_PROJECT_PLUGINS_DIR
-        self.builtin_plugins_dir = builtin_plugins_dir or (
-            Path(__file__).parent / "builtin"
-        )
+        self.builtin_plugins_dir = builtin_plugins_dir or (Path(__file__).parent / "builtin")
 
         self._discovered: dict[str, PluginInfo] = {}
         self._manifests: dict[str, PluginManifest] = {}
@@ -136,16 +134,12 @@ class PluginLoader:
 
                     self._manifests[name] = manifest
                     self._builtin_instances[name] = instance
-                    self._discovered[name] = PluginInfo.from_manifest(
-                        manifest, "builtin:programmatic"
-                    )
+                    self._discovered[name] = PluginInfo.from_manifest(manifest, "builtin:programmatic")
                     logger.debug(f"Discovered built-in plugin: {name}")
 
                 except Exception as e:
                     logger.warning(f"Failed to load built-in plugin {name}: {e}")
-                    self._discovered[name] = PluginInfo.failed(
-                        name, "builtin:programmatic", str(e)
-                    )
+                    self._discovered[name] = PluginInfo.failed(name, "builtin:programmatic", str(e))
 
         except Exception as e:
             logger.warning(f"Failed to discover built-in plugins: {e}")
@@ -211,24 +205,18 @@ class PluginLoader:
                         if hasattr(module, "MANIFEST"):
                             manifest = module.MANIFEST
                             self._manifests[ep.name] = manifest
-                            self._discovered[ep.name] = PluginInfo.from_manifest(
-                                manifest, f"entry_point:{ep.value}"
-                            )
+                            self._discovered[ep.name] = PluginInfo.from_manifest(manifest, f"entry_point:{ep.value}")
                             logger.debug(f"Discovered entry point plugin: {ep.name}")
                     elif hasattr(plugin_ref, "get_manifest"):
                         # Module with get_manifest function
                         manifest = plugin_ref.get_manifest()
                         self._manifests[ep.name] = manifest
-                        self._discovered[ep.name] = PluginInfo.from_manifest(
-                            manifest, f"entry_point:{ep.value}"
-                        )
+                        self._discovered[ep.name] = PluginInfo.from_manifest(manifest, f"entry_point:{ep.value}")
                         logger.debug(f"Discovered entry point plugin: {ep.name}")
 
                 except Exception as e:
                     logger.warning(f"Failed to load entry point {ep.name}: {e}")
-                    self._discovered[ep.name] = PluginInfo.failed(
-                        ep.name, f"entry_point:{ep.value}", str(e)
-                    )
+                    self._discovered[ep.name] = PluginInfo.failed(ep.name, f"entry_point:{ep.value}", str(e))
 
         except Exception as e:
             logger.warning(f"Failed to discover entry points: {e}")
@@ -246,18 +234,14 @@ class PluginLoader:
 
             self._manifests[name] = manifest
             self._plugin_dirs[name] = manifest_path.parent  # Store plugin directory
-            self._discovered[name] = PluginInfo.from_manifest(
-                manifest, f"{source}:{manifest_path}"
-            )
+            self._discovered[name] = PluginInfo.from_manifest(manifest, f"{source}:{manifest_path}")
             logger.debug(f"Discovered {source} plugin: {name}")
 
         except Exception as e:
             # Extract plugin name from directory
             plugin_name = manifest_path.parent.name
             logger.warning(f"Failed to load manifest {manifest_path}: {e}")
-            self._discovered[plugin_name] = PluginInfo.failed(
-                plugin_name, f"{source}:{manifest_path}", str(e)
-            )
+            self._discovered[plugin_name] = PluginInfo.failed(plugin_name, f"{source}:{manifest_path}", str(e))
 
     def get_manifest(self, plugin_name: str) -> PluginManifest | None:
         """Get a discovered plugin's manifest.
@@ -379,9 +363,7 @@ class PluginLoader:
             try:
                 installed_version = importlib.metadata.version(name)
 
-                if required_version and not self._version_matches(
-                    installed_version, required_version
-                ):
+                if required_version and not self._version_matches(installed_version, required_version):
                     incompatible.append((name, installed_version, required_version))
 
             except importlib.metadata.PackageNotFoundError:

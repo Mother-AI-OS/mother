@@ -1,8 +1,12 @@
 """FastAPI routes for the Mother Agent API."""
 
-from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 
+from .. import __version__
+from ..agent.core import MotherAgent
+from ..config.settings import get_settings
+from ..tools.registry import ToolRegistry
+from .auth import verify_api_key
 from .schemas import (
     CommandRequest,
     CommandResponse,
@@ -26,18 +30,12 @@ from .schemas import (
     ToolInfo,
     ToolListResponse,
 )
-from .auth import verify_api_key
-from ..agent.core import MotherAgent
-from ..tools.registry import ToolRegistry
-from ..config.settings import get_settings
-from .. import __version__
-
 
 router = APIRouter()
 
 # These will be initialized by the app
-_registry: Optional[ToolRegistry] = None
-_agent: Optional[MotherAgent] = None
+_registry: ToolRegistry | None = None
+_agent: MotherAgent | None = None
 
 
 def init_dependencies(registry: ToolRegistry, agent: MotherAgent) -> None:
@@ -327,6 +325,7 @@ async def search_memory(
 
 # Planning mode endpoints
 
+
 @router.post("/plan", response_model=PlanCommandResponse)
 async def create_plan(
     request: PlanCommandRequest,
@@ -425,6 +424,7 @@ async def execute_plan(
         else:
             agent.state.pending_plan = None
             from ..agent.core import AgentResponse
+
             result = AgentResponse(text="Plan cancelled.", success=True)
 
         # Convert tool calls

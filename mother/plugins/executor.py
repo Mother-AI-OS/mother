@@ -14,12 +14,11 @@ import importlib
 import logging
 import os
 import shutil
-import subprocess
 import sys
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .base import PluginBase, PluginResult
 from .exceptions import (
@@ -32,7 +31,6 @@ if TYPE_CHECKING:
     from .manifest import (
         CapabilitySpec,
         CLIExecutionSpec,
-        ExecutionSpec,
         PluginManifest,
         PythonExecutionSpec,
     )
@@ -43,7 +41,7 @@ logger = logging.getLogger("mother.plugins.executor")
 class _FlexiblePluginWrapper(PluginBase):
     """Wrapper for plugins that don't extend PluginBase but have execute()."""
 
-    def __init__(self, instance: Any, manifest: "PluginManifest"):
+    def __init__(self, instance: Any, manifest: PluginManifest):
         """Initialize the wrapper.
 
         Args:
@@ -60,7 +58,7 @@ class _FlexiblePluginWrapper(PluginBase):
             if asyncio.iscoroutine(init_result):
                 await init_result
 
-    async def execute(self, capability: str, params: dict[str, Any]) -> "PluginResult":
+    async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
         """Execute a capability via the wrapped instance."""
         from .base import PluginResult
 
@@ -87,7 +85,7 @@ class _FlexiblePluginWrapper(PluginBase):
 class ExecutorBase(ABC):
     """Abstract base class for plugin execution backends."""
 
-    def __init__(self, manifest: "PluginManifest", config: dict[str, Any] | None = None):
+    def __init__(self, manifest: PluginManifest, config: dict[str, Any] | None = None):
         """Initialize the executor.
 
         Args:
@@ -156,7 +154,7 @@ class BuiltinExecutor(ExecutorBase):
     def __init__(
         self,
         instance: PluginBase,
-        manifest: "PluginManifest",
+        manifest: PluginManifest,
         config: dict[str, Any] | None = None,
     ):
         """Initialize with an existing plugin instance.
@@ -206,7 +204,7 @@ class BuiltinExecutor(ExecutorBase):
             result.execution_time = time.time() - start_time
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return PluginResult.timeout_result(timeout)
         except Exception as e:
             logger.exception(f"Error executing {self.plugin_name}.{capability}")
@@ -226,8 +224,8 @@ class PythonExecutor(ExecutorBase):
 
     def __init__(
         self,
-        manifest: "PluginManifest",
-        spec: "PythonExecutionSpec",
+        manifest: PluginManifest,
+        spec: PythonExecutionSpec,
         config: dict[str, Any] | None = None,
         plugin_dir: Path | None = None,
     ):
@@ -322,7 +320,7 @@ class PythonExecutor(ExecutorBase):
             result.execution_time = time.time() - start_time
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise PluginTimeoutError(self.plugin_name, capability, timeout)
         except Exception as e:
             raise ExecutionError(
@@ -341,8 +339,8 @@ class CLIExecutor(ExecutorBase):
 
     def __init__(
         self,
-        manifest: "PluginManifest",
-        spec: "CLIExecutionSpec",
+        manifest: PluginManifest,
+        spec: CLIExecutionSpec,
         config: dict[str, Any] | None = None,
     ):
         super().__init__(manifest, config)
@@ -434,7 +432,7 @@ class CLIExecutor(ExecutorBase):
                     process.communicate(),
                     timeout=timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 await process.wait()
                 return PluginResult.timeout_result(timeout)
@@ -471,7 +469,7 @@ class CLIExecutor(ExecutorBase):
     def _build_command(
         self,
         capability: str,
-        cap_spec: "CapabilitySpec",
+        cap_spec: CapabilitySpec,
         params: dict[str, Any],
     ) -> list[str]:
         """Build the CLI command from capability and parameters.
@@ -584,7 +582,7 @@ class CLIExecutor(ExecutorBase):
 
 
 def create_executor(
-    manifest: "PluginManifest",
+    manifest: PluginManifest,
     config: dict[str, Any] | None = None,
     plugin_dir: Path | None = None,
 ) -> ExecutorBase:

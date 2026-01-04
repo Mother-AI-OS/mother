@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .manifest import CapabilitySpec, PluginManifest
@@ -59,7 +59,7 @@ class PluginResult:
         raw_output: str | None = None,
         execution_time: float = 0.0,
         **metadata: Any,
-    ) -> "PluginResult":
+    ) -> PluginResult:
         """Create a successful result."""
         return cls(
             success=True,
@@ -78,7 +78,7 @@ class PluginResult:
         raw_output: str | None = None,
         execution_time: float = 0.0,
         **metadata: Any,
-    ) -> "PluginResult":
+    ) -> PluginResult:
         """Create an error result."""
         return cls(
             success=False,
@@ -95,7 +95,7 @@ class PluginResult:
         cls,
         timeout_seconds: int,
         raw_output: str | None = None,
-    ) -> "PluginResult":
+    ) -> PluginResult:
         """Create a timeout result."""
         return cls(
             success=False,
@@ -112,7 +112,7 @@ class PluginResult:
         action_description: str,
         params: dict[str, Any],
         **metadata: Any,
-    ) -> "PluginResult":
+    ) -> PluginResult:
         """Create a result requiring user confirmation."""
         return cls(
             success=True,  # Not an error, just needs confirmation
@@ -162,7 +162,7 @@ class PluginInfo:
     error: str | None = None
 
     @classmethod
-    def from_manifest(cls, manifest: "PluginManifest", source: str) -> "PluginInfo":
+    def from_manifest(cls, manifest: PluginManifest, source: str) -> PluginInfo:
         """Create PluginInfo from a manifest."""
         return cls(
             name=manifest.plugin.name,
@@ -176,7 +176,7 @@ class PluginInfo:
         )
 
     @classmethod
-    def failed(cls, name: str, source: str, error: str) -> "PluginInfo":
+    def failed(cls, name: str, source: str, error: str) -> PluginInfo:
         """Create PluginInfo for a plugin that failed to load."""
         return cls(
             name=name,
@@ -213,7 +213,7 @@ class PluginBase(ABC):
                 raise CapabilityNotFoundError(capability, self.name)
     """
 
-    def __init__(self, manifest: "PluginManifest", config: dict[str, Any] | None = None):
+    def __init__(self, manifest: PluginManifest, config: dict[str, Any] | None = None):
         """Initialize the plugin.
 
         Args:
@@ -224,7 +224,7 @@ class PluginBase(ABC):
         self._config = config or {}
 
     @property
-    def manifest(self) -> "PluginManifest":
+    def manifest(self) -> PluginManifest:
         """Get the plugin manifest."""
         return self._manifest
 
@@ -243,11 +243,11 @@ class PluginBase(ABC):
         """Get the plugin configuration."""
         return self._config
 
-    def get_capabilities(self) -> list["CapabilitySpec"]:
+    def get_capabilities(self) -> list[CapabilitySpec]:
         """Get all capability specifications."""
         return self._manifest.capabilities
 
-    def get_capability(self, name: str) -> "CapabilitySpec | None":
+    def get_capability(self, name: str) -> CapabilitySpec | None:
         """Get a specific capability by name."""
         return self._manifest.get_capability(name)
 
@@ -346,9 +346,7 @@ class PluginBase(ABC):
 
                 # Choices validation
                 if param_spec.choices and value not in param_spec.choices:
-                    errors.append(
-                        f"Parameter '{param_spec.name}' must be one of: {', '.join(param_spec.choices)}"
-                    )
+                    errors.append(f"Parameter '{param_spec.name}' must be one of: {', '.join(param_spec.choices)}")
 
         return errors
 

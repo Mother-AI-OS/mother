@@ -1,6 +1,6 @@
 """Tools module - CLI wrappers."""
 
-from .base import ToolWrapper, ToolResult, ToolParameter
+from .base import ToolParameter, ToolResult, ToolWrapper
 from .registry import ToolRegistry
 
 __all__ = ["ToolWrapper", "ToolResult", "ToolParameter", "ToolRegistry"]

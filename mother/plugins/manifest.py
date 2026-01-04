@@ -16,7 +16,6 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .exceptions import ManifestError, ManifestNotFoundError
 
-
 # -----------------------------------------------------------------------------
 # Enums
 # -----------------------------------------------------------------------------
@@ -208,7 +207,7 @@ class ExecutionSpec(BaseModel):
     http: HTTPExecutionSpec | None = Field(default=None)
 
     @model_validator(mode="after")
-    def validate_execution_config(self) -> "ExecutionSpec":
+    def validate_execution_config(self) -> ExecutionSpec:
         """Ensure the correct execution config is provided for the type."""
         type_to_field = {
             ExecutionType.PYTHON: self.python,

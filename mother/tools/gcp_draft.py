@@ -1,9 +1,9 @@
 """GCP-Draft CLI tool wrapper."""
 
-from typing import Any, Optional
+from typing import Any
 
-from .base import ToolWrapper
 from ..parsers.output import OutputParser, strip_ansi
+from .base import ToolWrapper
 
 
 class GCPDraftTool(ToolWrapper):
@@ -45,9 +45,7 @@ class GCPDraftTool(ToolWrapper):
         # gcp-draft uses positional commands
         return [self.binary, command]
 
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse gcp-draft output."""
         clean = strip_ansi(stdout)
 
@@ -71,14 +69,18 @@ class GCPDraftTool(ToolWrapper):
             # Try to extract doc URL and title
             # Format varies, but URLs contain docs.google.com
             if "docs.google.com" in line:
-                documents.append({
-                    "url": line,
-                    "title": line.split("/")[-1] if "/" in line else line,
-                })
+                documents.append(
+                    {
+                        "url": line,
+                        "title": line.split("/")[-1] if "/" in line else line,
+                    }
+                )
             elif line and not line.lower().startswith(("recent", "documents", "---")):
-                documents.append({
-                    "title": line,
-                    "url": None,
-                })
+                documents.append(
+                    {
+                        "title": line,
+                        "url": None,
+                    }
+                )
 
         return {"documents": documents, "count": len(documents)}

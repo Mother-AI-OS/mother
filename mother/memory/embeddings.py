@@ -2,9 +2,8 @@
 
 import hashlib
 import json
-from pathlib import Path
-from typing import Optional
 import logging
+from pathlib import Path
 
 logger = logging.getLogger("mother.memory")
 
@@ -12,7 +11,7 @@ logger = logging.getLogger("mother.memory")
 class EmbeddingCache:
     """Simple file-based cache for embeddings to reduce API calls."""
 
-    def __init__(self, cache_dir: Optional[Path] = None):
+    def __init__(self, cache_dir: Path | None = None):
         if cache_dir is None:
             cache_dir = Path.home() / ".local" / "share" / "mother" / "embedding_cache"
         self.cache_dir = cache_dir
@@ -23,7 +22,7 @@ class EmbeddingCache:
         content = f"{model}:{text}"
         return hashlib.sha256(content.encode()).hexdigest()[:32]
 
-    def get(self, text: str, model: str) -> Optional[list[float]]:
+    def get(self, text: str, model: str) -> list[float] | None:
         """Get cached embedding if exists."""
         key = self._get_key(text, model)
         cache_file = self.cache_dir / f"{key}.json"
@@ -53,7 +52,7 @@ class EmbeddingGenerator:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "text-embedding-3-small",
         use_cache: bool = True,
     ):
@@ -68,12 +67,13 @@ class EmbeddingGenerator:
         if self._client is None:
             try:
                 from openai import OpenAI
+
                 self._client = OpenAI(api_key=self.api_key)
             except ImportError:
                 raise ImportError("openai package required: pip install openai")
         return self._client
 
-    def generate(self, text: str) -> Optional[list[float]]:
+    def generate(self, text: str) -> list[float] | None:
         """Generate embedding for text."""
         if not text or not text.strip():
             return None
@@ -106,7 +106,7 @@ class EmbeddingGenerator:
             logger.error(f"Failed to generate embedding: {e}")
             return None
 
-    def generate_batch(self, texts: list[str]) -> list[Optional[list[float]]]:
+    def generate_batch(self, texts: list[str]) -> list[list[float] | None]:
         """Generate embeddings for multiple texts."""
         results = []
 

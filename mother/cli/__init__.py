@@ -9,7 +9,6 @@ Provides command-line interface for managing Mother, including:
 import argparse
 import asyncio
 import sys
-from typing import Optional
 
 from .. import __version__
 
@@ -194,8 +193,8 @@ def create_parser() -> argparse.ArgumentParser:
 
 def run_serve(args: argparse.Namespace) -> int:
     """Run the server command."""
-    from ..main import run as run_server
     from ..config.settings import get_settings
+    from ..main import run as run_server
 
     settings = get_settings()
 
@@ -212,35 +211,41 @@ def run_serve(args: argparse.Namespace) -> int:
 def run_plugin(args: argparse.Namespace) -> int:
     """Run plugin commands."""
     from .plugin import (
-        plugin_list,
-        plugin_info,
-        plugin_enable,
-        plugin_disable,
         plugin_capabilities,
+        plugin_disable,
+        plugin_enable,
+        plugin_info,
         plugin_install,
-        plugin_uninstall,
+        plugin_list,
         plugin_search,
+        plugin_uninstall,
     )
 
     if args.plugin_command == "list":
-        return asyncio.run(plugin_list(
-            show_all=args.all,
-            json_output=args.json_output,
-        ))
+        return asyncio.run(
+            plugin_list(
+                show_all=args.all,
+                json_output=args.json_output,
+            )
+        )
     elif args.plugin_command == "info":
-        return asyncio.run(plugin_info(
-            name=args.name,
-            json_output=args.json_output,
-        ))
+        return asyncio.run(
+            plugin_info(
+                name=args.name,
+                json_output=args.json_output,
+            )
+        )
     elif args.plugin_command == "enable":
         return asyncio.run(plugin_enable(name=args.name))
     elif args.plugin_command == "disable":
         return asyncio.run(plugin_disable(name=args.name))
     elif args.plugin_command == "capabilities":
-        return asyncio.run(plugin_capabilities(
-            name=args.name,
-            json_output=args.json_output,
-        ))
+        return asyncio.run(
+            plugin_capabilities(
+                name=args.name,
+                json_output=args.json_output,
+            )
+        )
     elif args.plugin_command == "install":
         return plugin_install(
             package=args.package,
@@ -262,10 +267,11 @@ def run_plugin(args: argparse.Namespace) -> int:
 def run_status(args: argparse.Namespace) -> int:
     """Run status command."""
     from .status import show_status
+
     return asyncio.run(show_status(json_output=args.json_output))
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Main CLI entry point."""
     parser = create_parser()
     args = parser.parse_args(argv)

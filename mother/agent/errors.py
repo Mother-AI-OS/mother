@@ -1,9 +1,8 @@
 """Error handling for the Mother Agent."""
 
-from enum import Enum
-from dataclasses import dataclass
-from typing import Optional
 import re
+from dataclasses import dataclass
+from enum import Enum
 
 
 class ErrorCategory(Enum):
@@ -29,10 +28,10 @@ class AgentError:
 
     category: ErrorCategory
     message: str
-    tool_name: Optional[str] = None
-    command: Optional[str] = None
+    tool_name: str | None = None
+    command: str | None = None
     recoverable: bool = True
-    suggestion: Optional[str] = None
+    suggestion: str | None = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -95,46 +94,36 @@ class ErrorHandler:
 
     RECOVERY_SUGGESTIONS = {
         ErrorCategory.AUTHENTICATION: (
-            "Check that MAILCRAFT_PASSWORD or other credentials are set correctly "
-            "in the environment or .env file."
+            "Check that MAILCRAFT_PASSWORD or other credentials are set correctly in the environment or .env file."
         ),
         ErrorCategory.PERMISSION: (
-            "Verify file permissions and folder access. You may need to run with "
-            "elevated privileges or fix ownership."
+            "Verify file permissions and folder access. You may need to run with elevated privileges or fix ownership."
         ),
         ErrorCategory.TOOL_TIMEOUT: (
-            "The operation took too long. Try with a smaller limit, narrower date "
-            "range, or different parameters."
+            "The operation took too long. Try with a smaller limit, narrower date range, or different parameters."
         ),
         ErrorCategory.NETWORK: (
-            "Check your network connection. The remote server may be temporarily "
-            "unavailable - try again in a moment."
+            "Check your network connection. The remote server may be temporarily unavailable - try again in a moment."
         ),
         ErrorCategory.TOOL_NOT_FOUND: (
             "The requested resource doesn't exist. Verify the ID or path is correct, "
             "or try listing available items first."
         ),
-        ErrorCategory.RATE_LIMIT: (
-            "You've made too many requests. Wait a few minutes before retrying."
-        ),
+        ErrorCategory.RATE_LIMIT: ("You've made too many requests. Wait a few minutes before retrying."),
         ErrorCategory.MISSING_PARAMETER: (
-            "A required parameter is missing. Check the command syntax and provide "
-            "all required values."
+            "A required parameter is missing. Check the command syntax and provide all required values."
         ),
-        ErrorCategory.PARSE_ERROR: (
-            "The input format is invalid. Check the expected format for this command."
-        ),
+        ErrorCategory.PARSE_ERROR: ("The input format is invalid. Check the expected format for this command."),
         ErrorCategory.COMMAND_NOT_FOUND: (
-            "This command doesn't exist for this tool. Use a different command or "
-            "check available commands."
+            "This command doesn't exist for this tool. Use a different command or check available commands."
         ),
     }
 
     def classify_error(
         self,
         error_text: str,
-        tool_name: Optional[str] = None,
-        command: Optional[str] = None,
+        tool_name: str | None = None,
+        command: str | None = None,
     ) -> AgentError:
         """Classify an error and provide recovery suggestion."""
         error_lower = error_text.lower()
@@ -172,8 +161,7 @@ class ErrorHandler:
             parts.append(f"Suggestion: {error.suggestion}")
         if error.recoverable:
             parts.append(
-                "This error may be recoverable. Consider trying with different "
-                "parameters or an alternative approach."
+                "This error may be recoverable. Consider trying with different parameters or an alternative approach."
             )
 
         return "\n".join(parts)

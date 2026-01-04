@@ -8,18 +8,19 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import anthropic
 
-from ..tools.registry import ToolRegistry
-from ..tools.base import ToolResult
 from ..memory import MemoryManager
-from .errors import ErrorHandler, AgentError
+from ..tools.base import ToolResult
+from ..tools.registry import ToolRegistry
+from .errors import AgentError, ErrorHandler
 
 # Import plugin types for type checking
 try:
     from ..plugins import PluginResult, ResultStatus
+
     PLUGINS_AVAILABLE = True
 except ImportError:
     PLUGINS_AVAILABLE = False
@@ -31,6 +32,7 @@ logger = logging.getLogger("mother.agent")
 
 class PlanStepStatus(Enum):
     """Status of a plan step."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -50,8 +52,8 @@ class PlanStep:
     description: str
     depends_on: list[str] = field(default_factory=list)
     status: PlanStepStatus = PlanStepStatus.PENDING
-    result: Optional[Any] = None
-    error: Optional[str] = None
+    result: Any | None = None
+    error: str | None = None
 
 
 @dataclass
@@ -61,13 +63,13 @@ class ExecutionPlan:
     id: str
     goal: str
     steps: list[PlanStep]
-    created_at: str = field(default_factory=lambda: __import__('datetime').datetime.now().isoformat())
+    created_at: str = field(default_factory=lambda: __import__("datetime").datetime.now().isoformat())
     status: str = "pending"  # pending, approved, executing, completed, failed
 
     def to_display(self) -> str:
         """Format plan for user display."""
         lines = [
-            f"📋 **Execution Plan**",
+            "📋 **Execution Plan**",
             f"Goal: {self.goal}",
             "",
             "**Steps:**",
@@ -105,10 +107,10 @@ class AgentState:
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     messages: list[dict] = field(default_factory=list)
     tool_results: list[ToolResult] = field(default_factory=list)
-    pending_confirmation: Optional[PendingConfirmation] = None
+    pending_confirmation: PendingConfirmation | None = None
     confirmed_actions: set[str] = field(default_factory=set)
-    pending_plan: Optional[ExecutionPlan] = None
-    current_plan: Optional[ExecutionPlan] = None
+    pending_plan: ExecutionPlan | None = None
+    current_plan: ExecutionPlan | None = None
 
 
 @dataclass
@@ -118,8 +120,8 @@ class AgentResponse:
     text: str
     success: bool = True
     tool_calls: list[dict] = field(default_factory=list)
-    pending_confirmation: Optional[PendingConfirmation] = None
-    pending_plan: Optional[ExecutionPlan] = None
+    pending_confirmation: PendingConfirmation | None = None
+    pending_plan: ExecutionPlan | None = None
     errors: list[AgentError] = field(default_factory=list)
 
 
@@ -193,8 +195,8 @@ Respond ONLY with the JSON plan, no other text."""
         tool_registry: ToolRegistry,
         model: str = "claude-sonnet-4-20250514",
         max_iterations: int = 10,
-        api_key: Optional[str] = None,
-        openai_api_key: Optional[str] = None,
+        api_key: str | None = None,
+        openai_api_key: str | None = None,
         enable_memory: bool = True,
     ):
         self.client = anthropic.Anthropic(api_key=api_key)
@@ -205,7 +207,7 @@ Respond ONLY with the JSON plan, no other text."""
         self.state = AgentState()
 
         # Initialize persistent memory
-        self.memory: Optional[MemoryManager] = None
+        self.memory: MemoryManager | None = None
         if enable_memory:
             try:
                 self.memory = MemoryManager(openai_api_key=openai_api_key)
@@ -291,7 +293,7 @@ Respond ONLY with the JSON plan, no other text."""
     async def process_command(
         self,
         user_input: str,
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         pre_confirmed: bool = False,
     ) -> AgentResponse:
         """
@@ -365,9 +367,7 @@ Respond ONLY with the JSON plan, no other text."""
                 return AgentResponse(
                     text=f"API error: {e}",
                     success=False,
-                    errors=[
-                        self.error_handler.classify_error(str(e))
-                    ],
+                    errors=[self.error_handler.classify_error(str(e))],
                 )
 
             # Process response
@@ -378,24 +378,30 @@ Respond ONLY with the JSON plan, no other text."""
             for block in response.content:
                 if block.type == "text":
                     text_response += block.text
-                    assistant_content.append({
-                        "type": "text",
-                        "text": block.text,
-                    })
+                    assistant_content.append(
+                        {
+                            "type": "text",
+                            "text": block.text,
+                        }
+                    )
                 elif block.type == "tool_use":
                     tool_uses.append(block)
-                    assistant_content.append({
-                        "type": "tool_use",
-                        "id": block.id,
-                        "name": block.name,
-                        "input": block.input,
-                    })
+                    assistant_content.append(
+                        {
+                            "type": "tool_use",
+                            "id": block.id,
+                            "name": block.name,
+                            "input": block.input,
+                        }
+                    )
 
             # Store assistant message
-            self.state.messages.append({
-                "role": "assistant",
-                "content": assistant_content,
-            })
+            self.state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": assistant_content,
+                }
+            )
 
             # If no tool calls, we're done
             if not tool_uses:
@@ -425,9 +431,7 @@ Respond ONLY with the JSON plan, no other text."""
 
                 if is_plugin:
                     # Plugin execution path
-                    tool_result = await self._execute_plugin_tool(
-                        tool_use, tool_calls_made, pre_confirmed
-                    )
+                    tool_result = await self._execute_plugin_tool(tool_use, tool_calls_made, pre_confirmed)
                     if tool_result is None:
                         # Pending confirmation
                         return AgentResponse(
@@ -447,29 +451,31 @@ Respond ONLY with the JSON plan, no other text."""
 
                 # Legacy tool execution path
                 # Parse tool name
-                wrapper_name, command = self.tool_registry.parse_tool_name(
-                    tool_use.name
-                )
+                wrapper_name, command = self.tool_registry.parse_tool_name(tool_use.name)
 
                 if not wrapper_name or not command:
                     result_content = f"Unknown tool: {tool_use.name}"
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": tool_use.id,
-                        "content": result_content,
-                        "is_error": True,
-                    })
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": tool_use.id,
+                            "content": result_content,
+                            "is_error": True,
+                        }
+                    )
                     continue
 
                 wrapper = self.tool_registry.get_wrapper(wrapper_name)
                 if not wrapper:
                     result_content = f"Tool not available: {wrapper_name}"
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": tool_use.id,
-                        "content": result_content,
-                        "is_error": True,
-                    })
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": tool_use.id,
+                            "content": result_content,
+                            "is_error": True,
+                        }
+                    )
                     continue
 
                 # Check confirmation requirement
@@ -523,9 +529,7 @@ Respond ONLY with the JSON plan, no other text."""
                 # Format result for Claude
                 if result.success:
                     if result.parsed_data:
-                        result_content = json.dumps(
-                            result.parsed_data, indent=2, default=str
-                        )
+                        result_content = json.dumps(result.parsed_data, indent=2, default=str)
                     else:
                         result_content = result.stdout
                 else:
@@ -537,18 +541,22 @@ Respond ONLY with the JSON plan, no other text."""
                     errors.append(error)
                     result_content = self.error_handler.format_for_claude(error)
 
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": tool_use.id,
-                    "content": result_content,
-                    "is_error": not result.success,
-                })
+                tool_results.append(
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tool_use.id,
+                        "content": result_content,
+                        "is_error": not result.success,
+                    }
+                )
 
             # Add tool results to conversation
-            self.state.messages.append({
-                "role": "user",
-                "content": tool_results,
-            })
+            self.state.messages.append(
+                {
+                    "role": "user",
+                    "content": tool_results,
+                }
+            )
 
             # Check if we hit end_turn
             if response.stop_reason == "end_turn":
@@ -608,7 +616,7 @@ Respond ONLY with the JSON plan, no other text."""
         result = wrapper.execute(pending.command, pending.args)
 
         if result.success:
-            response_text = f"Action completed successfully.\n\n"
+            response_text = "Action completed successfully.\n\n"
             if result.parsed_data:
                 response_text += json.dumps(result.parsed_data, indent=2, default=str)
             else:
@@ -626,9 +634,7 @@ Respond ONLY with the JSON plan, no other text."""
                 errors=[error],
             )
 
-    def _describe_action(
-        self, tool_name: str, command: str, args: dict[str, Any]
-    ) -> str:
+    def _describe_action(self, tool_name: str, command: str, args: dict[str, Any]) -> str:
         """Create a human-readable description of an action."""
         if tool_name == "mailcraft":
             if command == "send":
@@ -650,7 +656,7 @@ Respond ONLY with the JSON plan, no other text."""
         tool_use: Any,
         tool_calls_made: list[dict],
         pre_confirmed: bool,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Execute a plugin capability.
 
         Args:
@@ -729,7 +735,9 @@ Respond ONLY with the JSON plan, no other text."""
                     tool_name=plugin_name or tool_use.name,
                     command=capability or "",
                     args=tool_use.input,
-                    description=result.data.get("action", "Action requires confirmation") if result.data else "Action requires confirmation",
+                    description=result.data.get("action", "Action requires confirmation")
+                    if result.data
+                    else "Action requires confirmation",
                 )
                 self.state.pending_confirmation = pending
                 return None
@@ -769,7 +777,7 @@ Respond ONLY with the JSON plan, no other text."""
         """Get current session ID."""
         return self.state.session_id
 
-    def get_memory_stats(self) -> Optional[dict]:
+    def get_memory_stats(self) -> dict | None:
         """Get memory statistics."""
         if self.memory:
             return self.memory.get_stats()
@@ -784,7 +792,7 @@ Respond ONLY with the JSON plan, no other text."""
     async def create_plan(
         self,
         user_input: str,
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
     ) -> AgentResponse:
         """
         Create an execution plan for a multi-step task without executing it.
@@ -867,7 +875,7 @@ Respond ONLY with the JSON plan, no other text."""
                 success=False,
             )
 
-    async def execute_plan(self, plan_id: Optional[str] = None) -> AgentResponse:
+    async def execute_plan(self, plan_id: str | None = None) -> AgentResponse:
         """
         Execute an approved plan step by step.
 
@@ -960,9 +968,7 @@ Respond ONLY with the JSON plan, no other text."""
                 step.status = PlanStepStatus.FAILED
                 step.error = result.error_message or result.stderr
                 step_results[step.order] = {"failed": True, "error": step.error}
-                error = self.error_handler.classify_error(
-                    step.error, tool_name=step.tool_name, command=step.command
-                )
+                error = self.error_handler.classify_error(step.error, tool_name=step.tool_name, command=step.command)
                 errors.append(error)
 
         # Determine overall status
@@ -973,7 +979,7 @@ Respond ONLY with the JSON plan, no other text."""
             plan.status = "completed"
 
         # Format result
-        result_text = f"**Plan Execution Complete**\n\n"
+        result_text = "**Plan Execution Complete**\n\n"
         result_text += plan.to_display()
         result_text += "\n\n**Results:**\n"
 
@@ -1000,7 +1006,7 @@ Respond ONLY with the JSON plan, no other text."""
     async def process_with_planning(
         self,
         user_input: str,
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
     ) -> AgentResponse:
         """
         Process a command with explicit planning phase.

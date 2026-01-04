@@ -1,7 +1,7 @@
 """PDF Merge tool wrapper for Mother."""
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .base import ToolWrapper
 
@@ -78,9 +78,7 @@ class PDFMergeTool(ToolWrapper):
 
         return cmd
 
-    def parse_output(
-        self, command: str, stdout: str, stderr: str
-    ) -> Optional[Any]:
+    def parse_output(self, command: str, stdout: str, stderr: str) -> Any | None:
         """Parse pdf-merge output."""
         if "Merged" in stdout:
             # Extract output path from "Merged N PDFs -> /path/to/file.pdf"
