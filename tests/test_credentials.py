@@ -524,3 +524,127 @@ class TestMain:
 
         captured = capsys.readouterr()
         assert "Unknown command" in captured.out
+
+    def test_get_without_key_arg(self, capsys):
+        """Test get command without key argument (covers lines 210-211)."""
+        with patch("sys.argv", ["credentials", "get"]):
+            credentials.main()
+
+        captured = capsys.readouterr()
+        assert "Usage: mother credentials get <KEY>" in captured.out
+
+    def test_set_without_args(self, capsys):
+        """Test set command without arguments (covers lines 221-222)."""
+        with patch("sys.argv", ["credentials", "set"]):
+            credentials.main()
+
+        captured = capsys.readouterr()
+        assert "Usage: mother credentials set <KEY> <VALUE>" in captured.out
+
+    def test_set_without_value_arg(self, capsys):
+        """Test set command with only key argument."""
+        with patch("sys.argv", ["credentials", "set", "KEY"]):
+            credentials.main()
+
+        captured = capsys.readouterr()
+        assert "Usage: mother credentials set <KEY> <VALUE>" in captured.out
+
+    def test_delete_without_key_arg(self, capsys):
+        """Test delete command without key argument (covers lines 227-228)."""
+        with patch("sys.argv", ["credentials", "delete"]):
+            credentials.main()
+
+        captured = capsys.readouterr()
+        assert "Usage: mother credentials delete <KEY>" in captured.out
+
+    def test_delete_nonexistent_key_exits(self, tmp_path):
+        """Test delete command with nonexistent key exits (covers line 230)."""
+        cred_file = tmp_path / "credentials.env"
+        cred_file.write_text("")
+
+        with patch.object(credentials, "CREDENTIALS_FILE", cred_file):
+            with patch("sys.argv", ["credentials", "delete", "MISSING_KEY"]):
+                with pytest.raises(SystemExit) as exc_info:
+                    credentials.main()
+
+        assert exc_info.value.code == 1
+
+    def test_search_without_pattern_arg(self, capsys):
+        """Test search command without pattern argument (covers lines 234-235)."""
+        with patch("sys.argv", ["credentials", "search"]):
+            credentials.main()
+
+        captured = capsys.readouterr()
+        assert "Usage: mother credentials search <PATTERN>" in captured.out
+
+    def test_edit_command(self, tmp_path):
+        """Test edit command (covers line 239)."""
+        cred_file = tmp_path / "credentials.env"
+        cred_file.write_text("")
+
+        with patch.object(credentials, "CREDENTIALS_FILE", cred_file):
+            with patch("os.system") as mock_system:
+                with patch("sys.argv", ["credentials", "edit"]):
+                    credentials.main()
+
+        mock_system.assert_called_once()
+        call_arg = mock_system.call_args[0][0]
+        assert str(cred_file) in call_arg
+
+    def test_h_flag(self, capsys):
+        """Test -h flag prints usage."""
+        with patch("sys.argv", ["credentials", "-h"]):
+            credentials.main()
+
+        captured = capsys.readouterr()
+        assert "Usage:" in captured.out
+
+    def test_list_with_show_flag(self, tmp_path, capsys):
+        """Test list command with --show flag."""
+        cred_file = tmp_path / "credentials.env"
+        cred_file.write_text("KEY=secretvalue12345\n")
+
+        with patch.object(credentials, "CREDENTIALS_FILE", cred_file):
+            with patch("sys.argv", ["credentials", "list", "--show"]):
+                credentials.main()
+
+        captured = capsys.readouterr()
+        assert "secretvalue12345" in captured.out
+
+    def test_list_with_s_flag(self, tmp_path, capsys):
+        """Test list command with -s flag."""
+        cred_file = tmp_path / "credentials.env"
+        cred_file.write_text("KEY=secretvalue12345\n")
+
+        with patch.object(credentials, "CREDENTIALS_FILE", cred_file):
+            with patch("sys.argv", ["credentials", "list", "-s"]):
+                credentials.main()
+
+        captured = capsys.readouterr()
+        assert "secretvalue12345" in captured.out
+
+    def test_rm_alias(self, tmp_path, capsys):
+        """Test rm alias for delete command."""
+        cred_file = tmp_path / "credentials.env"
+        cred_file.write_text("KEY=value\n")
+
+        with patch.object(credentials, "CREDENTIALS_FILE", cred_file):
+            with patch("sys.argv", ["credentials", "rm", "KEY"]):
+                credentials.main()
+
+        captured = capsys.readouterr()
+        assert "Deleted:" in captured.out
+
+    def test_set_multi_word_value(self, tmp_path, capsys):
+        """Test set command with multi-word value."""
+        cred_file = tmp_path / "credentials.env"
+        cred_file.write_text("")
+
+        with patch.object(credentials, "CREDENTIALS_FILE", cred_file):
+            with patch(
+                "sys.argv", ["credentials", "set", "KEY", "multi", "word", "value"]
+            ):
+                credentials.main()
+
+        content = cred_file.read_text()
+        assert "KEY=multi word value" in content
