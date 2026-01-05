@@ -535,9 +535,7 @@ class TestPluginManagerIntegration:
 
         # Mock the executor to raise PluginTimeoutError
         mock_executor = AsyncMock()
-        mock_executor.execute = AsyncMock(
-            side_effect=PluginTimeoutError("filesystem", "read_file", 5.0)
-        )
+        mock_executor.execute = AsyncMock(side_effect=PluginTimeoutError("filesystem", "read_file", 5.0))
         entry.executor = mock_executor
 
         with pytest.raises(PluginTimeoutError):
@@ -614,9 +612,7 @@ class TestPluginManagerIntegration:
         manager._discovered = {"will-fail": info}
 
         # Mock the loader to raise an exception
-        manager._loader.initialize_plugin = AsyncMock(
-            side_effect=PluginLoadError("will-fail", "Load failed")
-        )
+        manager._loader.initialize_plugin = AsyncMock(side_effect=PluginLoadError("will-fail", "Load failed"))
 
         # load_all should handle the exception
         loaded = await manager.load_all()
