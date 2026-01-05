@@ -531,3 +531,115 @@ Body text here
         def test_with_ansi_codes(self, parser):
             """Test with ANSI codes."""
             assert parser.is_error_message("\x1b[31mError\x1b[0m")
+
+
+class TestParseTableMultilineEdgeCases:
+    """Additional tests for parse_table multi-line cell handling."""
+
+    @pytest.fixture
+    def parser(self):
+        return OutputParser()
+
+    def test_multiline_cell_continuation(self, parser):
+        """Test parsing table with multi-line cell content (covers lines 106-111)."""
+        # Table where content spans multiple rows within a cell
+        # Note: continuation rows need content in cells to merge
+        table = """
+│ Name     │ Description     │
+├──────────┼─────────────────┤
+│ Widget   │ A very long     │
+│ cont     │ description     │
+├──────────┼─────────────────┤
+│ Gadget   │ Short desc      │
+└──────────┴─────────────────┘
+"""
+        result = parser.parse_table(table)
+        assert result is not None
+        # Parser merges rows between separators
+        assert len(result.rows) >= 1
+        # Check that we can parse the table structure
+        assert "Name" in result.headers
+        assert "Description" in result.headers
+
+    def test_last_row_without_bottom_separator(self, parser):
+        """Test parsing table where last row ends without separator (covers lines 115-118)."""
+        # Table without a closing separator after last row
+        table = """
+│ ID │ Value │
+├────┼───────┤
+│ 1  │ one   │
+├────┼───────┤
+│ 2  │ two   │
+├────┼───────┤
+│ 3  │ three │"""
+        result = parser.parse_table(table)
+        assert result is not None
+        # The last row should be captured even without bottom border
+        assert len(result.rows) == 3
+        assert result.rows[2]["ID"] == "3"
+        assert result.rows[2]["Value"] == "three"
+
+    def test_multiline_with_content_continuation(self, parser):
+        """Test multi-line cells with content in continuation rows."""
+        table = """
+│ ID │ Notes        │
+├────┼──────────────┤
+│ 1  │ First note   │
+│ 1b │ Second note  │
+├────┼──────────────┤
+│ 2  │ Single note  │
+"""
+        result = parser.parse_table(table)
+        assert result is not None
+        # Parser should handle rows between separators
+        assert "Notes" in result.headers
+
+
+class TestParseMailcraftListEdgeCases:
+    """Additional tests for parse_mailcraft_list edge cases."""
+
+    @pytest.fixture
+    def parser(self):
+        return OutputParser()
+
+    def test_multiple_emails_with_status_transitions(self, parser):
+        """Test parsing multiple emails where new email starts with status (covers line 166)."""
+        output = """
+user@example.com - INBOX
+│ ●    │ first@ex.com  │ First email    │ Today    │
+├──────┼───────────────┼────────────────┼──────────┤
+│ ○    │ second@ex.com │ Second email   │ Yesterday│
+├──────┼───────────────┼────────────────┼──────────┤
+│ NEW  │ third@ex.com  │ Third email    │ Last week│
+"""
+        result = parser.parse_mailcraft_list(output)
+        assert len(result) == 3
+        assert result[0]["from"] == "first@ex.com"
+        assert result[1]["from"] == "second@ex.com"
+        assert result[2]["from"] == "third@ex.com"
+
+    def test_last_email_captured(self, parser):
+        """Test that last email entry is captured (covers line 184)."""
+        output = """
+user@example.com - INBOX
+│ NEW │ only@ex.com │ Only email │ Today │"""
+        result = parser.parse_mailcraft_list(output)
+        assert len(result) == 1
+        assert result[0]["from"] == "only@ex.com"
+        assert result[0]["subject"] == "Only email"
+
+    def test_emails_separated_by_separators(self, parser):
+        """Test parsing emails separated by table separators."""
+        output = """
+user@example.com - INBOX
+┌────────┬──────────────┬─────────────┬────────────┐
+│ Status │ From         │ Subject     │ Date       │
+├────────┼──────────────┼─────────────┼────────────┤
+│ ●      │ alice@ex.com │ Hello       │ 2024-01-01 │
+├────────┼──────────────┼─────────────┼────────────┤
+│ ○      │ bob@ex.com   │ Test        │ 2024-01-02 │
+└────────┴──────────────┴─────────────┴────────────┘
+"""
+        result = parser.parse_mailcraft_list(output)
+        # Should parse both emails
+        assert len(result) >= 2
