@@ -652,3 +652,487 @@ class TestCreateExecutor:
         executor = create_executor(sample_manifest, plugin_dir=tmp_path)
         assert isinstance(executor, PythonExecutor)
         assert executor.plugin_dir == tmp_path
+
+    def test_create_docker_executor_not_implemented(self):
+        """Test Docker executor raises not implemented error."""
+        from unittest.mock import MagicMock
+
+        # Create a mock manifest that bypasses pydantic validation
+        mock_manifest = MagicMock()
+        mock_manifest.plugin.name = "docker-plugin"
+        mock_manifest.execution.type = ExecutionType.DOCKER
+
+        with pytest.raises(PluginLoadError) as exc_info:
+            create_executor(mock_manifest)
+        assert "Docker execution not yet implemented" in str(exc_info.value)
+
+    def test_create_http_executor_not_implemented(self):
+        """Test HTTP executor raises not implemented error."""
+        from unittest.mock import MagicMock
+
+        # Create a mock manifest that bypasses pydantic validation
+        mock_manifest = MagicMock()
+        mock_manifest.plugin.name = "http-plugin"
+        mock_manifest.execution.type = ExecutionType.HTTP
+
+        with pytest.raises(PluginLoadError) as exc_info:
+            create_executor(mock_manifest)
+        assert "HTTP execution not yet implemented" in str(exc_info.value)
+
+
+class TestPythonExecutorAdditional:
+    """Additional tests for PythonExecutor class."""
+
+    @pytest.fixture
+    def sample_manifest(self):
+        """Create a sample plugin manifest."""
+        return PluginManifest(
+            plugin=PluginMetadata(
+                name="test-plugin",
+                version="1.0.0",
+                description="Test plugin",
+                author="Test",
+            ),
+            capabilities=[
+                CapabilitySpec(
+                    name="test_action",
+                    description="Test action",
+                    parameters=[],
+                    timeout=1,
+                )
+            ],
+            execution=ExecutionSpec(
+                type=ExecutionType.PYTHON,
+                python=PythonExecutionSpec.model_validate({"module": "test_module", "class": "TestPlugin"}),
+            ),
+        )
+
+    @pytest.mark.asyncio
+    async def test_initialize_class_without_execute(self, sample_manifest, tmp_path):
+        """Test initialization with class that has no execute method."""
+        module_code = """
+class TestPlugin:
+    def __init__(self, config):
+        pass
+    # No execute method
+"""
+        module_file = tmp_path / "no_execute_module.py"
+        module_file.write_text(module_code)
+
+        spec = PythonExecutionSpec.model_validate({"module": "no_execute_module", "class": "TestPlugin"})
+        executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
+
+        with pytest.raises(PluginLoadError) as exc_info:
+            await executor.initialize()
+        assert "must extend PluginBase or have execute() method" in str(exc_info.value)
+
+        # Cleanup
+        if str(tmp_path) in sys.path:
+            sys.path.remove(str(tmp_path))
+
+    @pytest.mark.asyncio
+    async def test_initialize_flexible_plugin(self, sample_manifest, tmp_path):
+        """Test initialization with flexible plugin (has execute but not PluginBase)."""
+        module_code = """
+class TestPlugin:
+    def __init__(self, config):
+        self.config = config
+
+    def execute(self, capability, params):
+        return {"capability": capability, "params": params}
+"""
+        module_file = tmp_path / "flexible_module.py"
+        module_file.write_text(module_code)
+
+        spec = PythonExecutionSpec.model_validate({"module": "flexible_module", "class": "TestPlugin"})
+        executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
+
+        await executor.initialize()
+        assert executor._plugin is not None
+
+        await executor.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_initialize_general_exception(self, sample_manifest, tmp_path):
+        """Test initialization handles general exceptions."""
+        module_code = """
+from mother.plugins.base import PluginBase
+
+class TestPlugin(PluginBase):
+    def __init__(self, manifest, config):
+        raise RuntimeError("Init failed")
+
+    async def execute(self, capability, params):
+        pass
+"""
+        module_file = tmp_path / "error_module.py"
+        module_file.write_text(module_code)
+
+        spec = PythonExecutionSpec.model_validate({"module": "error_module", "class": "TestPlugin"})
+        executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
+
+        with pytest.raises(PluginLoadError) as exc_info:
+            await executor.initialize()
+        assert "Failed to initialize plugin" in str(exc_info.value)
+
+        # Cleanup
+        if str(tmp_path) in sys.path:
+            sys.path.remove(str(tmp_path))
+
+    @pytest.mark.asyncio
+    async def test_execute_not_initialized(self, sample_manifest):
+        """Test execute raises error when not initialized."""
+        spec = PythonExecutionSpec.model_validate({"module": "test", "class": "Test"})
+        executor = PythonExecutor(sample_manifest, spec)
+
+        with pytest.raises(ExecutionError) as exc_info:
+            await executor.execute("test", {})
+        assert "not initialized" in str(exc_info.value).lower()
+
+    @pytest.mark.asyncio
+    async def test_execute_timeout(self, sample_manifest, tmp_path):
+        """Test execute handles timeout."""
+        from mother.plugins.exceptions import PluginTimeoutError
+
+        module_code = """
+import asyncio
+from mother.plugins.base import PluginBase, PluginResult
+
+class TestPlugin(PluginBase):
+    async def execute(self, capability, params):
+        await asyncio.sleep(10)
+        return PluginResult.success_result()
+"""
+        module_file = tmp_path / "slow_module.py"
+        module_file.write_text(module_code)
+
+        spec = PythonExecutionSpec.model_validate({"module": "slow_module", "class": "TestPlugin"})
+        executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
+
+        await executor.initialize()
+
+        with pytest.raises(PluginTimeoutError):
+            await executor.execute("test_action", {})
+
+        await executor.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_execute_exception(self, sample_manifest, tmp_path):
+        """Test execute handles exceptions."""
+        module_code = """
+from mother.plugins.base import PluginBase, PluginResult
+
+class TestPlugin(PluginBase):
+    async def execute(self, capability, params):
+        raise ValueError("Execution failed")
+"""
+        module_file = tmp_path / "error_exec_module.py"
+        module_file.write_text(module_code)
+
+        spec = PythonExecutionSpec.model_validate({"module": "error_exec_module", "class": "TestPlugin"})
+        executor = PythonExecutor(sample_manifest, spec, plugin_dir=tmp_path)
+
+        await executor.initialize()
+
+        with pytest.raises(ExecutionError):
+            await executor.execute("test_action", {})
+
+        await executor.shutdown()
+
+
+class TestCLIExecutorAdditional:
+    """Additional tests for CLIExecutor class."""
+
+    @pytest.fixture
+    def cli_manifest(self):
+        """Create a CLI manifest for testing."""
+        return PluginManifest(
+            plugin=PluginMetadata(
+                name="cli-test",
+                version="1.0.0",
+                description="CLI test",
+                author="Test",
+            ),
+            capabilities=[
+                CapabilitySpec(
+                    name="test",
+                    description="Test command",
+                    parameters=[
+                        ParameterSpec(
+                            name="items",
+                            type=ParameterType.ARRAY,
+                            description="List of items",
+                            positional=True,
+                        ),
+                        ParameterSpec(
+                            name="values",
+                            type=ParameterType.ARRAY,
+                            description="List of values",
+                            flag="--value",
+                        ),
+                        ParameterSpec(
+                            name="count",
+                            type=ParameterType.INTEGER,
+                            description="Count",
+                        ),
+                        ParameterSpec(
+                            name="enabled",
+                            type=ParameterType.BOOLEAN,
+                            description="Enable flag",
+                        ),
+                    ],
+                    timeout=1,
+                )
+            ],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(binary="echo"),
+            ),
+        )
+
+    @pytest.mark.asyncio
+    async def test_initialize_absolute_path_not_executable(self, tmp_path):
+        """Test initialize fails for non-executable absolute path."""
+        binary_path = tmp_path / "not_executable"
+        binary_path.touch()  # Create file but don't make it executable
+
+        manifest = PluginManifest(
+            plugin=PluginMetadata(
+                name="abs-test",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+            ),
+            capabilities=[CapabilitySpec(name="test", description="Test", parameters=[])],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(binary=str(binary_path)),
+            ),
+        )
+        executor = CLIExecutor(manifest, manifest.execution.cli)
+
+        with pytest.raises(PluginLoadError) as exc_info:
+            await executor.initialize()
+        assert "not found or not executable" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_initialize_finds_in_common_paths(self, tmp_path, monkeypatch):
+        """Test initialize finds binary in common paths."""
+        from pathlib import Path as PathLib
+
+        # Create a mock binary in .local/bin
+        local_bin = tmp_path / ".local" / "bin"
+        local_bin.mkdir(parents=True)
+        binary = local_bin / "test_binary"
+        binary.touch()
+        binary.chmod(0o755)
+
+        monkeypatch.setattr(PathLib, "home", lambda: tmp_path)
+
+        manifest = PluginManifest(
+            plugin=PluginMetadata(
+                name="common-path-test",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+            ),
+            capabilities=[CapabilitySpec(name="test", description="Test", parameters=[])],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(binary="test_binary"),
+            ),
+        )
+        executor = CLIExecutor(manifest, manifest.execution.cli)
+
+        await executor.initialize()
+        assert executor._binary_path == str(binary)
+
+    @pytest.mark.asyncio
+    async def test_execute_timeout(self, tmp_path):
+        """Test CLI execute handles timeout."""
+        # Create a simple script that sleeps
+        script = tmp_path / "slow_script.sh"
+        script.write_text("#!/bin/bash\nsleep 10\n")
+        script.chmod(0o755)
+
+        manifest = PluginManifest(
+            plugin=PluginMetadata(
+                name="timeout-test",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+            ),
+            capabilities=[
+                CapabilitySpec(
+                    name="run",
+                    description="Run slow script",
+                    parameters=[],
+                    timeout=1,
+                )
+            ],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(binary=str(script)),
+            ),
+        )
+        executor = CLIExecutor(manifest, manifest.execution.cli)
+        await executor.initialize()
+
+        result = await executor.execute("run", {})
+        assert result.success is False
+        assert "timed out" in result.error_message.lower()
+
+    @pytest.mark.asyncio
+    async def test_execute_non_zero_exit(self):
+        """Test CLI execute with non-zero exit code."""
+        manifest = PluginManifest(
+            plugin=PluginMetadata(
+                name="exit-test",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+            ),
+            capabilities=[
+                CapabilitySpec(
+                    name="false",
+                    description="Always fails",
+                    parameters=[],
+                )
+            ],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(binary="false"),
+            ),
+        )
+        executor = CLIExecutor(manifest, manifest.execution.cli)
+        await executor.initialize()
+
+        result = await executor.execute("false", {})
+        assert result.success is False
+        assert result.error_code.startswith("EXIT_")
+
+    def test_build_command_list_positional(self, cli_manifest):
+        """Test command building with list positional arguments."""
+        executor = CLIExecutor(cli_manifest, cli_manifest.execution.cli)
+        executor._binary_path = "/bin/test"
+
+        cap = cli_manifest.get_capability("test")
+        cmd = executor._build_command("test", cap, {"items": ["a", "b", "c"]})
+
+        assert "a" in cmd
+        assert "b" in cmd
+        assert "c" in cmd
+
+    def test_build_command_list_flag(self, cli_manifest):
+        """Test command building with list flag arguments."""
+        executor = CLIExecutor(cli_manifest, cli_manifest.execution.cli)
+        executor._binary_path = "/bin/test"
+
+        cap = cli_manifest.get_capability("test")
+        cmd = executor._build_command("test", cap, {"values": ["x", "y"]})
+
+        # Should have --value x --value y
+        value_indices = [i for i, c in enumerate(cmd) if c == "--value"]
+        assert len(value_indices) == 2
+
+    def test_build_command_default_flag_format(self, cli_manifest):
+        """Test command building with default --param-name format."""
+        executor = CLIExecutor(cli_manifest, cli_manifest.execution.cli)
+        executor._binary_path = "/bin/test"
+
+        cap = cli_manifest.get_capability("test")
+        cmd = executor._build_command("test", cap, {"count": 5})
+
+        assert "--count" in cmd
+        assert "5" in cmd
+
+    def test_build_command_default_boolean_flag(self, cli_manifest):
+        """Test command building with default boolean flag."""
+        executor = CLIExecutor(cli_manifest, cli_manifest.execution.cli)
+        executor._binary_path = "/bin/test"
+
+        cap = cli_manifest.get_capability("test")
+        cmd = executor._build_command("test", cap, {"enabled": True})
+
+        assert "--enabled" in cmd
+
+    def test_build_command_default_list_flag(self, cli_manifest):
+        """Test command building with default list flag format."""
+        # Create a manifest with a list param without explicit flag
+        manifest = PluginManifest(
+            plugin=PluginMetadata(
+                name="list-test",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+            ),
+            capabilities=[
+                CapabilitySpec(
+                    name="test",
+                    description="Test",
+                    parameters=[
+                        ParameterSpec(
+                            name="tags",
+                            type=ParameterType.ARRAY,
+                            description="Tags",
+                        )
+                    ],
+                )
+            ],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(binary="echo"),
+            ),
+        )
+        executor = CLIExecutor(manifest, manifest.execution.cli)
+        executor._binary_path = "/bin/test"
+
+        cap = manifest.get_capability("test")
+        cmd = executor._build_command("test", cap, {"tags": ["tag1", "tag2"]})
+
+        # Should have --tags tag1 --tags tag2
+        assert cmd.count("--tags") == 2
+
+    def test_build_environment_direct_env_ref(self):
+        """Test environment with direct env variable reference."""
+        manifest = PluginManifest(
+            plugin=PluginMetadata(
+                name="env-test",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+            ),
+            capabilities=[CapabilitySpec(name="test", description="Test", parameters=[])],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(
+                    binary="echo",
+                    env={"MY_VAR": "${PATH}"},
+                ),
+            ),
+        )
+        executor = CLIExecutor(manifest, manifest.execution.cli)
+
+        env = executor._build_environment()
+        assert env.get("MY_VAR") == os.environ.get("PATH")
+
+    def test_parse_output_invalid_json(self):
+        """Test parsing invalid JSON output."""
+        manifest = PluginManifest(
+            plugin=PluginMetadata(
+                name="parse-test",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+            ),
+            capabilities=[CapabilitySpec(name="test", description="Test", parameters=[])],
+            execution=ExecutionSpec(
+                type=ExecutionType.CLI,
+                cli=CLIExecutionSpec(binary="echo"),
+            ),
+        )
+        executor = CLIExecutor(manifest, manifest.execution.cli)
+
+        # Starts with { but is not valid JSON
+        result = executor._parse_output("{invalid json", "test")
+        assert result == {"output": "{invalid json"}
