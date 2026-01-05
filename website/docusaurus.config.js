@@ -7,8 +7,8 @@ const config = {
   tagline: 'An extensible AI agent operating system that orchestrates CLI tools via natural language',
   favicon: 'img/favicon.ico',
 
-  url: 'https://mother-os.info',
-  baseUrl: '/',
+  url: 'https://mother-ai-os.github.io',
+  baseUrl: '/mother/',
 
   organizationName: 'Mother-AI-OS',
   projectName: 'mother',
