@@ -436,9 +436,7 @@ class TestToolRegistrySchemas:
     def test_get_all_anthropic_schemas_with_plugins(self):
         """Test getting schemas from both plugins and legacy."""
         mock_plugin_manager = MagicMock()
-        mock_plugin_manager.get_all_schemas.return_value = [
-            {"name": "plugin_cap", "description": "Plugin capability"}
-        ]
+        mock_plugin_manager.get_all_schemas.return_value = [{"name": "plugin_cap", "description": "Plugin capability"}]
 
         mock_wrapper = MagicMock()
         mock_wrapper.get_commands.return_value = {"cmd": {}}
@@ -458,9 +456,7 @@ class TestToolRegistrySchemas:
     def test_get_all_anthropic_schemas_skips_duplicates(self):
         """Test that plugin schemas take precedence."""
         mock_plugin_manager = MagicMock()
-        mock_plugin_manager.get_all_schemas.return_value = [
-            {"name": "shared_name", "description": "Plugin version"}
-        ]
+        mock_plugin_manager.get_all_schemas.return_value = [{"name": "shared_name", "description": "Plugin version"}]
 
         mock_wrapper = MagicMock()
         mock_wrapper.get_commands.return_value = {"cmd": {}}
@@ -736,9 +732,7 @@ class TestToolRegistryRequiresConfirmation:
     def test_requires_confirmation_legacy_true(self):
         """Test confirmation check for legacy tool requiring confirmation."""
         mock_wrapper = MagicMock()
-        mock_wrapper.get_commands.return_value = {
-            "delete": {"confirmation_required": True}
-        }
+        mock_wrapper.get_commands.return_value = {"delete": {"confirmation_required": True}}
 
         with patch.object(ToolRegistry, "_load_tools"):
             registry = ToolRegistry(enable_plugins=False)
@@ -749,9 +743,7 @@ class TestToolRegistryRequiresConfirmation:
     def test_requires_confirmation_legacy_false(self):
         """Test confirmation check for legacy tool not requiring confirmation."""
         mock_wrapper = MagicMock()
-        mock_wrapper.get_commands.return_value = {
-            "list": {"confirmation_required": False}
-        }
+        mock_wrapper.get_commands.return_value = {"list": {"confirmation_required": False}}
 
         with patch.object(ToolRegistry, "_load_tools"):
             registry = ToolRegistry(enable_plugins=False)
