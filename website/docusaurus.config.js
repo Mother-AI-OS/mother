@@ -79,15 +79,15 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/docs/getting-started',
+                to: '/docs/getting-started/installation',
               },
               {
                 label: 'Plugins',
-                to: '/docs/plugins',
+                to: '/docs/plugins/built-in',
               },
               {
                 label: 'API Reference',
-                to: '/docs/api',
+                to: '/docs/api/rest-endpoints',
               },
             ],
           },
