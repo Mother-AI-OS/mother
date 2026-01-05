@@ -1,12 +1,17 @@
 """Tests for PluginManager and PluginConfig."""
 
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from mother.plugins import (
+    CapabilityNotFoundError,
+    ExecutionError,
     PluginConfig,
+    PluginLoadError,
     PluginManager,
+    PluginTimeoutError,
 )
 
 
@@ -502,3 +507,165 @@ class TestPluginManagerIntegration:
         assert result.status == ResultStatus.PENDING_CONFIRMATION
 
         await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_execute_capability_not_found(self) -> None:
+        """Test execute raises CapabilityNotFoundError (covers line 340)."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        with pytest.raises(CapabilityNotFoundError):
+            await manager.execute("nonexistent_capability", {})
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_execute_timeout_error(self) -> None:
+        """Test execute re-raises PluginTimeoutError (covers lines 366-367)."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # Get a real capability entry
+        entry = manager.get_capability("filesystem_read_file")
+        assert entry is not None
+
+        # Mock the executor to raise PluginTimeoutError
+        mock_executor = AsyncMock()
+        mock_executor.execute = AsyncMock(
+            side_effect=PluginTimeoutError("filesystem", "read_file", 5.0)
+        )
+        entry.executor = mock_executor
+
+        with pytest.raises(PluginTimeoutError):
+            await manager.execute("filesystem_read_file", {"path": "/tmp/test"})
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_execute_general_error(self) -> None:
+        """Test execute wraps general errors in ExecutionError (covers lines 368-373)."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # Get a real capability entry
+        entry = manager.get_capability("filesystem_read_file")
+        assert entry is not None
+
+        # Mock the executor to raise a general exception
+        mock_executor = AsyncMock()
+        mock_executor.execute = AsyncMock(side_effect=RuntimeError("Something went wrong"))
+        entry.executor = mock_executor
+
+        with pytest.raises(ExecutionError):
+            await manager.execute("filesystem_read_file", {"path": "/tmp/test"})
+
+        await manager.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_load_all_skips_failed_discovery(self) -> None:
+        """Test load_all skips plugins that failed discovery (covers line 235)."""
+        from mother.plugins.base import PluginInfo
+
+        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        manager = PluginManager(config)
+
+        # Manually add a plugin that "failed discovery" (loaded=False)
+        failed_info = PluginInfo(
+            name="failed-plugin",
+            version="1.0.0",
+            description="A plugin that failed discovery",
+            author="Test",
+            source="/fake/path",
+            capabilities=[],
+            loaded=False,
+            error="Discovery failed",
+        )
+        manager._discovered = {"failed-plugin": failed_info}
+
+        # load_all should skip this plugin
+        loaded = await manager.load_all()
+
+        assert "failed-plugin" not in loaded
+
+    @pytest.mark.asyncio
+    async def test_load_all_handles_load_failure(self) -> None:
+        """Test load_all handles plugin load failures (covers lines 240-243)."""
+        from mother.plugins.base import PluginInfo
+
+        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        manager = PluginManager(config)
+
+        # Manually add a plugin that will fail to load
+        info = PluginInfo(
+            name="will-fail",
+            version="1.0.0",
+            description="A plugin that will fail to load",
+            author="Test",
+            source="/fake/path",
+            capabilities=[],
+            loaded=True,  # Passes discovery check
+        )
+        manager._discovered = {"will-fail": info}
+
+        # Mock the loader to raise an exception
+        manager._loader.initialize_plugin = AsyncMock(
+            side_effect=PluginLoadError("will-fail", "Load failed")
+        )
+
+        # load_all should handle the exception
+        loaded = await manager.load_all()
+
+        assert "will-fail" not in loaded
+        assert info.loaded is False
+        assert "Load failed" in info.error
+
+    @pytest.mark.asyncio
+    async def test_load_manifest_not_found(self) -> None:
+        """Test load raises PluginLoadError when manifest missing (covers line 266)."""
+        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        manager = PluginManager(config)
+
+        # Discover plugins
+        manager.discover()
+
+        # Mock the loader to return executor but no manifest
+        manager._loader.initialize_plugin = AsyncMock(return_value=MagicMock())
+        manager._loader.get_manifest = MagicMock(return_value=None)
+
+        with pytest.raises(PluginLoadError) as exc_info:
+            await manager.load("filesystem")
+
+        assert "Manifest not found after loading" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_shutdown_handles_unload_errors(self) -> None:
+        """Test shutdown handles errors during unload (covers lines 483-484)."""
+        config = PluginConfig(require_permissions=False)
+        manager = PluginManager(config)
+
+        await manager.initialize()
+
+        # Verify we have plugins loaded
+        plugins = manager.list_plugins()
+        assert len(plugins) > 0
+
+        # Mock unload to fail for one plugin
+        original_unload = manager.unload
+
+        async def failing_unload(plugin_name: str) -> None:
+            if plugin_name == "filesystem":
+                raise RuntimeError("Unload failed")
+            await original_unload(plugin_name)
+
+        manager.unload = failing_unload
+
+        # Shutdown should not raise, just log the error
+        await manager.shutdown()
+
+        assert manager._initialized is False
