@@ -275,6 +275,21 @@ class TestConfirmActionEndpoint:
         assert exc_info.value.status_code == 400
         assert "mismatch" in exc_info.value.detail.lower()
 
+    @pytest.mark.asyncio
+    async def test_confirm_action_exception(self, mock_agent):
+        """Test confirm_action with exception (covers lines 179-180)."""
+        from mother.api.routes import confirm_action
+
+        mock_agent.confirm_action = AsyncMock(side_effect=RuntimeError("Confirmation failed"))
+
+        request = ConfirmRequest(confirmation_id="confirm-123")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await confirm_action("test-session", request, "test-key", mock_agent)
+
+        assert exc_info.value.status_code == 500
+        assert "Confirmation failed" in exc_info.value.detail
+
 
 class TestListToolsEndpoint:
     """Tests for GET /tools endpoint."""
@@ -533,6 +548,22 @@ class TestCreatePlanEndpoint:
         assert response.plan is not None
         assert response.plan.id == "plan-123"
 
+    @pytest.mark.asyncio
+    async def test_create_plan_exception(self):
+        """Test create_plan with exception (covers lines 396-397)."""
+        from mother.api.routes import create_plan
+
+        mock_agent = MagicMock()
+        mock_agent.create_plan = AsyncMock(side_effect=RuntimeError("Plan creation failed"))
+
+        request = PlanCommandRequest(command="process file")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await create_plan(request, "test-key", mock_agent)
+
+        assert exc_info.value.status_code == 500
+        assert "Plan creation failed" in exc_info.value.detail
+
 
 class TestExecutePlanEndpoint:
     """Tests for POST /plan/{session_id}/execute endpoint."""
@@ -592,3 +623,20 @@ class TestExecutePlanEndpoint:
             await execute_plan("test-session", request, "test-key", mock_agent)
 
         assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_execute_plan_exception(self):
+        """Test execute_plan with exception (covers lines 461-462)."""
+        from mother.api.routes import execute_plan
+
+        mock_agent = MagicMock()
+        mock_agent.get_session_id.return_value = "test-session"
+        mock_agent.execute_plan = AsyncMock(side_effect=RuntimeError("Plan execution failed"))
+
+        request = PlanApproveRequest(approve=True)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await execute_plan("test-session", request, "test-key", mock_agent)
+
+        assert exc_info.value.status_code == 500
+        assert "Plan execution failed" in exc_info.value.detail
