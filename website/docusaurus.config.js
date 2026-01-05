@@ -63,6 +63,7 @@ const config = {
             label: 'Documentation',
           },
           {to: '/blog', label: 'Blog', position: 'left'},
+          {to: '/services', label: 'Services', position: 'left'},
           {to: '/pricing', label: 'Pricing', position: 'left'},
           {
             href: 'https://github.com/Mother-AI-OS/mother',
