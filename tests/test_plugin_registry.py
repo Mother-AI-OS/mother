@@ -397,3 +397,103 @@ class TestPluginRegistry:
         registry.register(manifest, create_mock_executor())
 
         assert len(registry) == 2
+
+    def test_parse_capability_name_first_underscore_split(self) -> None:
+        """Test parsing where first split matches (covers line 187)."""
+        registry = PluginRegistry()
+        # Plugin with no underscore, capability with underscore
+        manifest = create_mock_manifest("plugin", [("complex_action", "Complex action")])
+        executor = create_mock_executor()
+
+        registry.register(manifest, executor)
+
+        # First split: plugin="plugin", cap="complex_action" - should match line 186-187
+        plugin_name, cap_name = registry.parse_capability_name("plugin_complex_action")
+        assert plugin_name == "plugin"
+        assert cap_name == "complex_action"
+
+    def test_parse_capability_name_underscore_plugin_direct(self) -> None:
+        """Test parsing with underscore plugin name via direct registry manipulation (covers lines 192-199).
+
+        Plugin names normally can't have underscores (validation enforced at manifest level),
+        but this tests the fallback parsing logic by directly populating the registry.
+        """
+        registry = PluginRegistry()
+        spec = CapabilitySpec(name="action", description="Action")
+        executor = create_mock_executor()
+
+        # Directly add an entry with underscore plugin name (bypassing manifest validation)
+        entry = CapabilityEntry(
+            plugin_name="my_plugin",
+            capability_name="action",
+            full_name="my_plugin_action",
+            spec=spec,
+            executor=executor,
+        )
+        registry._capabilities["my_plugin_action"] = entry
+        registry._plugin_capabilities["my_plugin"] = ["my_plugin_action"]
+
+        # Now parse - should correctly identify via loop on lines 192-199
+        plugin_name, cap_name = registry.parse_capability_name("my_plugin_action")
+        assert plugin_name == "my_plugin"
+        assert cap_name == "action"
+
+    def test_parse_capability_name_multiple_underscores_direct(self) -> None:
+        """Test parsing with multiple underscores in plugin name via direct registry manipulation."""
+        registry = PluginRegistry()
+        spec = CapabilitySpec(name="do_action", description="Do action")
+        executor = create_mock_executor()
+
+        # Directly add an entry with multi-underscore plugin name
+        entry = CapabilityEntry(
+            plugin_name="my_cool_plugin",
+            capability_name="do_action",
+            full_name="my_cool_plugin_do_action",
+            spec=spec,
+            executor=executor,
+        )
+        registry._capabilities["my_cool_plugin_do_action"] = entry
+        registry._plugin_capabilities["my_cool_plugin"] = ["my_cool_plugin_do_action"]
+
+        # Parse - should correctly identify via loop
+        plugin_name, cap_name = registry.parse_capability_name("my_cool_plugin_do_action")
+        assert plugin_name == "my_cool_plugin"
+        assert cap_name == "do_action"
+
+    def test_search_capabilities_by_plugin_name(self) -> None:
+        """Test searching capabilities by plugin name (covers line 295)."""
+        registry = PluginRegistry()
+        manifest1 = create_mock_manifest(
+            "mailcraft",
+            [("send", "Send mail"), ("receive", "Receive mail")],
+        )
+        manifest2 = create_mock_manifest(
+            "filesystem",
+            [("read", "Read file"), ("write", "Write file")],
+        )
+
+        registry.register(manifest1, create_mock_executor())
+        registry.register(manifest2, create_mock_executor())
+
+        # Search by plugin name - should find mailcraft capabilities
+        results = registry.search_capabilities("mailcraft")
+        assert len(results) >= 2
+
+        # All results should be from mailcraft plugin
+        result_plugins = [r.plugin_name for r in results]
+        assert all(p == "mailcraft" for p in result_plugins)
+
+    def test_list_capabilities_nonexistent_plugin(self) -> None:
+        """Test listing capabilities for non-existent plugin returns empty list."""
+        registry = PluginRegistry()
+        manifest = create_mock_manifest("plugin", [("action", "Action")])
+        registry.register(manifest, create_mock_executor())
+
+        caps = registry.list_capabilities("nonexistent")
+        assert caps == []
+
+    def test_get_plugin_schemas_nonexistent(self) -> None:
+        """Test getting schemas for non-existent plugin returns empty list."""
+        registry = PluginRegistry()
+        schemas = registry.get_plugin_schemas("nonexistent")
+        assert schemas == []
