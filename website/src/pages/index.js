@@ -45,7 +45,7 @@ function Terminal() {
         <div><span className="terminal-prompt">$ </span><span className="terminal-command">mother serve</span></div>
         <div className="terminal-output">🚀 Mother AI OS running at http://localhost:8080</div>
         <div style={{marginTop: '1rem'}}><span className="terminal-prompt">$ </span><span className="terminal-command">curl -X POST localhost:8080/command \</span></div>
-        <div className="terminal-command">  -d '{"{"}"command": "List Python files in src"{"}"}'</span></div>
+        <div className="terminal-command">  -d '{"{"}"command": "List Python files in src"{"}"}'</div>
         <div className="terminal-output" style={{marginTop: '0.5rem'}}>
           Found 12 Python files in ./src:<br/>
           - main.py (245 lines)<br/>
