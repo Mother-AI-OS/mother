@@ -641,9 +641,7 @@ class TestMain:
         cred_file.write_text("")
 
         with patch.object(credentials, "CREDENTIALS_FILE", cred_file):
-            with patch(
-                "sys.argv", ["credentials", "set", "KEY", "multi", "word", "value"]
-            ):
+            with patch("sys.argv", ["credentials", "set", "KEY", "multi", "word", "value"]):
                 credentials.main()
 
         content = cred_file.read_text()
