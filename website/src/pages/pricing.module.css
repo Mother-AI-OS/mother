@@ -1,0 +1,87 @@
+.pricingHeader {
+  padding: 4rem 0 2rem;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+  color: white;
+}
+
+.pricingHeader h1 {
+  color: white;
+}
+
+.pricingCards {
+  padding: 3rem 0;
+  margin-top: -2rem;
+}
+
+.pricingCards .row {
+  gap: 2rem 0;
+}
+
+.tierName {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.priceContainer {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.description {
+  text-align: center;
+  color: var(--ifm-color-emphasis-600);
+  min-height: 3rem;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.featureList li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.featureList li:last-child {
+  border-bottom: none;
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.faq {
+  padding: 4rem 0;
+  background: var(--ifm-color-emphasis-100);
+}
+
+.faqItem {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--ifm-card-background-color);
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.faqItem h4 {
+  margin-bottom: 0.5rem;
+}
+
+.faqItem p {
+  margin-bottom: 0;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.enterprise {
+  padding: 4rem 0;
+}
+
+@media screen and (max-width: 996px) {
+  .pricingCards .row {
+    flex-direction: column;
+  }
+}
