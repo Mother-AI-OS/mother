@@ -1,7 +1,5 @@
 """Tests for the built-in datacraft plugin."""
 
-import tempfile
-from pathlib import Path
 
 import pytest
 from pypdf import PdfWriter
@@ -235,7 +233,7 @@ class TestDatacraftPlugin:
         pdf_path = tmp_path / "sample.pdf"
         writer = PdfWriter()
         # Add a page with some content
-        page = writer.add_blank_page(width=612, height=792)
+        writer.add_blank_page(width=612, height=792)
         with open(pdf_path, "wb") as f:
             writer.write(f)
         return pdf_path

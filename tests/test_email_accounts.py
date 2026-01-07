@@ -1,14 +1,11 @@
 """Tests for the email accounts module."""
 
-import os
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from mother.config import email_accounts
 from mother.config.email_accounts import (
-    EMAIL_ACCOUNTS_FILE,
     PROVIDER_PRESETS,
     EmailAccount,
     EmailAccountStore,

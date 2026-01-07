@@ -1,8 +1,7 @@
 """Tests for the built-in email plugin."""
 
-import email
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -12,8 +11,6 @@ from mother.plugins.builtin.email.imap_client import (
     EmailMessage,
     IMAPClient,
     decode_header_value,
-    extract_attachments,
-    extract_body,
     parse_date,
     parse_message,
 )
