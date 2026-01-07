@@ -147,7 +147,7 @@ def cmd_add() -> int:
         print(f"  Email: {email}")
         print(f"  Config: {EMAIL_ACCOUNTS_FILE}")
         if is_default:
-            print(f"  Status: Default account")
+            print("  Status: Default account")
         return 0
     else:
         print("\n✗ Failed to save account")
@@ -191,7 +191,7 @@ def cmd_remove(name: str, yes: bool = False) -> int:
         print(f"✓ Account '{name}' removed")
         return 0
     else:
-        print(f"✗ Failed to remove account")
+        print("✗ Failed to remove account")
         return 1
 
 
@@ -274,14 +274,14 @@ def cmd_info(name: str) -> int:
     print(f"  Default: {'Yes' if account.default else 'No'}")
 
     if account.imap:
-        print(f"\n  IMAP Server:")
+        print("\n  IMAP Server:")
         print(f"    Host: {account.imap.host}")
         print(f"    Port: {account.imap.port}")
         print(f"    SSL: {account.imap.use_ssl}")
         print(f"    STARTTLS: {account.imap.use_starttls}")
 
     if account.smtp:
-        print(f"\n  SMTP Server:")
+        print("\n  SMTP Server:")
         print(f"    Host: {account.smtp.host}")
         print(f"    Port: {account.smtp.port}")
         print(f"    SSL: {account.smtp.use_ssl}")

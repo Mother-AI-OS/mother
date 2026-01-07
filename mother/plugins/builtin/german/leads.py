@@ -235,7 +235,7 @@ class LeadsPlugin(PluginBase):
                 stderr.decode("utf-8", errors="replace"),
                 proc.returncode or 0,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return "", "Operation timed out", 1
 
     async def _fetch(

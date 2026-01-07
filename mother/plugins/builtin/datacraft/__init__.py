@@ -20,7 +20,6 @@ from ...manifest import (
     PythonExecutionSpec,
 )
 from .parsers import (
-    SUPPORTED_EXTENSIONS,
     chunk_text,
     detect_document_type,
     is_supported,

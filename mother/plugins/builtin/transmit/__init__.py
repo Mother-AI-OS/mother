@@ -19,13 +19,15 @@ from ...manifest import (
     PluginMetadata,
     PythonExecutionSpec,
 )
-from .channels import CHANNELS, get_channel, list_channels
+from .channels import get_channel, list_channels
 from .storage import (
     Recipient,
     Transmission,
-    TransmissionChannel as StorageChannel,
     TransmissionStatus,
     TransmissionStore,
+)
+from .storage import (
+    TransmissionChannel as StorageChannel,
 )
 
 

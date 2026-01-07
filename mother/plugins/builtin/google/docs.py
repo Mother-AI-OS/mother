@@ -196,7 +196,7 @@ class GoogleDocsPlugin(PluginBase):
                 stderr.decode("utf-8", errors="replace"),
                 proc.returncode or 0,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return "", "Operation timed out", 1
 
     def _parse_document_list(self, output: str) -> list[dict[str, Any]]:
