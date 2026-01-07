@@ -5,9 +5,13 @@ Provides email reading and sending capabilities via IMAP/SMTP.
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
+from ....config.email_accounts import (
+    get_account,
+    get_default_account,
+    list_accounts,
+)
 from ...base import PluginBase, PluginResult
 from ...manifest import (
     CapabilitySpec,
@@ -18,11 +22,6 @@ from ...manifest import (
     PluginManifest,
     PluginMetadata,
     PythonExecutionSpec,
-)
-from ....config.email_accounts import (
-    get_account,
-    get_default_account,
-    list_accounts,
 )
 from .imap_client import IMAPClient
 from .smtp_client import EmailDraft, SMTPClient

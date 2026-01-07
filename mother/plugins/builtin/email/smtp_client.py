@@ -31,7 +31,7 @@ class EmailDraft:
     reply_to: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "EmailDraft":
+    def from_dict(cls, data: dict[str, Any]) -> EmailDraft:
         """Create from dictionary."""
         to = data.get("to", [])
         if isinstance(to, str):
@@ -102,7 +102,7 @@ class SMTPClient:
                 pass
             self._connection = None
 
-    def __enter__(self) -> "SMTPClient":
+    def __enter__(self) -> SMTPClient:
         """Context manager entry."""
         self.connect()
         return self

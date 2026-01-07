@@ -3,10 +3,8 @@
 Interactive first-time setup for configuring Mother on a new system.
 """
 
-import os
 import sys
 from getpass import getpass
-from pathlib import Path
 
 from ..credentials import (
     CREDENTIALS_FILE,
@@ -158,8 +156,8 @@ def show_summary():
     creds = read_credentials()
 
     print(f"\nCredentials file: {CREDENTIALS_FILE}")
-    print(f"Permissions: 0o600 (owner read/write only)")
-    print(f"\nConfigured credentials:")
+    print("Permissions: 0o600 (owner read/write only)")
+    print("\nConfigured credentials:")
 
     for key in sorted(creds.keys()):
         value = creds[key]

@@ -388,10 +388,10 @@ def run_email(args: argparse.Namespace) -> int:
 
 def run_credentials(args: argparse.Namespace) -> int:
     """Run credentials management commands."""
-    from ..credentials import main as credentials_main
-
     # Pass the subcommand arguments to the credentials CLI
     import sys
+
+    from ..credentials import main as credentials_main
     original_argv = sys.argv
     sys.argv = ["mother credentials"] + (args.credentials_args or [])
     try:

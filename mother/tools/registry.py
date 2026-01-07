@@ -21,7 +21,6 @@ to work but may be removed in a future version.
 """
 
 import logging
-import warnings
 from pathlib import Path
 from typing import Any, Optional
 

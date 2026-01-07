@@ -211,7 +211,7 @@ class IMAPClient:
                 pass
             self._connection = None
 
-    def __enter__(self) -> "IMAPClient":
+    def __enter__(self) -> IMAPClient:
         """Context manager entry."""
         self.connect()
         return self
