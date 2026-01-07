@@ -1,8 +1,5 @@
 """Tests for the built-in PDF plugin."""
 
-import tempfile
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from pypdf import PdfWriter

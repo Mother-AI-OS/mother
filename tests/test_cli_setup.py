@@ -1,13 +1,11 @@
 """Tests for the setup CLI module."""
 
-import os
-from io import StringIO
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from mother.cli import setup
 from mother import credentials
+from mother.cli import setup
 
 
 class TestSetupWizard:
