@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mother-ai-os"
-version = "0.1.0"
+version = "0.2.0"
 description = "Mother - AI Agent OS with extensible plugin system for orchestrating CLI tools via natural language"
 readme = "README.md"
 license = "MIT"
