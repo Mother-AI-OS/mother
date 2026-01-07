@@ -8,10 +8,25 @@ Plugins:
 - filesystem: Read/write files, list directories, file operations
 - shell: Execute shell commands, environment access, system info
 - web: Fetch web pages, make HTTP requests, download files
+- email: Read and send email via IMAP/SMTP
+- pdf: PDF manipulation (merge, split, extract, rotate)
+- datacraft: Document processing (parse, search, extract tables)
+- tasks: Task management (add, list, complete, prioritize)
+- transmit: Document transmission (email, fax, post, beA)
+- taxlord: German tax and document management (optional)
+- leads: German tender and lead generation (optional)
+- google_docs: Google Docs template management (optional)
 """
 
+from .datacraft import DatacraftPlugin
+from .email import EmailPlugin
 from .filesystem import FilesystemPlugin
+from .german import LeadsPlugin, TaxlordPlugin
+from .google import GoogleDocsPlugin
+from .pdf import PDFPlugin
 from .shell import ShellPlugin
+from .tasks import TasksPlugin
+from .transmit import TransmitPlugin
 from .web import WebPlugin
 
 # Registry of built-in plugins
@@ -20,6 +35,14 @@ BUILTIN_PLUGINS: dict[str, type] = {
     "filesystem": FilesystemPlugin,
     "shell": ShellPlugin,
     "web": WebPlugin,
+    "email": EmailPlugin,
+    "pdf": PDFPlugin,
+    "datacraft": DatacraftPlugin,
+    "tasks": TasksPlugin,
+    "transmit": TransmitPlugin,
+    "taxlord": TaxlordPlugin,
+    "leads": LeadsPlugin,
+    "google-docs": GoogleDocsPlugin,
 }
 
 
@@ -45,8 +68,16 @@ def get_builtin_plugin(name: str) -> type | None:
 
 
 __all__ = [
+    "DatacraftPlugin",
+    "EmailPlugin",
     "FilesystemPlugin",
+    "GoogleDocsPlugin",
+    "LeadsPlugin",
+    "PDFPlugin",
     "ShellPlugin",
+    "TasksPlugin",
+    "TaxlordPlugin",
+    "TransmitPlugin",
     "WebPlugin",
     "BUILTIN_PLUGINS",
     "get_builtin_plugin_classes",

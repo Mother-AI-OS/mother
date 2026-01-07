@@ -3,7 +3,9 @@
 Provides command-line interface for managing Mother, including:
 - Starting the server
 - Managing plugins
+- Managing email accounts
 - Checking system status
+- Initial setup wizard
 """
 
 import argparse
@@ -188,6 +190,87 @@ def create_parser() -> argparse.ArgumentParser:
         help="Output as JSON",
     )
 
+    # setup command
+    setup_parser = subparsers.add_parser(
+        "setup",
+        help="Run the setup wizard",
+        description="Interactive first-time setup for Mother AI OS",
+    )
+    setup_parser.add_argument(
+        "-q", "--quick",
+        action="store_true",
+        help="Quick setup (only required settings)",
+    )
+    setup_parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Minimal output",
+    )
+
+    # email command
+    email_parser = subparsers.add_parser(
+        "email",
+        help="Manage email accounts",
+        description="Add, remove, and test email accounts for Mother",
+    )
+    email_subparsers = email_parser.add_subparsers(
+        dest="email_command",
+        help="Email commands",
+    )
+
+    # email add
+    email_subparsers.add_parser(
+        "add",
+        help="Add a new email account (interactive)",
+    )
+
+    # email list
+    email_subparsers.add_parser(
+        "list",
+        help="List all configured accounts",
+    )
+
+    # email remove
+    email_remove = email_subparsers.add_parser(
+        "remove",
+        help="Remove an email account",
+    )
+    email_remove.add_argument("name", help="Account name to remove")
+    email_remove.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
+
+    # email test
+    email_test = email_subparsers.add_parser(
+        "test",
+        help="Test connection to an account",
+    )
+    email_test.add_argument("name", help="Account name to test")
+
+    # email info
+    email_info = email_subparsers.add_parser(
+        "info",
+        help="Show detailed account information",
+    )
+    email_info.add_argument("name", help="Account name")
+
+    # email default
+    email_default = email_subparsers.add_parser(
+        "default",
+        help="Set an account as the default",
+    )
+    email_default.add_argument("name", help="Account name to set as default")
+
+    # credentials command
+    credentials_parser = subparsers.add_parser(
+        "credentials",
+        help="Manage credentials",
+        description="View and manage Mother credentials",
+    )
+    credentials_parser.add_argument(
+        "credentials_args",
+        nargs="*",
+        help="Credentials subcommand and arguments",
+    )
+
     return parser
 
 
@@ -271,6 +354,53 @@ def run_status(args: argparse.Namespace) -> int:
     return asyncio.run(show_status(json_output=args.json_output))
 
 
+def run_setup(args: argparse.Namespace) -> int:
+    """Run setup wizard command."""
+    from .setup import run_setup as do_setup
+
+    return do_setup(
+        skip_optional=args.quick,
+        quiet=args.quiet,
+    )
+
+
+def run_email(args: argparse.Namespace) -> int:
+    """Run email management commands."""
+    from .email_cmd import cmd_add, cmd_default, cmd_info, cmd_list, cmd_remove, cmd_test
+
+    if args.email_command == "add":
+        return cmd_add()
+    elif args.email_command == "list":
+        return cmd_list()
+    elif args.email_command == "remove":
+        return cmd_remove(args.name, yes=args.yes)
+    elif args.email_command == "test":
+        return cmd_test(args.name)
+    elif args.email_command == "info":
+        return cmd_info(args.name)
+    elif args.email_command == "default":
+        return cmd_default(args.name)
+    else:
+        print("Usage: mother email <command>")
+        print("Commands: add, list, remove, test, info, default")
+        return 1
+
+
+def run_credentials(args: argparse.Namespace) -> int:
+    """Run credentials management commands."""
+    from ..credentials import main as credentials_main
+
+    # Pass the subcommand arguments to the credentials CLI
+    import sys
+    original_argv = sys.argv
+    sys.argv = ["mother credentials"] + (args.credentials_args or [])
+    try:
+        credentials_main()
+        return 0
+    finally:
+        sys.argv = original_argv
+
+
 def main(argv: list[str] | None = None) -> int:
     """Main CLI entry point."""
     parser = create_parser()
@@ -290,6 +420,12 @@ def main(argv: list[str] | None = None) -> int:
             return run_plugin(args)
         elif args.command == "status":
             return run_status(args)
+        elif args.command == "setup":
+            return run_setup(args)
+        elif args.command == "email":
+            return run_email(args)
+        elif args.command == "credentials":
+            return run_credentials(args)
         else:
             parser.print_help()
             return 1

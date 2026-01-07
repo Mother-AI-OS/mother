@@ -2,9 +2,26 @@
 
 This module bridges legacy ToolWrapper-based tools with the new plugin system.
 Both systems work together, with plugins taking precedence for overlapping names.
+
+MIGRATION NOTE:
+Legacy ToolWrapper-based tools are deprecated in favor of the plugin system.
+The following tools have plugin equivalents:
+
+- mailcraft -> email plugin (mother.plugins.builtin.email)
+- pdf_merge -> pdf plugin (mother.plugins.builtin.pdf)
+- datacraft -> datacraft plugin (mother.plugins.builtin.datacraft)
+- acnjxn -> tasks plugin (mother.plugins.builtin.tasks)
+- transmit -> transmit plugin (mother.plugins.builtin.transmit)
+- taxlord -> taxlord plugin (mother.plugins.builtin.german.taxlord)
+- leads -> leads plugin (mother.plugins.builtin.german.leads)
+- gcp_draft -> google-docs plugin (mother.plugins.builtin.google.docs)
+
+Plugins will be used automatically when available. Legacy tools will continue
+to work but may be removed in a future version.
 """
 
 import logging
+import warnings
 from pathlib import Path
 from typing import Any, Optional
 
@@ -255,6 +272,18 @@ class ToolRegistry:
 
         return schemas
 
+    # Mapping of legacy tool names to their plugin replacements
+    LEGACY_TO_PLUGIN: dict[str, str] = {
+        "mailcraft": "email",
+        "pdf_merge": "pdf",
+        "datacraft": "datacraft",
+        "acnjxn": "tasks",
+        "transmit": "transmit",
+        "taxlord": "taxlord",
+        "leads": "leads",
+        "gcp_draft": "google-docs",
+    }
+
     def list_tools(self) -> dict[str, dict]:
         """List all available tools with their info.
 
@@ -264,10 +293,13 @@ class ToolRegistry:
 
         # Legacy tools
         for name, wrapper in self.wrappers.items():
+            plugin_replacement = self.LEGACY_TO_PLUGIN.get(name)
             result[name] = {
                 "description": wrapper.description,
                 "commands": list(wrapper.get_commands().keys()),
                 "source": "legacy",
+                "deprecated": True,
+                "replacement": plugin_replacement,
             }
 
         # Plugin tools
@@ -279,6 +311,7 @@ class ToolRegistry:
                     "source": "plugin",
                     "version": info.version,
                     "author": info.author,
+                    "deprecated": False,
                 }
 
         return result

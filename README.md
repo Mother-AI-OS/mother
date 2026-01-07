@@ -1,6 +1,6 @@
 # Mother AI OS
 
-An extensible AI agent operating system that orchestrates CLI tools via natural language.
+**The AI agent operating system built by a lawyer, for organizations that need control.**
 
 [![CI](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml/badge.svg)](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-74%25-green)](https://github.com/Mother-AI-OS/mother)
@@ -8,22 +8,142 @@ An extensible AI agent operating system that orchestrates CLI tools via natural 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Features
+---
 
-- **Natural Language Interface** - Talk to your tools in plain English
-- **Plugin Architecture** - Extensible system with PyPI-installable plugins
-- **Multiple Backends** - Python, CLI, Docker, and HTTP execution
-- **Built-in Plugins** - Filesystem, shell, and web operations out of the box
-- **Security Model** - Permission-based capability system
-- **FastAPI Server** - RESTful API with streaming support
+Mother is an extensible AI agent system that orchestrates CLI tools via natural language. Unlike other AI frameworks, Mother was designed from day one for **auditability**, **permission control**, and **compliance** — because that's what enterprises actually need.
+
+```
+You: "Find all contracts expiring this quarter and email a summary to the legal team"
+
+Mother: [filesystem.search] → [filter by date] → [generate summary] → [email.send]
+        ↓
+        Every action logged. Every permission checked. Every step auditable.
+```
+
+## Why Mother?
+
+Most AI agent frameworks are built by developers for developers. Mother was built by a **practicing lawyer and legal engineer** who understands that organizations need:
+
+| Requirement | How Mother Delivers |
+|-------------|---------------------|
+| **Audit Trails** | Every action logged with timestamp, user, parameters, and result |
+| **Permission Model** | Capability-based security — agents only do what they're allowed to |
+| **Explainability** | Execution plans shown before destructive actions |
+| **Compliance-Ready** | Integrates with [UAPK](https://github.com/UAPK/gateway) governance layer |
+
+### Who Is This For?
+
+- **Legal & Compliance Teams** — Automate document workflows with full audit trails
+- **Regulated Industries** — Finance, healthcare, legal tech requiring governance
+- **Enterprise IT** — Deploy AI agents you can actually control
+- **Developers** — Build AI automation without reinventing security
+
+---
+
+## Quick Start
+
+```bash
+# Install
+pip install mother-ai-os
+
+# First-time setup (interactive wizard)
+mother setup
+
+# Check configuration status
+mother status
+
+# Run the server
+mother serve
+```
+
+The setup wizard will guide you through:
+- Configuring your Anthropic API key
+- Setting up email accounts (optional)
+- Enabling optional features
+
+Then send natural language commands:
+
+```bash
+curl -X POST http://localhost:8080/command \
+  -H "X-API-Key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{"command": "List all PDF files modified this week"}'
+```
+
+Response:
+```json
+{
+  "text": "Found 3 PDF files modified this week: contract_v2.pdf, invoice_dec.pdf, memo.pdf",
+  "tools_used": ["filesystem.list_directory", "filesystem.file_info"],
+  "audit_id": "exec_7f3a9c2b"
+}
+```
+
+---
+
+## Core Features
+
+### Natural Language → Controlled Execution
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Natural Language                         │
+│              "Send the quarterly report to finance"          │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Mother Agent (Claude)                     │
+│     Understands intent → Plans execution → Checks perms      │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          ▼               ▼               ▼
+    ┌──────────┐    ┌──────────┐    ┌──────────┐
+    │filesystem│    │  email   │    │  audit   │
+    │  plugin  │    │  plugin  │    │   log    │
+    └──────────┘    └──────────┘    └──────────┘
+```
+
+### Built-in Plugins
+
+| Plugin | Capabilities |
+|--------|-------------|
+| **filesystem** | read, write, copy, move, delete, list, search |
+| **shell** | run commands, scripts, environment info |
+| **web** | HTTP requests, fetch, download, parse URLs |
+| **email** | send, list, read, search emails (IMAP/SMTP) |
+| **pdf** | merge, split, extract, rotate, compress PDFs |
+| **datacraft** | parse documents, search, extract tables |
+| **tasks** | add, list, complete, prioritize tasks |
+| **transmit** | send documents via email, fax, post, beA |
+| **taxlord** | German tax & document management (optional) |
+| **leads** | German tender discovery (optional) |
+| **google-docs** | Google Docs templates (optional) |
+
+### Permission & Confirmation System
+
+Destructive actions require explicit confirmation:
+
+```
+Mother: I'll delete 47 files matching "*.tmp". Proceed? [y/N]
+
+Plan:
+  1. filesystem.list_directory → find *.tmp files
+  2. filesystem.delete → remove each file (REQUIRES CONFIRMATION)
+```
+
+---
 
 ## Installation
+
+### From PyPI
 
 ```bash
 pip install mother-ai-os
 ```
 
-Or install from source:
+### From Source
 
 ```bash
 git clone https://github.com/Mother-AI-OS/mother.git
@@ -31,60 +151,103 @@ cd mother
 pip install -e .
 ```
 
-## Quick Start
+### Configuration
 
-1. **Configure environment:**
-
-```bash
-cp .env.example .env
-# Edit .env with your API keys:
-# ANTHROPIC_API_KEY=sk-ant-...
-# MOTHER_API_KEY=your-secret-key
-```
-
-2. **Start the server:**
+The recommended way to configure Mother is via the setup wizard:
 
 ```bash
-mother serve
-# Or with options:
-mother serve --host 0.0.0.0 --port 8080
+mother setup    # Interactive first-time configuration
 ```
 
-3. **Send commands:**
+This creates `~/.config/mother/credentials.env` with your API keys.
+
+#### Manual Configuration
+
+You can also set environment variables directly:
+
+```bash
+# Required
+export ANTHROPIC_API_KEY="sk-ant-..."    # Claude API access
+export MOTHER_API_KEY="your-secret-key"  # API authentication
+
+# Optional
+export CLAUDE_MODEL="claude-sonnet-4-20250514"
+export MOTHER_HOST="127.0.0.1"
+export MOTHER_PORT="8080"
+export OPENAI_API_KEY="..."              # For memory/embeddings
+```
+
+#### Email Configuration
+
+Add email accounts for the email plugin:
+
+```bash
+mother email add       # Interactive account setup
+mother email list      # Show configured accounts
+mother email test      # Verify connection
+```
+
+Credentials are stored securely using your system keyring.
+
+---
+
+## CLI Reference
+
+```bash
+# Setup & Configuration
+mother setup                    # First-time setup wizard
+mother status                   # System health & config check
+mother credentials list         # Show credential status
+mother credentials set KEY VAL  # Set a credential
+
+# Email Management
+mother email add                # Add email account (interactive)
+mother email list               # List configured accounts
+mother email remove NAME        # Remove an account
+mother email test [NAME]        # Test account connection
+
+# Server
+mother serve                    # Start the API server
+mother serve --port 9000        # Custom port
+
+# Plugin Management
+mother plugin list              # Show installed plugins
+mother plugin info <name>       # Plugin details
+mother plugin install <pkg>     # Install from PyPI
+mother plugin uninstall <pkg>   # Remove plugin
+mother plugin search <query>    # Find plugins
+```
+
+---
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/command` | POST | Execute natural language command |
+| `/stream` | POST | Stream execution (SSE) |
+| `/tools` | GET | List available capabilities |
+| `/health` | GET | Health check |
+
+### Example: Execute Command
 
 ```bash
 curl -X POST http://localhost:8080/command \
   -H "X-API-Key: your-key" \
   -H "Content-Type: application/json" \
-  -d '{"command": "List files in my home directory"}'
+  -d '{
+    "command": "Read config.yaml and summarize the settings",
+    "confirm_destructive": false
+  }'
 ```
 
-## CLI Commands
-
-```bash
-# Server
-mother serve              # Start the server
-mother status             # Show system status
-
-# Plugin management
-mother plugin list        # List available plugins
-mother plugin info <name> # Show plugin details
-mother plugin install <pkg>   # Install from PyPI
-mother plugin uninstall <pkg> # Remove a plugin
-mother plugin search [query]  # Search PyPI for plugins
-```
-
-## Built-in Plugins
-
-| Plugin | Capabilities |
-|--------|-------------|
-| **filesystem** | read_file, write_file, append_file, list_directory, file_info, delete_file, copy_file, move_file, create_directory, exists |
-| **shell** | run_command, run_script, get_env, list_env, which, get_cwd, hostname, whoami, command_exists, system_info |
-| **web** | fetch, get, post, head, download, check_url, get_json, extract_links, parse_url, encode_url |
+---
 
 ## Creating Plugins
 
-Plugins are Python packages that register via entry points. Create a `mother-plugin.yaml` manifest:
+Extend Mother with custom capabilities:
+
+### 1. Create Manifest (`mother-plugin.yaml`)
 
 ```yaml
 schema_version: "1.0"
@@ -92,12 +255,13 @@ schema_version: "1.0"
 plugin:
   name: my-plugin
   version: 1.0.0
-  description: My custom plugin
+  description: Custom integration
   author: Your Name
 
 capabilities:
   - name: do_something
-    description: Does something useful
+    description: Performs a task
+    confirmation_required: false
     parameters:
       - name: input
         type: string
@@ -110,7 +274,7 @@ execution:
     class: MyPlugin
 ```
 
-Then implement the plugin:
+### 2. Implement Plugin
 
 ```python
 from mother.plugins import PluginBase, PluginResult
@@ -118,39 +282,54 @@ from mother.plugins import PluginBase, PluginResult
 class MyPlugin(PluginBase):
     async def execute(self, capability: str, params: dict) -> PluginResult:
         if capability == "do_something":
-            result = self._do_something(params["input"])
-            return PluginResult.success_result(data={"result": result})
+            result = self._process(params["input"])
+            return PluginResult.success_result(
+                data={"result": result},
+                message="Task completed"
+            )
         raise ValueError(f"Unknown capability: {capability}")
 ```
 
-Register in `pyproject.toml`:
+### 3. Register Entry Point
 
 ```toml
+# pyproject.toml
 [project.entry-points."mother.plugins"]
 my-plugin = "my_plugin:MyPlugin"
 ```
 
-## API Endpoints
+---
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/command` | POST | Execute a natural language command |
-| `/tools` | GET | List available tools |
-| `/health` | GET | Health check |
-| `/stream` | POST | Stream command execution |
+## Enterprise & Governance
 
-## Configuration
+### UAPK Integration
 
-Environment variables:
+For organizations requiring policy enforcement and audit logging, Mother integrates with [UAPK (Universal AI Processing Key)](https://github.com/UAPK/gateway):
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ANTHROPIC_API_KEY` | Anthropic API key | Required |
-| `MOTHER_API_KEY` | API authentication key | Required |
-| `CLAUDE_MODEL` | Claude model to use | claude-sonnet-4-20250514 |
-| `MOTHER_HOST` | Server host | 127.0.0.1 |
-| `MOTHER_PORT` | Server port | 8080 |
-| `OPENAI_API_KEY` | OpenAI key (for memory) | Optional |
+```
+┌─────────────────────────────────────────┐
+│              UAPK Gateway               │
+│   Policy Enforcement │ Audit Logging    │
+└──────────────────┬──────────────────────┘
+                   │
+┌──────────────────▼──────────────────────┐
+│              Mother Agent               │
+│   Execution │ Plugins │ Memory          │
+└─────────────────────────────────────────┘
+```
+
+UAPK provides:
+- **Policy enforcement** — Define what agents can/cannot do
+- **Audit logging** — Immutable record of all AI actions
+- **Compliance reporting** — Export logs for regulatory review
+
+### Enterprise Support
+
+Need custom plugins, SLA, or on-premise deployment?
+
+**Contact:** [david@lawkraft.com](mailto:david@lawkraft.com)
+
+---
 
 ## Development
 
@@ -158,7 +337,7 @@ Environment variables:
 # Install dev dependencies
 pip install -e ".[dev]"
 
-# Run tests
+# Run tests (1,346 tests)
 pytest
 
 # Type checking
@@ -168,10 +347,45 @@ mypy mother
 ruff check mother
 ```
 
+---
+
+## Roadmap
+
+- [ ] Plugin marketplace
+- [ ] Cloud dashboard (Pro tier)
+- [ ] UAPK deep integration
+- [ ] Multi-agent orchestration
+- [ ] Workflow templates for legal/finance
+
+See [GitHub Issues](https://github.com/Mother-AI-OS/mother/issues) for detailed roadmap.
+
+---
+
+## About
+
+Mother AI OS was created by [David Sanker](https://github.com/Amakua), a lawyer and legal engineer who builds AI infrastructure for regulated industries.
+
+- **Law Practice:** Partner at [Hucke & Sanker](https://huckesanker.com)
+- **Legal Engineering:** [Cleary Gottlieb Steen & Hamilton LLP](https://clearygottlieb.com)
+- **AI Consulting:** [Lawkraft](https://lawkraft.com)
+
+### Why "Mother"?
+
+In the film *Alien*, "Mother" is the ship's AI that controls all systems. Unlike that Mother, this one asks for permission before doing anything dangerous.
+
+---
+
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
-## Author
+Use it, fork it, build on it. Just don't blame me if your AI agent goes rogue (that's what [UAPK](https://github.com/UAPK/gateway) is for).
 
-David Sanker ([@lawkraft](https://github.com/lawkraft))
+---
+
+<p align="center">
+  <strong>Built by a lawyer who codes.</strong><br>
+  <a href="https://mother-os.info">Website</a> •
+  <a href="https://github.com/Mother-AI-OS/mother/issues">Issues</a> •
+  <a href="https://lawkraft.com">Lawkraft</a>
+</p>

@@ -1,8 +1,21 @@
-"""Base class for tool wrappers."""
+"""Base class for tool wrappers.
+
+DEPRECATED: This module provides legacy tool wrapper functionality.
+New tools should be implemented as plugins using mother.plugins.base.PluginBase.
+
+The plugin system provides:
+- Async execution
+- Better type safety with Pydantic
+- Automatic schema generation
+- Graceful degradation
+
+Legacy tools will continue to work but are not recommended for new development.
+"""
 
 import os
 import subprocess
 import time
+import warnings
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
@@ -37,7 +50,13 @@ class ToolResult:
 
 
 class ToolWrapper(ABC):
-    """Abstract base class for CLI tool wrappers."""
+    """Abstract base class for CLI tool wrappers.
+
+    DEPRECATED: Use mother.plugins.base.PluginBase instead.
+    This class is maintained for backward compatibility only.
+    """
+
+    _deprecation_warned: set = set()
 
     def __init__(
         self,
@@ -47,6 +66,17 @@ class ToolWrapper(ABC):
         timeout: int = 300,
         extra_args: list[str] | None = None,
     ):
+        # Warn once per class
+        cls_name = self.__class__.__name__
+        if cls_name not in ToolWrapper._deprecation_warned:
+            ToolWrapper._deprecation_warned.add(cls_name)
+            warnings.warn(
+                f"{cls_name} uses deprecated ToolWrapper. "
+                f"Consider using the plugin system instead (mother.plugins.base.PluginBase).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self.binary = binary
         self.env_vars = env_vars or {}
         self.cwd = cwd
