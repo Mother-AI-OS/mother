@@ -47,6 +47,9 @@ dependencies = [
     "pydantic-settings>=2.1.0",
     "pyyaml>=6.0",
     "python-dotenv>=1.0.0",
+    "keyring>=25.0.0",  # Secure password storage for email accounts
+    "pypdf>=4.0.0",  # PDF manipulation (merge, split, etc.)
+    "python-docx>=1.1.0",  # DOCX document parsing
 ]
 
 [project.optional-dependencies]
