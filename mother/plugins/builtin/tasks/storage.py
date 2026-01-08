@@ -405,9 +405,7 @@ class TaskStore:
         with sqlite3.connect(self.db_path) as conn:
             total = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
 
-            status_counts = conn.execute(
-                "SELECT status, COUNT(*) FROM tasks GROUP BY status"
-            ).fetchall()
+            status_counts = conn.execute("SELECT status, COUNT(*) FROM tasks GROUP BY status").fetchall()
 
             priority_counts = conn.execute(
                 "SELECT priority, COUNT(*) FROM tasks WHERE status != 'completed' GROUP BY priority"
@@ -456,17 +454,13 @@ class TaskStore:
     def get_areas(self) -> list[str]:
         """Get list of all areas."""
         with sqlite3.connect(self.db_path) as conn:
-            rows = conn.execute(
-                "SELECT DISTINCT area FROM tasks WHERE area != '' ORDER BY area"
-            ).fetchall()
+            rows = conn.execute("SELECT DISTINCT area FROM tasks WHERE area != '' ORDER BY area").fetchall()
             return [row[0] for row in rows]
 
     def get_projects(self) -> list[str]:
         """Get list of all projects."""
         with sqlite3.connect(self.db_path) as conn:
-            rows = conn.execute(
-                "SELECT DISTINCT project FROM tasks WHERE project != '' ORDER BY project"
-            ).fetchall()
+            rows = conn.execute("SELECT DISTINCT project FROM tasks WHERE project != '' ORDER BY project").fetchall()
             return [row[0] for row in rows]
 
     def _row_to_task(self, row: sqlite3.Row) -> Task:

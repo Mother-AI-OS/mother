@@ -220,11 +220,13 @@ class GoogleDocsPlugin(PluginBase):
                 doc_id_match = re.search(r"/d/([a-zA-Z0-9_-]+)", line)
                 doc_id = doc_id_match.group(1) if doc_id_match else None
 
-                documents.append({
-                    "title": current_title or "Untitled",
-                    "url": line,
-                    "doc_id": doc_id,
-                })
+                documents.append(
+                    {
+                        "title": current_title or "Untitled",
+                        "url": line,
+                        "doc_id": doc_id,
+                    }
+                )
                 current_title = None
             elif line and not line.lower().startswith(("recent", "documents")):
                 # This is likely a title
@@ -303,9 +305,12 @@ class GoogleDocsPlugin(PluginBase):
         stdout, stderr, code = await self._run_gcp_draft(
             "send",
             doc_id,
-            "--via", via.lower(),
-            "--to", to,
-            "--address", address,
+            "--via",
+            via.lower(),
+            "--to",
+            to,
+            "--address",
+            address,
             "--no-confirm",
             timeout=60,
         )
@@ -314,8 +319,7 @@ class GoogleDocsPlugin(PluginBase):
             # Check if it's because the command doesn't support these flags
             if "unknown flag" in stderr.lower() or "error" in stderr.lower():
                 return PluginResult.error_result(
-                    "Document sending requires interactive mode. "
-                    "Use the transmit plugin or run gcp-draft directly.",
+                    "Document sending requires interactive mode. Use the transmit plugin or run gcp-draft directly.",
                     code="INTERACTIVE_REQUIRED",
                 )
             return PluginResult.error_result(

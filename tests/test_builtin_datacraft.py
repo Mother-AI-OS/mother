@@ -1,6 +1,5 @@
 """Tests for the built-in datacraft plugin."""
 
-
 import pytest
 from pypdf import PdfWriter
 
@@ -243,10 +242,7 @@ class TestDatacraftPlugin:
         """Create a sample text file."""
         txt_path = tmp_path / "sample.txt"
         txt_path.write_text(
-            "Invoice Number: 12345\n"
-            "Total Amount: $500.00\n"
-            "Email: billing@example.com\n"
-            "Due Date: 2024-03-15"
+            "Invoice Number: 12345\nTotal Amount: $500.00\nEmail: billing@example.com\nDue Date: 2024-03-15"
         )
         return txt_path
 

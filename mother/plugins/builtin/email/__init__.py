@@ -353,9 +353,7 @@ class EmailPlugin(PluginBase):
 
         account = get_default_account()
         if not account:
-            raise ValueError(
-                "No email accounts configured. Run: mother email add"
-            )
+            raise ValueError("No email accounts configured. Run: mother email add")
         return account
 
     async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
@@ -409,14 +407,16 @@ class EmailPlugin(PluginBase):
 
         account_list = []
         for acc in accounts:
-            account_list.append({
-                "name": acc.name,
-                "email": acc.email,
-                "display_name": acc.display_name,
-                "default": acc.default,
-                "has_imap": acc.imap is not None,
-                "has_smtp": acc.smtp is not None,
-            })
+            account_list.append(
+                {
+                    "name": acc.name,
+                    "email": acc.email,
+                    "display_name": acc.display_name,
+                    "default": acc.default,
+                    "has_imap": acc.imap is not None,
+                    "has_smtp": acc.smtp is not None,
+                }
+            )
 
         return PluginResult.success_result(
             data={"accounts": account_list},

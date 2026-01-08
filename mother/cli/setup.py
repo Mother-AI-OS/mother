@@ -102,6 +102,7 @@ def setup_mother_api_key():
 
     if prompt_yes_no("   Generate a random API key?", default=True):
         import secrets
+
         key = f"mother_{secrets.token_urlsafe(32)}"
         set_credential("MOTHER_API_KEY", key)
         print(f"   ✓ Generated: {key}")

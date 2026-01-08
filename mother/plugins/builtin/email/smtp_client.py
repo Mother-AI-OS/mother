@@ -120,7 +120,9 @@ class SMTPClient:
             msg = MIMEMultipart()
 
         # Headers
-        msg["From"] = f"{self.account.display_name} <{self.account.email}>" if self.account.display_name else self.account.email
+        msg["From"] = (
+            f"{self.account.display_name} <{self.account.email}>" if self.account.display_name else self.account.email
+        )
         msg["To"] = ", ".join(draft.to)
         msg["Subject"] = draft.subject
 

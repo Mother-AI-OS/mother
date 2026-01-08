@@ -119,7 +119,9 @@ async def show_status(json_output: bool = False) -> int:
         # Tools status
         print("Plugins:")
         plugins_list = status["plugins_list"]
-        print(f"  Built-in: {len(plugins_list)} ({', '.join(plugins_list[:8])}{'...' if len(plugins_list) > 8 else ''})")
+        print(
+            f"  Built-in: {len(plugins_list)} ({', '.join(plugins_list[:8])}{'...' if len(plugins_list) > 8 else ''})"
+        )
         print(f"  Total capabilities: {status['plugin_capabilities']}")
 
         if status["legacy_tools"] > 0:
