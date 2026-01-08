@@ -82,6 +82,7 @@ class TestSetupMain:
 
     def test_keyboard_interrupt(self, monkeypatch, capsys):
         """Test Ctrl+C is handled gracefully."""
+
         def raise_interrupt(*args, **kwargs):
             raise KeyboardInterrupt()
 

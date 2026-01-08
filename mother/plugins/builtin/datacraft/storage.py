@@ -432,9 +432,7 @@ class DocumentStore:
             rel_count = conn.execute("SELECT COUNT(*) FROM relationships").fetchone()[0]
 
             # Document type breakdown
-            type_counts = conn.execute(
-                "SELECT doc_type, COUNT(*) as count FROM documents GROUP BY doc_type"
-            ).fetchall()
+            type_counts = conn.execute("SELECT doc_type, COUNT(*) as count FROM documents GROUP BY doc_type").fetchall()
 
             return {
                 "total_documents": doc_count,
@@ -469,10 +467,7 @@ class DocumentStore:
 
             return {
                 "doc_id": doc_id,
-                "entities": [
-                    {"id": e["id"], "type": e["entity_type"], "value": e["value"]}
-                    for e in entities
-                ],
+                "entities": [{"id": e["id"], "type": e["entity_type"], "value": e["value"]} for e in entities],
                 "relationships": [
                     {
                         "from": r["from_value"],

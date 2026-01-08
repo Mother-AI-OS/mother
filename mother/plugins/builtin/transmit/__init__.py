@@ -627,11 +627,13 @@ class TransmitPlugin(PluginBase):
             channel = get_channel(channel_info["name"])
             if channel:
                 configured = channel.is_configured(self._channel_config)
-                channels_info.append({
-                    "name": channel_info["name"],
-                    "configured": configured,
-                    "requires": channel_info["requires_config"],
-                })
+                channels_info.append(
+                    {
+                        "name": channel_info["name"],
+                        "configured": configured,
+                        "requires": channel_info["requires_config"],
+                    }
+                )
 
         return PluginResult.success_result(
             data={"channels": channels_info},

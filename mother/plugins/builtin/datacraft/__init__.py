@@ -281,11 +281,7 @@ class DatacraftPlugin(PluginBase):
         else:
             # Process directory
             pattern = "**/*" if recursive else "*"
-            files = [
-                f
-                for f in input_path.glob(pattern)
-                if f.is_file() and is_supported(f)
-            ]
+            files = [f for f in input_path.glob(pattern) if f.is_file() and is_supported(f)]
 
             if not files:
                 return PluginResult.error_result(

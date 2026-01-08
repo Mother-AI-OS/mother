@@ -159,18 +159,10 @@ class TransmissionStore:
             """)
 
             # Create indexes
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_transmissions_channel ON transmissions(channel)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_transmissions_status ON transmissions(status)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_transmissions_reference ON transmissions(reference)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_transmissions_created ON transmissions(created_at)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_transmissions_channel ON transmissions(channel)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_transmissions_status ON transmissions(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_transmissions_reference ON transmissions(reference)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_transmissions_created ON transmissions(created_at)")
 
             conn.commit()
 
@@ -301,13 +293,9 @@ class TransmissionStore:
         with sqlite3.connect(self.db_path) as conn:
             total = conn.execute("SELECT COUNT(*) FROM transmissions").fetchone()[0]
 
-            channel_counts = conn.execute(
-                "SELECT channel, COUNT(*) FROM transmissions GROUP BY channel"
-            ).fetchall()
+            channel_counts = conn.execute("SELECT channel, COUNT(*) FROM transmissions GROUP BY channel").fetchall()
 
-            status_counts = conn.execute(
-                "SELECT status, COUNT(*) FROM transmissions GROUP BY status"
-            ).fetchall()
+            status_counts = conn.execute("SELECT status, COUNT(*) FROM transmissions GROUP BY status").fetchall()
 
             # Recent transmissions (last 7 days)
             recent = conn.execute(

@@ -1,6 +1,5 @@
 """Tests for the built-in PDF plugin."""
 
-
 import pytest
 from pypdf import PdfWriter
 

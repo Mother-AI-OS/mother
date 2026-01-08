@@ -132,11 +132,13 @@ def extract_attachments(msg: Message) -> list[dict[str, Any]]:
                 filename = part.get_filename()
                 if filename:
                     filename = decode_header_value(filename)
-                attachments.append({
-                    "filename": filename or "unknown",
-                    "content_type": part.get_content_type(),
-                    "size": len(part.get_payload(decode=True) or b""),
-                })
+                attachments.append(
+                    {
+                        "filename": filename or "unknown",
+                        "content_type": part.get_content_type(),
+                        "size": len(part.get_payload(decode=True) or b""),
+                    }
+                )
 
     return attachments
 
@@ -305,6 +307,7 @@ class IMAPClient:
             flags_str = flags_data.decode()
             if "FLAGS" in flags_str:
                 import re
+
                 match = re.search(r"FLAGS \(([^)]*)\)", flags_str)
                 if match:
                     message.flags = match.group(1).split()

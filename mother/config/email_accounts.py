@@ -114,10 +114,7 @@ class EmailAccountStore:
     def list_accounts(self) -> list[EmailAccount]:
         """List all configured email accounts."""
         accounts_data = self._load_accounts_data()
-        return [
-            EmailAccount.from_dict(name, data)
-            for name, data in accounts_data.items()
-        ]
+        return [EmailAccount.from_dict(name, data) for name, data in accounts_data.items()]
 
     def get_account(self, name: str) -> EmailAccount | None:
         """Get a specific account by name."""

@@ -152,12 +152,15 @@ class TestSendValidation:
     @pytest.mark.skipif(not gcp_draft_available(), reason="gcp-draft CLI not installed")
     async def test_send_invalid_channel(self, plugin):
         """Test send with invalid channel."""
-        result = await plugin.execute("send", {
-            "doc_id": "test123",
-            "via": "invalid_channel",
-            "to": "Test Recipient",
-            "address": "test@example.com",
-        })
+        result = await plugin.execute(
+            "send",
+            {
+                "doc_id": "test123",
+                "via": "invalid_channel",
+                "to": "Test Recipient",
+                "address": "test@example.com",
+            },
+        )
         assert result.success is False
         assert result.error_code == "INVALID_INPUT"
 

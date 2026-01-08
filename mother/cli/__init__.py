@@ -197,7 +197,8 @@ def create_parser() -> argparse.ArgumentParser:
         description="Interactive first-time setup for Mother AI OS",
     )
     setup_parser.add_argument(
-        "-q", "--quick",
+        "-q",
+        "--quick",
         action="store_true",
         help="Quick setup (only required settings)",
     )
@@ -392,6 +393,7 @@ def run_credentials(args: argparse.Namespace) -> int:
     import sys
 
     from ..credentials import main as credentials_main
+
     original_argv = sys.argv
     sys.argv = ["mother credentials"] + (args.credentials_args or [])
     try:

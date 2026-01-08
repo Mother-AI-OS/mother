@@ -357,8 +357,10 @@ def list_channels() -> list[dict[str, Any]]:
     result = []
     for name, channel_class in CHANNELS.items():
         channel = channel_class()
-        result.append({
-            "name": name,
-            "requires_config": channel.requires_config,
-        })
+        result.append(
+            {
+                "name": name,
+                "requires_config": channel.requires_config,
+            }
+        )
     return result

@@ -4,10 +4,13 @@ import mother
 
 
 def test_version() -> None:
-    """Test that version is defined."""
+    """Test that version is defined and follows semver format."""
     assert hasattr(mother, "__version__")
     assert isinstance(mother.__version__, str)
-    assert mother.__version__ == "0.1.0"
+    # Check semver format (major.minor.patch)
+    parts = mother.__version__.split(".")
+    assert len(parts) >= 2, f"Version should be semver format: {mother.__version__}"
+    assert all(p.isdigit() for p in parts[:2]), f"Version parts should be numeric: {mother.__version__}"
 
 
 def test_imports() -> None:

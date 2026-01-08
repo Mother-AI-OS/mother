@@ -119,7 +119,9 @@ def cmd_add() -> int:
             host=prompt("  SMTP host"),
             port=prompt_int("  SMTP port", default=465),
             use_ssl=prompt_yes_no("  Use SSL?", default=True),
-            use_starttls=prompt_yes_no("  Use STARTTLS?", default=False) if not prompt_yes_no("  Use SSL?", default=True) else False,
+            use_starttls=prompt_yes_no("  Use STARTTLS?", default=False)
+            if not prompt_yes_no("  Use SSL?", default=True)
+            else False,
         )
     else:
         smtp = preset["smtp"]
