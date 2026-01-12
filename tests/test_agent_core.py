@@ -414,12 +414,15 @@ class TestAgentResponse:
 class TestMotherAgentInit:
     """Tests for MotherAgent initialization."""
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_init_basic(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_init_basic(self, mock_provider_class):
         """Test basic initialization."""
         from mother.agent.core import MotherAgent
 
         mock_registry = MagicMock()
+        mock_provider = MagicMock()
+        mock_provider.model = "claude-sonnet-4-20250514"
+        mock_provider_class.return_value = mock_provider
 
         agent = MotherAgent(
             tool_registry=mock_registry,
@@ -427,16 +430,19 @@ class TestMotherAgentInit:
         )
 
         assert agent.tool_registry is mock_registry
-        assert agent.model == "claude-sonnet-4-20250514"
+        assert agent.provider.model == "claude-sonnet-4-20250514"
         assert agent.max_iterations == 10
         assert agent.memory is None
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_init_custom_model(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_init_custom_model(self, mock_provider_class):
         """Test initialization with custom model."""
         from mother.agent.core import MotherAgent
 
         mock_registry = MagicMock()
+        mock_provider = MagicMock()
+        mock_provider.model = "claude-3-opus-20240229"
+        mock_provider_class.return_value = mock_provider
 
         agent = MotherAgent(
             tool_registry=mock_registry,
@@ -445,17 +451,18 @@ class TestMotherAgentInit:
             enable_memory=False,
         )
 
-        assert agent.model == "claude-3-opus-20240229"
+        assert agent.provider.model == "claude-3-opus-20240229"
         assert agent.max_iterations == 5
 
-    @patch("mother.agent.core.anthropic.Anthropic")
+    @patch("mother.agent.core.AnthropicProvider")
     @patch("mother.agent.core.MemoryManager")
-    def test_init_with_memory(self, mock_memory_manager, mock_anthropic):
+    def test_init_with_memory(self, mock_memory_manager, mock_provider_class):
         """Test initialization with memory enabled."""
         from mother.agent.core import MotherAgent
 
         mock_registry = MagicMock()
         mock_memory_manager.return_value = MagicMock()
+        mock_provider_class.return_value = MagicMock()
 
         agent = MotherAgent(
             tool_registry=mock_registry,
@@ -465,14 +472,15 @@ class TestMotherAgentInit:
 
         assert agent.memory is not None
 
-    @patch("mother.agent.core.anthropic.Anthropic")
+    @patch("mother.agent.core.AnthropicProvider")
     @patch("mother.agent.core.MemoryManager")
-    def test_init_memory_failure(self, mock_memory_manager, mock_anthropic):
+    def test_init_memory_failure(self, mock_memory_manager, mock_provider_class):
         """Test initialization when memory fails."""
         from mother.agent.core import MotherAgent
 
         mock_registry = MagicMock()
         mock_memory_manager.side_effect = Exception("Memory init failed")
+        mock_provider_class.return_value = MagicMock()
 
         agent = MotherAgent(
             tool_registry=mock_registry,
@@ -486,8 +494,8 @@ class TestMotherAgentInit:
 class TestMotherAgentTools:
     """Tests for MotherAgent tool-related methods."""
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_get_tools(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_get_tools(self, mock_provider_class):
         """Test get_tools method."""
         from mother.agent.core import MotherAgent
 
@@ -507,8 +515,8 @@ class TestMotherAgentTools:
         assert len(tools) == 2
         mock_registry.get_all_anthropic_schemas.assert_called_once()
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_generate_tool_descriptions_empty(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_generate_tool_descriptions_empty(self, mock_provider_class):
         """Test tool descriptions with no tools."""
         from mother.agent.core import MotherAgent
 
@@ -524,8 +532,8 @@ class TestMotherAgentTools:
 
         assert "Available tools:" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_generate_tool_descriptions_legacy(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_generate_tool_descriptions_legacy(self, mock_provider_class):
         """Test tool descriptions with legacy tools."""
         from mother.agent.core import MotherAgent
 
@@ -549,8 +557,8 @@ class TestMotherAgentTools:
         assert "File operations" in desc
         assert "list" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_generate_tool_descriptions_plugin(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_generate_tool_descriptions_plugin(self, mock_provider_class):
         """Test tool descriptions with plugin tools."""
         from mother.agent.core import MotherAgent
 
@@ -575,8 +583,8 @@ class TestMotherAgentTools:
         assert "web" in desc
         assert "v1.0.0" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_generate_tool_descriptions_many_commands(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_generate_tool_descriptions_many_commands(self, mock_provider_class):
         """Test tool descriptions with many commands (truncation)."""
         from mother.agent.core import MotherAgent
 
@@ -599,8 +607,8 @@ class TestMotherAgentTools:
         # Should truncate to 8 and show "+7 more"
         assert "+7 more" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_get_system_prompt(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_get_system_prompt(self, mock_provider_class):
         """Test get_system_prompt method."""
         from mother.agent.core import MotherAgent
 
@@ -618,8 +626,8 @@ class TestMotherAgentTools:
         assert "Guidelines" in prompt
         assert "Available tools" in prompt
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_get_planning_prompt(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_get_planning_prompt(self, mock_provider_class):
         """Test get_planning_prompt method."""
         from mother.agent.core import MotherAgent
 
@@ -637,8 +645,8 @@ class TestMotherAgentTools:
         assert "JSON plan" in prompt
         assert "Available tools" in prompt
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_generate_tool_descriptions_no_commands_legacy(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_generate_tool_descriptions_no_commands_legacy(self, mock_provider_class):
         """Test tool descriptions with no commands (legacy)."""
         from mother.agent.core import MotherAgent
 
@@ -661,8 +669,8 @@ class TestMotherAgentTools:
         assert "simple" in desc
         assert "Simple tool" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_generate_tool_descriptions_no_commands_plugin(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_generate_tool_descriptions_no_commands_plugin(self, mock_provider_class):
         """Test tool descriptions with no commands (plugin)."""
         from mother.agent.core import MotherAgent
 
@@ -691,8 +699,8 @@ class TestMotherAgentTools:
 class TestMotherAgentState:
     """Tests for MotherAgent state management methods."""
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_reset(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_reset(self, mock_provider_class):
         """Test reset method clears state."""
         from mother.agent.core import MotherAgent
 
@@ -715,8 +723,8 @@ class TestMotherAgentState:
         assert agent.state.messages == []
         assert agent.state.confirmed_actions == set()
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_get_session_id(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_get_session_id(self, mock_provider_class):
         """Test get_session_id method."""
         from mother.agent.core import MotherAgent
 
@@ -736,8 +744,8 @@ class TestMotherAgentState:
 class TestMotherAgentMemory:
     """Tests for MotherAgent memory-related methods."""
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_get_memory_stats_no_memory(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_get_memory_stats_no_memory(self, mock_provider_class):
         """Test get_memory_stats when memory is disabled."""
         from mother.agent.core import MotherAgent
 
@@ -752,9 +760,9 @@ class TestMotherAgentMemory:
 
         assert stats is None
 
-    @patch("mother.agent.core.anthropic.Anthropic")
+    @patch("mother.agent.core.AnthropicProvider")
     @patch("mother.agent.core.MemoryManager")
-    def test_get_memory_stats_with_memory(self, mock_memory_manager, mock_anthropic):
+    def test_get_memory_stats_with_memory(self, mock_memory_manager, mock_provider_class):
         """Test get_memory_stats when memory is enabled."""
         from mother.agent.core import MotherAgent
 
@@ -773,8 +781,8 @@ class TestMotherAgentMemory:
         assert stats == {"total": 100, "sessions": 5}
         mock_memory.get_stats.assert_called_once()
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_search_memory_no_memory(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_search_memory_no_memory(self, mock_provider_class):
         """Test search_memory when memory is disabled."""
         from mother.agent.core import MotherAgent
 
@@ -789,9 +797,9 @@ class TestMotherAgentMemory:
 
         assert results == []
 
-    @patch("mother.agent.core.anthropic.Anthropic")
+    @patch("mother.agent.core.AnthropicProvider")
     @patch("mother.agent.core.MemoryManager")
-    def test_search_memory_with_memory(self, mock_memory_manager, mock_anthropic):
+    def test_search_memory_with_memory(self, mock_memory_manager, mock_provider_class):
         """Test search_memory when memory is enabled."""
         from mother.agent.core import MotherAgent
 
@@ -814,8 +822,8 @@ class TestMotherAgentMemory:
 class TestMotherAgentDescribeAction:
     """Tests for MotherAgent._describe_action method."""
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_describe_action_mailcraft_send(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_describe_action_mailcraft_send(self, mock_provider_class):
         """Test describe_action for mailcraft send."""
         from mother.agent.core import MotherAgent
 
@@ -835,8 +843,8 @@ class TestMotherAgentDescribeAction:
         assert "Send email to user@example.com" in desc
         assert "Test Subject" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_describe_action_mailcraft_reply(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_describe_action_mailcraft_reply(self, mock_provider_class):
         """Test describe_action for mailcraft reply."""
         from mother.agent.core import MotherAgent
 
@@ -851,8 +859,8 @@ class TestMotherAgentDescribeAction:
 
         assert "Reply to email #12345" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_describe_action_mailcraft_delete(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_describe_action_mailcraft_delete(self, mock_provider_class):
         """Test describe_action for mailcraft delete."""
         from mother.agent.core import MotherAgent
 
@@ -868,8 +876,8 @@ class TestMotherAgentDescribeAction:
         assert "Delete email #12345" in desc
         assert "permanently" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_describe_action_mailcraft_delete_to_trash(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_describe_action_mailcraft_delete_to_trash(self, mock_provider_class):
         """Test describe_action for mailcraft delete to trash."""
         from mother.agent.core import MotherAgent
 
@@ -885,8 +893,8 @@ class TestMotherAgentDescribeAction:
         assert "Delete email #12345" in desc
         assert "to trash" in desc
 
-    @patch("mother.agent.core.anthropic.Anthropic")
-    def test_describe_action_generic(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_describe_action_generic(self, mock_provider_class):
         """Test describe_action for generic tool."""
         from mother.agent.core import MotherAgent
 
@@ -907,8 +915,8 @@ class TestMotherAgentConfirmAction:
     """Tests for MotherAgent.confirm_action method."""
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_confirm_action_no_pending(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_confirm_action_no_pending(self, mock_provider_class):
         """Test confirm_action with no pending confirmation."""
         from mother.agent.core import MotherAgent
 
@@ -925,8 +933,8 @@ class TestMotherAgentConfirmAction:
         assert "No pending action" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_confirm_action_wrong_id(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_confirm_action_wrong_id(self, mock_provider_class):
         """Test confirm_action with wrong confirmation ID."""
         from mother.agent.core import MotherAgent
 
@@ -952,8 +960,8 @@ class TestMotherAgentConfirmAction:
         assert "doesn't match" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_confirm_action_tool_not_available(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_confirm_action_tool_not_available(self, mock_provider_class):
         """Test confirm_action when tool is no longer available."""
         from mother.agent.core import MotherAgent
 
@@ -979,8 +987,8 @@ class TestMotherAgentConfirmAction:
         assert "no longer available" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_confirm_action_success(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_confirm_action_success(self, mock_provider_class):
         """Test confirm_action success path."""
         from mother.agent.core import MotherAgent
         from mother.tools.base import ToolResult
@@ -1017,8 +1025,8 @@ class TestMotherAgentConfirmAction:
         assert "confirm-1" in agent.state.confirmed_actions
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_confirm_action_failure(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_confirm_action_failure(self, mock_provider_class):
         """Test confirm_action failure path."""
         from mother.agent.core import MotherAgent
         from mother.tools.base import ToolResult
@@ -1057,20 +1065,14 @@ class TestMotherAgentProcessCommand:
     """Tests for MotherAgent.process_command method."""
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_api_error(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_api_error(self, mock_provider_class):
         """Test process_command handles API errors."""
-        import anthropic
-
         from mother.agent.core import MotherAgent
 
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = anthropic.APIError(
-            message="Rate limit exceeded",
-            request=MagicMock(),
-            body=None,
-        )
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(side_effect=Exception("Rate limit exceeded"))
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.get_all_anthropic_schemas.return_value = []
@@ -1087,23 +1089,21 @@ class TestMotherAgentProcessCommand:
         assert "API error" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_text_only_response(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_text_only_response(self, mock_provider_class):
         """Test process_command with text-only response (no tool calls)."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse
 
-        # Create a mock response with text content
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = "Hello! How can I help you?"
+        mock_response = LLMResponse(
+            text="Hello! How can I help you?",
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_text_block]
-        mock_response.stop_reason = "end_turn"
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.get_all_anthropic_schemas.return_value = []
@@ -1121,34 +1121,29 @@ class TestMotherAgentProcessCommand:
         assert response.tool_calls == []
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_with_tool_call_unknown_tool(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_with_tool_call_unknown_tool(self, mock_provider_class):
         """Test process_command with unknown tool call."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse, ToolCall
 
         # First response: tool call
-        mock_tool_block = MagicMock()
-        mock_tool_block.type = "tool_use"
-        mock_tool_block.id = "tool-1"
-        mock_tool_block.name = "unknown_tool_command"
-        mock_tool_block.input = {}
-
-        mock_response1 = MagicMock()
-        mock_response1.content = [mock_tool_block]
-        mock_response1.stop_reason = "tool_use"
+        mock_response1 = LLMResponse(
+            text="",
+            tool_calls=[ToolCall(id="tool-1", name="unknown_tool_command", arguments={})],
+            stop_reason="tool_use",
+        )
 
         # Second response: final text
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = "Tool not found."
+        mock_response2 = LLMResponse(
+            text="Tool not found.",
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response2 = MagicMock()
-        mock_response2.content = [mock_text_block]
-        mock_response2.stop_reason = "end_turn"
-
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = [mock_response1, mock_response2]
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(side_effect=[mock_response1, mock_response2])
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.get_all_anthropic_schemas.return_value = []
@@ -1166,25 +1161,22 @@ class TestMotherAgentProcessCommand:
         assert response.success is True
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_max_iterations(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_max_iterations(self, mock_provider_class):
         """Test process_command reaches max iterations."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse, ToolCall
 
         # Always return a tool call to keep looping
-        mock_tool_block = MagicMock()
-        mock_tool_block.type = "tool_use"
-        mock_tool_block.id = "tool-1"
-        mock_tool_block.name = "test_command"
-        mock_tool_block.input = {}
+        mock_response = LLMResponse(
+            text="",
+            tool_calls=[ToolCall(id="tool-1", name="test_command", arguments={})],
+            stop_reason="tool_use",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_tool_block]
-        mock_response.stop_reason = "tool_use"
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.get_all_anthropic_schemas.return_value = []
@@ -1205,22 +1197,21 @@ class TestMotherAgentProcessCommand:
         assert "maximum number of steps" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_with_session_id(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_with_session_id(self, mock_provider_class):
         """Test process_command with session ID."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse
 
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = "Response"
+        mock_response = LLMResponse(
+            text="Response",
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_text_block]
-        mock_response.stop_reason = "end_turn"
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.get_all_anthropic_schemas.return_value = []
@@ -1237,35 +1228,30 @@ class TestMotherAgentProcessCommand:
         assert agent.state.session_id == "custom-session"
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_with_legacy_tool(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_with_legacy_tool(self, mock_provider_class):
         """Test process_command with legacy tool execution."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse, ToolCall
         from mother.tools.base import ToolResult
 
         # First response: tool call
-        mock_tool_block = MagicMock()
-        mock_tool_block.type = "tool_use"
-        mock_tool_block.id = "tool-1"
-        mock_tool_block.name = "filesystem_list"
-        mock_tool_block.input = {"path": "/tmp"}
-
-        mock_response1 = MagicMock()
-        mock_response1.content = [mock_tool_block]
-        mock_response1.stop_reason = "tool_use"
+        mock_response1 = LLMResponse(
+            text="",
+            tool_calls=[ToolCall(id="tool-1", name="filesystem_list", arguments={"path": "/tmp"})],
+            stop_reason="tool_use",
+        )
 
         # Second response: final text
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = "Listed files successfully."
+        mock_response2 = LLMResponse(
+            text="Listed files successfully.",
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response2 = MagicMock()
-        mock_response2.content = [mock_text_block]
-        mock_response2.stop_reason = "end_turn"
-
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = [mock_response1, mock_response2]
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(side_effect=[mock_response1, mock_response2])
+        mock_provider_class.return_value = mock_provider
 
         mock_wrapper = MagicMock()
         mock_wrapper.is_confirmation_required.return_value = False
@@ -1296,25 +1282,22 @@ class TestMotherAgentProcessCommand:
         assert response.tool_calls[0]["tool"] == "filesystem_list"
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_tool_requires_confirmation(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_tool_requires_confirmation(self, mock_provider_class):
         """Test process_command when tool requires confirmation."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse, ToolCall
 
         # Tool call that requires confirmation
-        mock_tool_block = MagicMock()
-        mock_tool_block.type = "tool_use"
-        mock_tool_block.id = "tool-1"
-        mock_tool_block.name = "filesystem_delete"
-        mock_tool_block.input = {"path": "/tmp/file.txt"}
+        mock_response = LLMResponse(
+            text="",
+            tool_calls=[ToolCall(id="tool-1", name="filesystem_delete", arguments={"path": "/tmp/file.txt"})],
+            stop_reason="tool_use",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_tool_block]
-        mock_response.stop_reason = "tool_use"
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_wrapper = MagicMock()
         mock_wrapper.is_confirmation_required.return_value = True
@@ -1342,20 +1325,14 @@ class TestMotherAgentCreatePlan:
     """Tests for MotherAgent.create_plan method."""
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_create_plan_api_error(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_create_plan_api_error(self, mock_provider_class):
         """Test create_plan handles API errors."""
-        import anthropic
-
         from mother.agent.core import MotherAgent
 
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = anthropic.APIError(
-            message="Service unavailable",
-            request=MagicMock(),
-            body=None,
-        )
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(side_effect=Exception("Service unavailable"))
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.list_tools.return_value = {}
@@ -1371,21 +1348,21 @@ class TestMotherAgentCreatePlan:
         assert "API error" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_create_plan_invalid_json(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_create_plan_invalid_json(self, mock_provider_class):
         """Test create_plan with invalid JSON response."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse
 
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = "This is not valid JSON"
+        mock_response = LLMResponse(
+            text="This is not valid JSON",
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_text_block]
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.list_tools.return_value = {}
@@ -1401,12 +1378,13 @@ class TestMotherAgentCreatePlan:
         assert "Failed to create plan" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_create_plan_success(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_create_plan_success(self, mock_provider_class):
         """Test create_plan with valid JSON response."""
         import json
 
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse
 
         plan_json = json.dumps(
             {
@@ -1432,16 +1410,15 @@ class TestMotherAgentCreatePlan:
             }
         )
 
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = plan_json
+        mock_response = LLMResponse(
+            text=plan_json,
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_text_block]
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.list_tools.return_value = {}
@@ -1460,12 +1437,13 @@ class TestMotherAgentCreatePlan:
         assert agent.state.pending_plan is not None
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_create_plan_with_markdown_code_block(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_create_plan_with_markdown_code_block(self, mock_provider_class):
         """Test create_plan with JSON in markdown code block."""
         import json
 
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse
 
         plan_json = json.dumps(
             {
@@ -1483,16 +1461,15 @@ class TestMotherAgentCreatePlan:
             }
         )
 
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = f"```json\n{plan_json}\n```"
+        mock_response = LLMResponse(
+            text=f"```json\n{plan_json}\n```",
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_text_block]
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.list_tools.return_value = {}
@@ -1512,8 +1489,8 @@ class TestMotherAgentExecutePlan:
     """Tests for MotherAgent.execute_plan method."""
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plan_no_pending(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plan_no_pending(self, mock_provider_class):
         """Test execute_plan with no pending plan."""
         from mother.agent.core import MotherAgent
 
@@ -1530,8 +1507,8 @@ class TestMotherAgentExecutePlan:
         assert "No pending plan" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plan_wrong_id(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plan_wrong_id(self, mock_provider_class):
         """Test execute_plan with wrong plan ID."""
         from mother.agent.core import MotherAgent
 
@@ -1554,8 +1531,8 @@ class TestMotherAgentExecutePlan:
         assert "doesn't match" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plan_success(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plan_success(self, mock_provider_class):
         """Test execute_plan success."""
         from mother.agent.core import MotherAgent
         from mother.tools.base import ToolResult
@@ -1601,8 +1578,8 @@ class TestMotherAgentExecutePlan:
         assert agent.state.current_plan is None
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plan_tool_not_found(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plan_tool_not_found(self, mock_provider_class):
         """Test execute_plan when tool not found."""
         from mother.agent.core import MotherAgent
 
@@ -1635,8 +1612,8 @@ class TestMotherAgentExecutePlan:
         assert len(response.errors) > 0
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plan_with_dependencies(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plan_with_dependencies(self, mock_provider_class):
         """Test execute_plan with step dependencies."""
         from mother.agent.core import MotherAgent
         from mother.tools.base import ToolResult
@@ -1696,8 +1673,8 @@ class TestMotherAgentProcessWithPlanning:
     """Tests for MotherAgent.process_with_planning method."""
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_with_planning_approve_pending(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_with_planning_approve_pending(self, mock_provider_class):
         """Test process_with_planning approves pending plan with 'yes'."""
         from mother.agent.core import MotherAgent
         from mother.tools.base import ToolResult
@@ -1741,8 +1718,8 @@ class TestMotherAgentProcessWithPlanning:
         assert "Plan Execution Complete" in response.text
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_with_planning_cancel_pending(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_with_planning_cancel_pending(self, mock_provider_class):
         """Test process_with_planning cancels pending plan with 'no'."""
         from mother.agent.core import MotherAgent
 
@@ -1766,12 +1743,13 @@ class TestMotherAgentProcessWithPlanning:
         assert agent.state.pending_plan is None
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_with_planning_new_request(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_with_planning_new_request(self, mock_provider_class):
         """Test process_with_planning creates new plan."""
         import json
 
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse
 
         plan_json = json.dumps(
             {
@@ -1789,16 +1767,15 @@ class TestMotherAgentProcessWithPlanning:
             }
         )
 
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = plan_json
+        mock_response = LLMResponse(
+            text=plan_json,
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response = MagicMock()
-        mock_response.content = [mock_text_block]
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(return_value=mock_response)
+        mock_provider_class.return_value = mock_provider
 
         mock_registry = MagicMock()
         mock_registry.list_tools.return_value = {}
@@ -1818,11 +1795,12 @@ class TestMotherAgentPluginExecution:
     """Tests for MotherAgent._execute_plugin_tool method."""
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
+    @patch("mother.agent.core.AnthropicProvider")
     @patch("mother.agent.core.PLUGINS_AVAILABLE", False)
-    async def test_execute_plugin_tool_plugins_not_available(self, mock_anthropic):
+    async def test_execute_plugin_tool_plugins_not_available(self, mock_provider_class):
         """Test _execute_plugin_tool when plugins not available."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import ToolCall
 
         mock_registry = MagicMock()
 
@@ -1831,22 +1809,20 @@ class TestMotherAgentPluginExecution:
             enable_memory=False,
         )
 
-        mock_tool_use = MagicMock()
-        mock_tool_use.id = "tool-1"
-        mock_tool_use.name = "plugin_capability"
-        mock_tool_use.input = {}
+        tool_call = ToolCall(id="tool-1", name="plugin_capability", arguments={})
 
-        result = await agent._execute_plugin_tool(mock_tool_use, [], False)
+        result = await agent._execute_plugin_tool_unified(tool_call, [], False)
 
         assert result is not None
         assert result["is_error"] is True
         assert "not available" in result["content"]
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plugin_tool_requires_confirmation(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plugin_tool_requires_confirmation(self, mock_provider_class):
         """Test _execute_plugin_tool when confirmation required."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import ToolCall
 
         mock_registry = MagicMock()
         mock_registry.requires_confirmation.return_value = True
@@ -1857,12 +1833,9 @@ class TestMotherAgentPluginExecution:
             enable_memory=False,
         )
 
-        mock_tool_use = MagicMock()
-        mock_tool_use.id = "tool-1"
-        mock_tool_use.name = "plugin_action"
-        mock_tool_use.input = {"param": "value"}
+        tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={"param": "value"})
 
-        result = await agent._execute_plugin_tool(mock_tool_use, [], False)
+        result = await agent._execute_plugin_tool_unified(tool_call, [], False)
 
         # Should return None (pending confirmation)
         assert result is None
@@ -1870,10 +1843,11 @@ class TestMotherAgentPluginExecution:
         assert agent.state.pending_confirmation.id == "tool-1"
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plugin_tool_success(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plugin_tool_success(self, mock_provider_class):
         """Test _execute_plugin_tool success path."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import ToolCall
         from mother.plugins import PluginResult, ResultStatus
 
         mock_plugin_result = PluginResult(
@@ -1892,13 +1866,10 @@ class TestMotherAgentPluginExecution:
             enable_memory=False,
         )
 
-        mock_tool_use = MagicMock()
-        mock_tool_use.id = "tool-1"
-        mock_tool_use.name = "plugin_action"
-        mock_tool_use.input = {}
+        tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={})
 
         tool_calls = []
-        result = await agent._execute_plugin_tool(mock_tool_use, tool_calls, False)
+        result = await agent._execute_plugin_tool_unified(tool_call, tool_calls, False)
 
         assert result is not None
         assert result["is_error"] is False
@@ -1906,10 +1877,11 @@ class TestMotherAgentPluginExecution:
         assert tool_calls[0]["source"] == "plugin"
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plugin_tool_error(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plugin_tool_error(self, mock_provider_class):
         """Test _execute_plugin_tool error path."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import ToolCall
         from mother.plugins import PluginResult, ResultStatus
 
         mock_plugin_result = PluginResult(
@@ -1928,22 +1900,20 @@ class TestMotherAgentPluginExecution:
             enable_memory=False,
         )
 
-        mock_tool_use = MagicMock()
-        mock_tool_use.id = "tool-1"
-        mock_tool_use.name = "plugin_action"
-        mock_tool_use.input = {}
+        tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={})
 
-        result = await agent._execute_plugin_tool(mock_tool_use, [], False)
+        result = await agent._execute_plugin_tool_unified(tool_call, [], False)
 
         assert result is not None
         assert result["is_error"] is True
         assert "Plugin failed" in result["content"]
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plugin_tool_exception(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plugin_tool_exception(self, mock_provider_class):
         """Test _execute_plugin_tool handles exceptions."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import ToolCall
 
         mock_registry = MagicMock()
         mock_registry.requires_confirmation.return_value = False
@@ -1954,22 +1924,20 @@ class TestMotherAgentPluginExecution:
             enable_memory=False,
         )
 
-        mock_tool_use = MagicMock()
-        mock_tool_use.id = "tool-1"
-        mock_tool_use.name = "plugin_action"
-        mock_tool_use.input = {}
+        tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={})
 
-        result = await agent._execute_plugin_tool(mock_tool_use, [], False)
+        result = await agent._execute_plugin_tool_unified(tool_call, [], False)
 
         assert result is not None
         assert result["is_error"] is True
         assert "execution failed" in result["content"]
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_execute_plugin_tool_pending_confirmation_result(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_execute_plugin_tool_pending_confirmation_result(self, mock_provider_class):
         """Test _execute_plugin_tool when plugin returns pending confirmation."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import ToolCall
         from mother.plugins import PluginResult, ResultStatus
 
         mock_plugin_result = PluginResult(
@@ -1988,47 +1956,39 @@ class TestMotherAgentPluginExecution:
             enable_memory=False,
         )
 
-        mock_tool_use = MagicMock()
-        mock_tool_use.id = "tool-1"
-        mock_tool_use.name = "plugin_dangerous_action"
-        mock_tool_use.input = {}
+        tool_call = ToolCall(id="tool-1", name="plugin_dangerous_action", arguments={})
 
-        result = await agent._execute_plugin_tool(mock_tool_use, [], False)
+        result = await agent._execute_plugin_tool_unified(tool_call, [], False)
 
         # Should return None (pending confirmation from result)
         assert result is None
         assert agent.state.pending_confirmation is not None
 
     @pytest.mark.asyncio
-    @patch("mother.agent.core.anthropic.Anthropic")
-    async def test_process_command_with_plugin_tool(self, mock_anthropic):
+    @patch("mother.agent.core.AnthropicProvider")
+    async def test_process_command_with_plugin_tool(self, mock_provider_class):
         """Test process_command with plugin tool execution."""
         from mother.agent.core import MotherAgent
+        from mother.llm.response import LLMResponse, ToolCall
         from mother.plugins import PluginResult, ResultStatus
 
         # First response: tool call
-        mock_tool_block = MagicMock()
-        mock_tool_block.type = "tool_use"
-        mock_tool_block.id = "tool-1"
-        mock_tool_block.name = "web_fetch"
-        mock_tool_block.input = {"url": "https://example.com"}
-
-        mock_response1 = MagicMock()
-        mock_response1.content = [mock_tool_block]
-        mock_response1.stop_reason = "tool_use"
+        mock_response1 = LLMResponse(
+            text="",
+            tool_calls=[ToolCall(id="tool-1", name="web_fetch", arguments={"url": "https://example.com"})],
+            stop_reason="tool_use",
+        )
 
         # Second response: final text
-        mock_text_block = MagicMock()
-        mock_text_block.type = "text"
-        mock_text_block.text = "Fetched the page successfully."
+        mock_response2 = LLMResponse(
+            text="Fetched the page successfully.",
+            tool_calls=[],
+            stop_reason="end_turn",
+        )
 
-        mock_response2 = MagicMock()
-        mock_response2.content = [mock_text_block]
-        mock_response2.stop_reason = "end_turn"
-
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = [mock_response1, mock_response2]
-        mock_anthropic.return_value = mock_client
+        mock_provider = MagicMock()
+        mock_provider.create_message = AsyncMock(side_effect=[mock_response1, mock_response2])
+        mock_provider_class.return_value = mock_provider
 
         mock_plugin_result = PluginResult(
             success=True,
