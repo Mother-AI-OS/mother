@@ -1,0 +1,81 @@
+# Mother AI OS - Docker Compose Configuration
+# https://github.com/Mother-AI-OS/mother
+#
+# Quick Start:
+#   1. Copy .env.example to .env and configure your API keys
+#   2. Run: docker compose up -d
+#   3. Access: http://localhost:8080/health
+#
+# Usage:
+#   docker compose up -d          # Start in background
+#   docker compose logs -f        # View logs
+#   docker compose down           # Stop
+#   docker compose up --build     # Rebuild and start
+
+services:
+  mother:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mother-ai-os:latest
+    container_name: mother
+    restart: unless-stopped
+
+    ports:
+      - "${MOTHER_PORT:-8080}:8080"
+
+    environment:
+      # LLM Provider Configuration
+      - AI_PROVIDER=${AI_PROVIDER:-anthropic}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ZHIPU_API_KEY=${ZHIPU_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-}
+
+      # API Authentication
+      - MOTHER_API_KEY=${MOTHER_API_KEY:-}
+      - MOTHER_REQUIRE_AUTH=${MOTHER_REQUIRE_AUTH:-true}
+
+      # Security Settings
+      - MOTHER_SAFE_MODE=${MOTHER_SAFE_MODE:-true}
+      - MOTHER_SANDBOX_MODE=${MOTHER_SANDBOX_MODE:-true}
+      - MOTHER_AUDIT_ENABLED=${MOTHER_AUDIT_ENABLED:-true}
+
+      # Server Configuration
+      - MOTHER_HOST=0.0.0.0
+      - MOTHER_PORT=8080
+      - MOTHER_LOG_LEVEL=${MOTHER_LOG_LEVEL:-INFO}
+
+    volumes:
+      # Persist audit logs
+      - mother-logs:/app/logs
+
+      # Persist workspace files
+      - mother-workspace:/app/workspace
+
+      # Mount credentials (optional - prefer env vars in production)
+      # - ./credentials.env:/home/mother/.config/mother/credentials.env:ro
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8080/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+volumes:
+  mother-logs:
+    name: mother-logs
+  mother-workspace:
+    name: mother-workspace
