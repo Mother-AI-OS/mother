@@ -38,9 +38,7 @@ class GeminiProvider(LLMProvider):
         # Prepare tools
         gemini_tools = None
         if tools:
-            function_declarations = [
-                self._create_function_declaration(t) for t in tools
-            ]
+            function_declarations = [self._create_function_declaration(t) for t in tools]
             gemini_tools = [types.Tool(function_declarations=function_declarations)]
 
         # Prepare generation config
@@ -52,11 +50,9 @@ class GeminiProvider(LLMProvider):
             config = types.GenerateContentConfig(
                 max_output_tokens=self.max_tokens,
                 system_instruction=system_prompt,
-                tools=gemini_tools,
+                tools=gemini_tools,  # type: ignore[arg-type]
                 # Disable automatic function calling - we handle it manually
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                    disable=True
-                ),
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             )
 
         # Get the last user message for the send_message call
@@ -65,7 +61,7 @@ class GeminiProvider(LLMProvider):
             last_entry = gemini_history[-1]
             if isinstance(last_entry.parts, list) and last_entry.parts:
                 first_part = last_entry.parts[0]
-                if hasattr(first_part, "text"):
+                if hasattr(first_part, "text") and first_part.text:
                     last_message = first_part.text
                 elif isinstance(first_part, str):
                     last_message = first_part
@@ -114,9 +110,7 @@ class GeminiProvider(LLMProvider):
             raw_response=response,
         )
 
-    def _convert_messages(
-        self, messages: list[dict[str, Any]]
-    ) -> list[types.Content]:
+    def _convert_messages(self, messages: list[dict[str, Any]]) -> list[types.Content]:
         """Convert Anthropic messages to Gemini Content format."""
         gemini_history: list[types.Content] = []
 
@@ -156,9 +150,7 @@ class GeminiProvider(LLMProvider):
 
         return gemini_history
 
-    def _create_function_declaration(
-        self, anthropic_schema: dict[str, Any]
-    ) -> types.FunctionDeclaration:
+    def _create_function_declaration(self, anthropic_schema: dict[str, Any]) -> types.FunctionDeclaration:
         """Create Gemini FunctionDeclaration from Anthropic schema."""
         input_schema = anthropic_schema.get("input_schema", {})
 

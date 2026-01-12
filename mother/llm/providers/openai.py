@@ -86,9 +86,7 @@ class OpenAIProvider(LLMProvider):
         system_prompt: str,
     ) -> list[dict[str, Any]]:
         """Convert Anthropic messages to OpenAI format."""
-        openai_messages: list[dict[str, Any]] = [
-            {"role": "system", "content": system_prompt}
-        ]
+        openai_messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 
         for msg in messages:
             role = msg["role"]
@@ -109,9 +107,7 @@ class OpenAIProvider(LLMProvider):
                                 }
                             )
                         else:
-                            openai_messages.append(
-                                {"role": "user", "content": str(item)}
-                            )
+                            openai_messages.append({"role": "user", "content": str(item)})
             elif role == "assistant":
                 if isinstance(content, str):
                     openai_messages.append({"role": "assistant", "content": content})
@@ -172,10 +168,7 @@ class OpenAIProvider(LLMProvider):
 
         # Recursively fix properties
         if "properties" in result:
-            result["properties"] = {
-                k: self._fix_array_schemas(v)
-                for k, v in result["properties"].items()
-            }
+            result["properties"] = {k: self._fix_array_schemas(v) for k, v in result["properties"].items()}
 
         # Recursively fix items
         if "items" in result and isinstance(result["items"], dict):

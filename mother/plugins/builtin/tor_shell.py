@@ -236,17 +236,49 @@ class TorShellPlugin(PluginBase):
         """List all available darknet shortcuts."""
         bookmarks = {
             "search_engines": [
-                {"name": "DuckDuckGo", "command": "darknet ddg", "onion": "duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion"},
+                {
+                    "name": "DuckDuckGo",
+                    "command": "darknet ddg",
+                    "onion": "duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion",
+                },
             ],
             "news_sites": [
-                {"name": "BBC News", "command": "darknet bbc", "onion": "bbcnewsd73hkzno2ini43t4gblxvycyac5aw4gnv7t2rccijh7745uqd.onion"},
-                {"name": "CIA", "command": "darknet cia", "onion": "ciadotgov4sjwlzihbbgxnqg3xiyrg7so2r2o3lt5wz5ypk4sxyjstad.onion"},
-                {"name": "Deutsche Welle", "command": "darknet dw", "onion": "dwnewsgngmhlplxy6o2twtfgjnrnjxbegbwqx6wnotdhkzt562tszfid.onion"},
-                {"name": "Voice of America", "command": "darknet voa", "onion": "voanews5aitmne6gs2btokcacixclgfl43cv27sirgbauyyjylwpdtqd.onion"},
-                {"name": "Radio Free Europe", "command": "darknet rferl", "onion": "rferlo7zkwfbdc3ind3qu4lgngci6tj4ssvvk5aook7qcd5tabzid.onion"},
-                {"name": "Bellingcat", "command": "darknet bellingcat", "onion": "bellingcat4nqaoxbrq2mgaykkusg44trjqtjkqj7kqjxdrvm2i7sxyd.onion"},
+                {
+                    "name": "BBC News",
+                    "command": "darknet bbc",
+                    "onion": "bbcnewsd73hkzno2ini43t4gblxvycyac5aw4gnv7t2rccijh7745uqd.onion",
+                },
+                {
+                    "name": "CIA",
+                    "command": "darknet cia",
+                    "onion": "ciadotgov4sjwlzihbbgxnqg3xiyrg7so2r2o3lt5wz5ypk4sxyjstad.onion",
+                },
+                {
+                    "name": "Deutsche Welle",
+                    "command": "darknet dw",
+                    "onion": "dwnewsgngmhlplxy6o2twtfgjnrnjxbegbwqx6wnotdhkzt562tszfid.onion",
+                },
+                {
+                    "name": "Voice of America",
+                    "command": "darknet voa",
+                    "onion": "voanews5aitmne6gs2btokcacixclgfl43cv27sirgbauyyjylwpdtqd.onion",
+                },
+                {
+                    "name": "Radio Free Europe",
+                    "command": "darknet rferl",
+                    "onion": "rferlo7zkwfbdc3ind3qu4lgngci6tj4ssvvk5aook7qcd5tabzid.onion",
+                },
+                {
+                    "name": "Bellingcat",
+                    "command": "darknet bellingcat",
+                    "onion": "bellingcat4nqaoxbrq2mgaykkusg44trjqtjkqj7kqjxdrvm2i7sxyd.onion",
+                },
                 {"name": "ProPublica", "command": "darknet propublica", "onion": "propub3r6espa33w.onion"},
-                {"name": "New York Times", "command": "darknet nyt", "onion": "nytimesn7cgmftshazwhfgzm37qxb44r64ytbb2dj3x62d2lljscujyd.onion"},
+                {
+                    "name": "New York Times",
+                    "command": "darknet nyt",
+                    "onion": "nytimesn7cgmftshazwhfgzm37qxb44r64ytbb2dj3x62d2lljscujyd.onion",
+                },
             ],
         }
 
