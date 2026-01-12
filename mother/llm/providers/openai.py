@@ -52,9 +52,15 @@ class OpenAIProvider(LLMProvider):
         # Convert messages from Anthropic to OpenAI format
         openai_messages = self._convert_messages(messages, system_prompt)
 
+        # Cap max_tokens for models with lower limits
+        # gpt-4o and gpt-4o-mini support 16384, others support 4096
+        max_tokens = self.max_tokens
+        if self.model.startswith("gpt-4") and not self.model.startswith("gpt-4o"):
+            max_tokens = min(max_tokens, 4096)
+
         kwargs: dict[str, Any] = {
             "model": self.model,
-            "max_tokens": self.max_tokens,
+            "max_tokens": max_tokens,
             "messages": openai_messages,
         }
 

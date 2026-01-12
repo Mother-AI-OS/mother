@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 # Default models for each provider
 DEFAULT_MODELS = {
     "anthropic": "claude-sonnet-4-20250514",
-    "openai": "gpt-4-turbo-preview",
+    "openai": "gpt-4-turbo",
     "zhipu": "glm-4",
     "gemini": "gemini-1.5-pro",
 }
