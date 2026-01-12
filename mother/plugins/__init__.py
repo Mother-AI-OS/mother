@@ -44,10 +44,12 @@ from .exceptions import (
     PluginNotFoundError,
     PluginTimeoutError,
     PluginValidationError,
+    PolicyViolationError,
 )
 from .executor import CLIExecutor, ExecutorBase, PythonExecutor, create_executor
 from .loader import PluginLoader
 from .manifest import (
+    HIGH_RISK_PERMISSIONS,
     CapabilitySpec,
     ConfigField,
     ExecutionSpec,
@@ -55,11 +57,22 @@ from .manifest import (
     ParameterSpec,
     PluginManifest,
     PluginMetadata,
+    RiskLevel,
     find_manifest,
     load_manifest,
 )
 from .registry import CapabilityEntry, PluginRegistry
 from .sandbox import Permission, PluginSandbox, SandboxManager
+from .schema import (
+    SchemaValidator,
+    VersionTracker,
+    compare_versions,
+    get_validator,
+    get_version_tracker,
+    is_version_compatible,
+    parse_semver,
+    validate_params,
+)
 
 logger = logging.getLogger("mother.plugins")
 
@@ -81,6 +94,8 @@ __all__ = [
     "ConfigField",
     "ExecutionSpec",
     "ExecutionType",
+    "RiskLevel",
+    "HIGH_RISK_PERMISSIONS",
     "load_manifest",
     "find_manifest",
     # Registry
@@ -97,6 +112,15 @@ __all__ = [
     "PluginSandbox",
     "SandboxManager",
     "Permission",
+    # Schema validation
+    "SchemaValidator",
+    "VersionTracker",
+    "parse_semver",
+    "compare_versions",
+    "is_version_compatible",
+    "get_validator",
+    "get_version_tracker",
+    "validate_params",
     # Exceptions
     "PluginError",
     "PluginNotFoundError",
@@ -110,6 +134,7 @@ __all__ = [
     "ConfigurationError",
     "PluginTimeoutError",
     "PluginValidationError",
+    "PolicyViolationError",
 ]
 
 
@@ -128,6 +153,10 @@ class PluginConfig:
     # Plugin management
     disabled_plugins: list[str] = field(default_factory=list)
     enabled_plugins: list[str] | None = None  # If set, only load these
+
+    # High-risk plugin handling
+    allow_high_risk_plugins: bool = False  # If False, high-risk plugins are skipped
+    explicitly_enabled_plugins: list[str] = field(default_factory=list)  # Override disabled-by-default
 
     # Plugin-specific settings (plugin_name -> settings dict)
     plugin_settings: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -206,6 +235,12 @@ class PluginManager:
 
         Returns:
             Dict mapping plugin names to PluginInfo
+
+        Note:
+            High-risk plugins (those with high-risk permissions or risk_level HIGH/CRITICAL)
+            are filtered out unless:
+            - allow_high_risk_plugins=True in config
+            - The plugin is in explicitly_enabled_plugins list
         """
         self._discovered = self._loader.discover_all()
 
@@ -218,6 +253,29 @@ class PluginManager:
         # Remove disabled plugins
         for disabled in self.config.disabled_plugins:
             self._discovered.pop(disabled, None)
+
+        # Filter high-risk plugins unless explicitly allowed
+        if not self.config.allow_high_risk_plugins:
+            filtered = {}
+            for name, info in self._discovered.items():
+                # Check if explicitly enabled
+                if name in self.config.explicitly_enabled_plugins:
+                    filtered[name] = info
+                    continue
+
+                # Get manifest to check if high-risk
+                manifest = self._loader.get_manifest(name)
+                if manifest and manifest.is_disabled_by_default():
+                    logger.warning(
+                        f"Skipping high-risk plugin '{name}' (requires explicit enabling). "
+                        f"Risk permissions: {manifest.get_high_risk_permissions()}"
+                    )
+                    info.loaded = False
+                    info.error = "High-risk plugin disabled by default"
+                else:
+                    filtered[name] = info
+
+            self._discovered = filtered
 
         logger.info(f"Discovered {len(self._discovered)} plugins")
         return self._discovered.copy()
@@ -474,6 +532,33 @@ class PluginManager:
             True if loaded
         """
         return self._loader.is_loaded(plugin_name)
+
+    def list_high_risk_plugins(self) -> dict[str, dict[str, Any]]:
+        """List all discovered high-risk plugins.
+
+        Returns information about plugins that are disabled by default
+        due to high-risk permissions or risk level.
+
+        Returns:
+            Dict mapping plugin names to info including:
+            - risk_level: Plugin's risk level
+            - high_risk_permissions: List of high-risk permissions
+            - loaded: Whether the plugin is currently loaded
+        """
+        result = {}
+        all_discovered = self._loader.discover_all()
+
+        for name in all_discovered:
+            manifest = self._loader.get_manifest(name)
+            if manifest and manifest.is_disabled_by_default():
+                result[name] = {
+                    "risk_level": manifest.plugin.risk_level.value,
+                    "high_risk_permissions": manifest.get_high_risk_permissions(),
+                    "loaded": self.is_loaded(name),
+                    "explicitly_enabled": name in self.config.explicitly_enabled_plugins,
+                }
+
+        return result
 
     async def shutdown(self) -> None:
         """Shutdown all plugins and cleanup."""

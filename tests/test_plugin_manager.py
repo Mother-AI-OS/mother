@@ -206,10 +206,17 @@ class TestPluginManager:
 class TestPluginManagerIntegration:
     """Integration tests for PluginManager."""
 
+    @pytest.fixture(autouse=True)
+    def mock_policy(self, monkeypatch):
+        """Mock policy check to allow all actions in tests."""
+        from mother.plugins.executor import ExecutorBase
+
+        monkeypatch.setattr(ExecutorBase, "check_policy", lambda self, cap, params, ctx=None: None)
+
     @pytest.mark.asyncio
     async def test_full_lifecycle(self) -> None:
         """Test full plugin lifecycle: discover -> load -> execute -> unload."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         # Initialize
@@ -236,7 +243,7 @@ class TestPluginManagerIntegration:
         """Test executing filesystem list_directory capability."""
         import tempfile
 
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -256,7 +263,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_get_all_schemas(self) -> None:
         """Test getting all schemas."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -270,7 +277,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_get_plugin_info(self) -> None:
         """Test getting plugin info."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -284,7 +291,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_reload_plugin(self) -> None:
         """Test reloading a plugin."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -300,7 +307,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_list_discovered(self) -> None:
         """Test listing discovered plugins."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -314,7 +321,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_parse_capability_name(self) -> None:
         """Test parsing capability names."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -329,7 +336,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_contains_capability(self) -> None:
         """Test __contains__ for capabilities."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -342,7 +349,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_len(self) -> None:
         """Test __len__ returns capability count."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -354,7 +361,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_requires_confirmation(self) -> None:
         """Test checking if capability requires confirmation."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -370,7 +377,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_get_capability(self) -> None:
         """Test getting a capability entry."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -384,7 +391,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_list_capabilities_filtered(self) -> None:
         """Test listing capabilities filtered by plugin."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -399,7 +406,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_load_and_unload(self) -> None:
         """Test loading and unloading a plugin."""
-        config = PluginConfig(require_permissions=False, auto_load=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False)
         manager = PluginManager(config)
 
         # Discover but don't load
@@ -416,7 +423,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_load_all_after_discover(self) -> None:
         """Test load_all loads all discovered plugins."""
-        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
         manager = PluginManager(config)
 
         # Discover plugins
@@ -437,6 +444,7 @@ class TestPluginManagerIntegration:
             auto_discover=False,
             auto_load=False,
             require_permissions=False,
+            allow_high_risk_plugins=True,  # Need to allow high-risk to see filesystem
         )
         manager = PluginManager(config)
 
@@ -455,6 +463,7 @@ class TestPluginManagerIntegration:
             auto_discover=False,
             auto_load=False,
             require_permissions=False,
+            allow_high_risk_plugins=True,  # Need to allow high-risk to see filesystem
         )
         manager = PluginManager(config)
 
@@ -468,7 +477,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_execute_with_permission_check(self) -> None:
         """Test execute with permission checking enabled."""
-        config = PluginConfig(require_permissions=True)
+        config = PluginConfig(require_permissions=True, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -492,7 +501,7 @@ class TestPluginManagerIntegration:
         """Test execute returns pending confirmation for destructive action."""
         from mother.plugins import ResultStatus
 
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -511,7 +520,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_execute_capability_not_found(self) -> None:
         """Test execute raises CapabilityNotFoundError (covers line 340)."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -524,7 +533,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_execute_timeout_error(self) -> None:
         """Test execute re-raises PluginTimeoutError (covers lines 366-367)."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -546,7 +555,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_execute_general_error(self) -> None:
         """Test execute wraps general errors in ExecutionError (covers lines 368-373)."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()
@@ -570,7 +579,7 @@ class TestPluginManagerIntegration:
         """Test load_all skips plugins that failed discovery (covers line 235)."""
         from mother.plugins.base import PluginInfo
 
-        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
         manager = PluginManager(config)
 
         # Manually add a plugin that "failed discovery" (loaded=False)
@@ -596,7 +605,7 @@ class TestPluginManagerIntegration:
         """Test load_all handles plugin load failures (covers lines 240-243)."""
         from mother.plugins.base import PluginInfo
 
-        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
         manager = PluginManager(config)
 
         # Manually add a plugin that will fail to load
@@ -624,7 +633,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_load_manifest_not_found(self) -> None:
         """Test load raises PluginLoadError when manifest missing (covers line 266)."""
-        config = PluginConfig(require_permissions=False, auto_load=False, auto_discover=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
         manager = PluginManager(config)
 
         # Discover plugins
@@ -642,7 +651,7 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_shutdown_handles_unload_errors(self) -> None:
         """Test shutdown handles errors during unload (covers lines 483-484)."""
-        config = PluginConfig(require_permissions=False)
+        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True)
         manager = PluginManager(config)
 
         await manager.initialize()

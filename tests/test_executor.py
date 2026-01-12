@@ -319,6 +319,11 @@ class TestExecutorBase:
 class TestBuiltinExecutor:
     """Tests for BuiltinExecutor class."""
 
+    @pytest.fixture(autouse=True)
+    def mock_policy(self, monkeypatch):
+        """Mock policy check to allow all actions in tests."""
+        monkeypatch.setattr(BuiltinExecutor, "check_policy", lambda self, cap, params, ctx=None: None)
+
     @pytest.fixture
     def mock_plugin(self, sample_manifest):
         """Create a mock plugin instance."""
@@ -390,13 +395,19 @@ class TestBuiltinExecutor:
         mock_plugin.execute = AsyncMock(side_effect=ValueError("Test error"))
         executor = BuiltinExecutor(mock_plugin, sample_manifest)
 
-        result = await executor.execute("test_action", {})
+        # Provide valid params so schema validation passes
+        result = await executor.execute("test_action", {"input": "test"})
         assert result.success is False
         assert result.error_code == "EXECUTION_ERROR"
 
 
 class TestCLIExecutor:
     """Tests for CLIExecutor class."""
+
+    @pytest.fixture(autouse=True)
+    def mock_policy(self, monkeypatch):
+        """Mock policy check to allow all actions in tests."""
+        monkeypatch.setattr(CLIExecutor, "check_policy", lambda self, cap, params, ctx=None: None)
 
     @pytest.mark.asyncio
     async def test_initialize_finds_binary_in_path(self, cli_manifest):
@@ -552,6 +563,11 @@ class TestCLIExecutor:
 class TestPythonExecutor:
     """Tests for PythonExecutor class."""
 
+    @pytest.fixture(autouse=True)
+    def mock_policy(self, monkeypatch):
+        """Mock policy check to allow all actions in tests."""
+        monkeypatch.setattr(PythonExecutor, "check_policy", lambda self, cap, params, ctx=None: None)
+
     @pytest.mark.asyncio
     async def test_initialize_plugin_base_subclass(self, sample_manifest, tmp_path):
         """Test initialization with PluginBase subclass."""
@@ -682,6 +698,11 @@ class TestCreateExecutor:
 
 class TestPythonExecutorAdditional:
     """Additional tests for PythonExecutor class."""
+
+    @pytest.fixture(autouse=True)
+    def mock_policy(self, monkeypatch):
+        """Mock policy check to allow all actions in tests."""
+        monkeypatch.setattr(PythonExecutor, "check_policy", lambda self, cap, params, ctx=None: None)
 
     @pytest.fixture
     def sample_manifest(self):
@@ -842,6 +863,11 @@ class TestPlugin(PluginBase):
 
 class TestCLIExecutorAdditional:
     """Additional tests for CLIExecutor class."""
+
+    @pytest.fixture(autouse=True)
+    def mock_policy(self, monkeypatch):
+        """Mock policy check to allow all actions in tests."""
+        monkeypatch.setattr(CLIExecutor, "check_policy", lambda self, cap, params, ctx=None: None)
 
     @pytest.fixture
     def cli_manifest(self):
