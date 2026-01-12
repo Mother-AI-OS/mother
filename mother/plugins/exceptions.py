@@ -156,3 +156,39 @@ class PluginValidationError(PluginError):
             f"Validation failed for '{capability}' {stage}: {errors_str}",
             plugin_name,
         )
+
+
+class PolicyViolationError(PluginError):
+    """Raised when a capability call violates security policy.
+
+    This is a HARD block - the action cannot proceed regardless of
+    user confirmation. Policy violations are always logged.
+    """
+
+    def __init__(
+        self,
+        plugin_name: str,
+        capability: str,
+        reason: str,
+        matched_rules: list[str] | None = None,
+        risk_tier: str = "MEDIUM",
+    ):
+        self.capability = capability
+        self.reason = reason
+        self.matched_rules = matched_rules or []
+        self.risk_tier = risk_tier
+        super().__init__(
+            f"Policy violation for '{capability}': {reason}",
+            plugin_name,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for API responses."""
+        return {
+            "error": "policy_violation",
+            "plugin": self.plugin_name,
+            "capability": self.capability,
+            "reason": self.reason,
+            "matched_rules": self.matched_rules,
+            "risk_tier": self.risk_tier,
+        }

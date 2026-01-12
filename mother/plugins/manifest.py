@@ -245,6 +245,29 @@ class ConfigField(BaseModel):
 # -----------------------------------------------------------------------------
 
 
+class RiskLevel(str, Enum):
+    """Plugin risk levels for security classification."""
+
+    LOW = "low"  # Safe operations, no external access
+    MEDIUM = "medium"  # Limited external access, read-only operations
+    HIGH = "high"  # Write operations, network access, external services
+    CRITICAL = "critical"  # Shell execution, system access, credential handling
+
+
+# Permissions that indicate high-risk operations
+HIGH_RISK_PERMISSIONS = frozenset(
+    {
+        "shell",  # Shell command execution
+        "subprocess",  # Subprocess spawning
+        "filesystem:write",  # Write to filesystem
+        "filesystem:delete",  # Delete files
+        "secrets:write",  # Write secrets
+        "secrets:read",  # Read secrets (credential access)
+        "network:external",  # External network access
+    }
+)
+
+
 class PluginMetadata(BaseModel):
     """Plugin metadata section of manifest."""
 
@@ -258,6 +281,16 @@ class PluginMetadata(BaseModel):
 
     requires_python: str = Field(default=">=3.11", description="Python version requirement")
     requires_mother: str = Field(default=">=1.0.0", description="Mother version requirement")
+
+    # Security settings
+    risk_level: RiskLevel = Field(
+        default=RiskLevel.MEDIUM,
+        description="Security risk level of the plugin",
+    )
+    disabled_by_default: bool = Field(
+        default=False,
+        description="If True, plugin must be explicitly enabled",
+    )
 
     @field_validator("name")
     @classmethod
@@ -326,6 +359,47 @@ class PluginManifest(BaseModel):
     def get_required_config(self) -> list[str]:
         """Get list of required configuration field names."""
         return [name for name, field in self.config.items() if field.required]
+
+    def get_high_risk_permissions(self) -> list[str]:
+        """Get list of high-risk permissions this plugin requires.
+
+        Returns:
+            List of permission strings that are considered high-risk
+        """
+        return [p for p in self.permissions if p in HIGH_RISK_PERMISSIONS]
+
+    def has_high_risk_permissions(self) -> bool:
+        """Check if the plugin has any high-risk permissions.
+
+        Returns:
+            True if the plugin has any high-risk permissions
+        """
+        return len(self.get_high_risk_permissions()) > 0
+
+    def is_disabled_by_default(self) -> bool:
+        """Check if plugin should be disabled by default.
+
+        A plugin is disabled by default if:
+        - It explicitly sets disabled_by_default=True in manifest
+        - It has a risk_level of HIGH or CRITICAL
+        - It requests any high-risk permissions
+
+        Returns:
+            True if the plugin should be disabled by default
+        """
+        # Explicit setting takes precedence
+        if self.plugin.disabled_by_default:
+            return True
+
+        # High/Critical risk level
+        if self.plugin.risk_level in (RiskLevel.HIGH, RiskLevel.CRITICAL):
+            return True
+
+        # High-risk permissions
+        if self.has_high_risk_permissions():
+            return True
+
+        return False
 
 
 # -----------------------------------------------------------------------------
