@@ -25,6 +25,7 @@ from .exceptions import (
     ExecutionError,
     PluginLoadError,
     PluginTimeoutError,
+    PolicyViolationError,
 )
 
 if TYPE_CHECKING:
@@ -142,6 +143,90 @@ class ExecutorBase(ABC):
             return cap.timeout
         return self.config.get("timeout", 300)
 
+    def check_policy(
+        self,
+        capability: str,
+        params: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        """Check if capability execution is allowed by policy.
+
+        This is a HARD gate - if policy denies the action, it cannot proceed.
+        This check happens BEFORE any execution attempt.
+
+        Args:
+            capability: The capability name being executed
+            params: Parameters for the capability
+            context: Additional context (caller info, session, etc.)
+
+        Raises:
+            PolicyViolationError: If policy denies the action
+        """
+        try:
+            from ..policy import get_policy_engine
+        except ImportError:
+            # Policy module not available - allow by default (development mode)
+            logger.warning("Policy engine not available - skipping policy check")
+            return
+
+        engine = get_policy_engine()
+        decision = engine.evaluate(capability, params, context)
+
+        if not decision.allowed:
+            logger.warning(
+                f"Policy violation: {capability} - {decision.reason} "
+                f"(rules: {decision.matched_rules})"
+            )
+            raise PolicyViolationError(
+                plugin_name=self.plugin_name,
+                capability=capability,
+                reason=decision.reason,
+                matched_rules=decision.matched_rules,
+                risk_tier=decision.risk_tier.value,
+            )
+
+        # Log if audit is required
+        if decision.requires_audit:
+            logger.info(
+                f"[AUDIT] Capability execution allowed: {capability} "
+                f"(reason: {decision.reason})"
+            )
+
+    def validate_params(
+        self,
+        capability: str,
+        params: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Validate parameters against the capability schema.
+
+        This validates parameters BEFORE execution to catch errors early.
+        Returns validated/normalized parameters with defaults applied.
+
+        Args:
+            capability: The capability name
+            params: Parameters to validate
+
+        Returns:
+            Validated parameters with defaults applied
+
+        Raises:
+            PluginValidationError: If validation fails
+        """
+        cap_spec = self.manifest.get_capability(capability)
+        if not cap_spec:
+            # No schema to validate against
+            logger.debug(f"No schema found for {capability}, skipping validation")
+            return params
+
+        try:
+            from .schema import validate_params as do_validate
+        except ImportError:
+            # Schema module not available
+            logger.warning("Schema validation module not available")
+            return params
+
+        return do_validate(cap_spec, params, self.plugin_name)
+
 
 class BuiltinExecutor(ExecutorBase):
     """Executor for built-in plugins with pre-created instances.
@@ -187,6 +272,30 @@ class BuiltinExecutor(ExecutorBase):
         Returns:
             PluginResult with execution outcome
         """
+        # Check policy FIRST - before any execution
+        try:
+            self.check_policy(capability, params)
+        except PolicyViolationError as e:
+            return PluginResult.error_result(
+                e.reason,
+                code="POLICY_VIOLATION",
+                metadata={
+                    "matched_rules": e.matched_rules,
+                    "risk_tier": e.risk_tier,
+                },
+            )
+
+        # Validate parameters against schema
+        try:
+            from .exceptions import PluginValidationError
+            params = self.validate_params(capability, params)
+        except PluginValidationError as e:
+            return PluginResult.error_result(
+                str(e),
+                code="VALIDATION_ERROR",
+                metadata={"validation_errors": e.validation_errors},
+            )
+
         if not self._plugin:
             return PluginResult.error_result(
                 "Plugin not initialized",
@@ -302,6 +411,12 @@ class PythonExecutor(ExecutorBase):
         params: dict[str, Any],
     ) -> PluginResult:
         """Execute a capability via the Python plugin instance."""
+        # Check policy FIRST - before any execution
+        self.check_policy(capability, params)
+
+        # Validate parameters against schema
+        params = self.validate_params(capability, params)
+
         if not self._plugin:
             raise ExecutionError(
                 self.plugin_name,
@@ -391,6 +506,30 @@ class CLIExecutor(ExecutorBase):
         params: dict[str, Any],
     ) -> PluginResult:
         """Execute a capability via CLI subprocess."""
+        # Check policy FIRST - before any execution
+        try:
+            self.check_policy(capability, params)
+        except PolicyViolationError as e:
+            return PluginResult.error_result(
+                e.reason,
+                code="POLICY_VIOLATION",
+                metadata={
+                    "matched_rules": e.matched_rules,
+                    "risk_tier": e.risk_tier,
+                },
+            )
+
+        # Validate parameters against schema
+        try:
+            from .exceptions import PluginValidationError
+            params = self.validate_params(capability, params)
+        except PluginValidationError as e:
+            return PluginResult.error_result(
+                str(e),
+                code="VALIDATION_ERROR",
+                metadata={"validation_errors": e.validation_errors},
+            )
+
         if not self._binary_path:
             raise ExecutionError(
                 self.plugin_name,

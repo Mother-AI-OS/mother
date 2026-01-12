@@ -81,6 +81,42 @@ class Settings(BaseSettings):
     # Security
     require_auth: bool = Field(default=True, alias="MOTHER_REQUIRE_AUTH")
 
+    # Policy Engine (Enterprise Security)
+    safe_mode: bool = Field(
+        default=True,
+        alias="MOTHER_SAFE_MODE",
+        description="Enable safe mode (restricts high-risk capabilities)",
+    )
+    policy_path: str | None = Field(
+        default=None,
+        alias="MOTHER_POLICY_PATH",
+        description="Path to policy YAML file",
+    )
+
+    # Audit Logging
+    audit_log_path: Path = Field(
+        default=Path("./logs/audit.jsonl"),
+        alias="MOTHER_AUDIT_LOG_PATH",
+        description="Path to audit log file (JSONL format)",
+    )
+    audit_log_enabled: bool = Field(
+        default=True,
+        alias="MOTHER_AUDIT_ENABLED",
+        description="Enable enterprise audit logging",
+    )
+
+    # Sandbox Mode
+    sandbox_mode: bool = Field(
+        default=True,
+        alias="MOTHER_SANDBOX_MODE",
+        description="Enable sandbox mode for high-risk capabilities",
+    )
+    workspace_dir: Path = Field(
+        default=Path("./workspace"),
+        alias="MOTHER_WORKSPACE_DIR",
+        description="Safe working directory for file operations",
+    )
+
     # Logging
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
