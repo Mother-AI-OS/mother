@@ -40,8 +40,12 @@ classifiers = [
 dependencies = [
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
+    # LLM providers
     "anthropic>=0.40.0",
     "openai>=1.0.0",
+    "zhipuai>=2.0.0",  # GLM-4 provider
+    "google-generativeai>=0.3.0",  # Gemini provider
+    # Core dependencies
     "numpy>=1.26.0",
     "pydantic>=2.6.0",
     "pydantic-settings>=2.1.0",
@@ -50,6 +54,7 @@ dependencies = [
     "keyring>=25.0.0",  # Secure password storage for email accounts
     "pypdf>=4.0.0",  # PDF manipulation (merge, split, etc.)
     "python-docx>=1.1.0",  # DOCX document parsing
+    "httpx[socks]>=0.26.0",  # HTTP client with SOCKS proxy support for Tor
 ]
 
 [project.optional-dependencies]

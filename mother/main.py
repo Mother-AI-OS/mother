@@ -38,16 +38,15 @@ async def lifespan(app: FastAPI):
         plugin_count = len(registry.plugin_manager)
         logger.info(f"Plugin system: {plugin_count} capabilities loaded")
 
-    # Initialize agent with memory
+    # Initialize agent with memory (uses settings for provider selection)
     agent = MotherAgent(
         tool_registry=registry,
-        model=settings.claude_model,
         max_iterations=settings.max_iterations,
-        api_key=settings.anthropic_api_key,
         openai_api_key=settings.openai_api_key,
         enable_memory=True,
+        settings=settings,  # Uses AI_PROVIDER from settings
     )
-    logger.info(f"Agent initialized with model: {settings.claude_model}")
+    logger.info(f"Agent initialized with provider: {settings.ai_provider}")
     if agent.memory:
         stats = agent.get_memory_stats()
         logger.info(f"Memory enabled: {stats.get('total_memories', 0)} memories stored")
