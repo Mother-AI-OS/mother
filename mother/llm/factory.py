@@ -13,6 +13,7 @@ DEFAULT_MODELS = {
     "openai": "gpt-4-turbo",
     "zhipu": "glm-4",
     "gemini": "gemini-1.5-pro",
+    "mock": "mock-v1",
 }
 
 # Provider class mapping (lazy loaded)
@@ -53,6 +54,14 @@ def _load_provider_classes() -> dict[str, type[LLMProvider]]:
         from .providers.gemini import GeminiProvider
 
         _PROVIDER_CLASSES["gemini"] = GeminiProvider
+    except ImportError:
+        pass
+
+    # Mock provider for testing (always available, no external deps)
+    try:
+        from .providers.mock import MockProvider
+
+        _PROVIDER_CLASSES["mock"] = MockProvider
     except ImportError:
         pass
 
@@ -112,7 +121,21 @@ def get_provider_for_settings(settings: "Settings") -> LLMProvider:
     Raises:
         ValueError: If provider is not configured or API key is missing
     """
+    import os
+
     provider_name = settings.ai_provider.lower()
+
+    # Check for mock mode override
+    if os.environ.get("MOTHER_MOCK_LLM", "").lower() in ("1", "true", "yes"):
+        provider_name = "mock"
+
+    # Mock provider doesn't need an API key
+    if provider_name == "mock":
+        return create_provider(
+            provider_name="mock",
+            api_key="mock-key",
+            model="mock-v1",
+        )
 
     # Get API key for the selected provider
     api_key_map = {
