@@ -1,0 +1,61 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+.eggs/
+*.egg-info/
+*.egg
+dist/
+build/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local development
+.env
+*.env.local
+credentials.env
+uv.lock
+
+# Logs and data
+logs/
+*.log
+*.db
+workspace/
+
+# Documentation build
+docs/_build/
+site/
+
+# Testing
+tests/
+pytest.ini
+
+# Examples (optional - uncomment to include)
+# examples/
+
+# Website assets
+website/node_modules/
+website/.next/
+
+# OS files
+.DS_Store
+Thumbs.db
