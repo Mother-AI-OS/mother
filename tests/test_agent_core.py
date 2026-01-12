@@ -1009,6 +1009,7 @@ class TestMotherAgentConfirmAction:
 
         mock_registry = MagicMock()
         mock_registry.get_wrapper.return_value = None
+        mock_registry.is_plugin_capability.return_value = False
 
         agent = MotherAgent(
             tool_registry=mock_registry,
@@ -1047,6 +1048,7 @@ class TestMotherAgentConfirmAction:
             parsed_data={"result": "success"},
         )
         mock_registry.get_wrapper.return_value = mock_wrapper
+        mock_registry.is_plugin_capability.return_value = False
 
         agent = MotherAgent(
             tool_registry=mock_registry,
@@ -1087,6 +1089,7 @@ class TestMotherAgentConfirmAction:
             error_message="Something went wrong",
         )
         mock_registry.get_wrapper.return_value = mock_wrapper
+        mock_registry.is_plugin_capability.return_value = False
 
         agent = MotherAgent(
             tool_registry=mock_registry,

@@ -711,7 +711,48 @@ Respond ONLY with the JSON plan, no other text."""
         pending = self.state.pending_confirmation
         self.state.pending_confirmation = None
 
-        # Execute the confirmed action
+        # Construct full tool name for plugins (e.g., "email_send_message")
+        full_tool_name = f"{pending.tool_name}_{pending.command}" if pending.command else pending.tool_name
+
+        # Check if this is a plugin capability
+        if self.tool_registry.is_plugin_capability(full_tool_name):
+            # Execute via plugin system
+            try:
+                result = await self.tool_registry.execute_plugin(full_tool_name, pending.args)
+
+                if result.success:
+                    response_text = "Action completed successfully.\n\n"
+                    if result.data:
+                        response_text += json.dumps(result.data, indent=2, default=str)
+                    elif result.raw_output:
+                        response_text += result.raw_output
+                    else:
+                        response_text += "Done."
+                    return AgentResponse(text=response_text, success=True)
+                else:
+                    error = self.error_handler.classify_error(
+                        result.error_message or "Plugin execution failed",
+                        tool_name=pending.tool_name,
+                        command=pending.command,
+                    )
+                    return AgentResponse(
+                        text=self.error_handler.format_for_user(error),
+                        success=False,
+                        errors=[error],
+                    )
+            except Exception as e:
+                error = self.error_handler.classify_error(
+                    str(e),
+                    tool_name=pending.tool_name,
+                    command=pending.command,
+                )
+                return AgentResponse(
+                    text=self.error_handler.format_for_user(error),
+                    success=False,
+                    errors=[error],
+                )
+
+        # Fallback to legacy wrapper execution
         wrapper = self.tool_registry.get_wrapper(pending.tool_name)
         if not wrapper:
             return AgentResponse(
