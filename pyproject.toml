@@ -67,6 +67,18 @@ dev = [
     "mypy>=1.8.0",
 ]
 
+# Edition-based feature packages
+# Community: Core features (base install)
+# Professional: Advanced policies, extended audit retention
+# Enterprise: Full features including LDAP/SSO integration
+professional = [
+    "mother-ai-os",  # Base package
+]
+enterprise = [
+    "mother-ai-os",  # Base package
+    "python-ldap>=3.4.0",  # LDAP/SSO integration
+]
+
 [project.urls]
 Homepage = "https://github.com/Mother-AI-OS/mother"
 Documentation = "https://github.com/Mother-AI-OS/mother#readme"
