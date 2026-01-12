@@ -208,6 +208,40 @@ The Docker image includes:
 - **Security defaults**: `MOTHER_SAFE_MODE=true`, `MOTHER_SANDBOX_MODE=true`
 - **Persistent volumes** for logs and workspace
 
+### systemd (Production)
+
+For production Linux deployments, use the included systemd unit file:
+
+```bash
+# Create service user and directories
+sudo useradd -r -s /bin/false mother
+sudo mkdir -p /etc/mother /var/log/mother /var/lib/mother
+sudo chown -R mother:mother /var/log/mother /var/lib/mother
+
+# Install Mother
+sudo pip install mother-ai-os
+
+# Configure environment
+sudo cp .env.example /etc/mother/environment
+sudo chmod 600 /etc/mother/environment
+# Edit /etc/mother/environment with your API keys
+
+# Install and start service
+sudo cp mother.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable mother
+sudo systemctl start mother
+
+# View logs
+journalctl -u mother -f
+```
+
+The systemd unit includes:
+- **Security hardening**: `NoNewPrivileges`, `ProtectSystem=strict`, `PrivateTmp`
+- **Automatic restart** on failure with rate limiting
+- **Resource limits** for file descriptors and processes
+- **Dedicated service user** with minimal permissions
+
 ### Configuration
 
 The recommended way to configure Mother is via the setup wizard:

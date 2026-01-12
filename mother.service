@@ -1,0 +1,77 @@
+# Mother AI OS - systemd Service Unit
+# https://github.com/Mother-AI-OS/mother
+#
+# Installation:
+#   1. Copy this file to /etc/systemd/system/mother.service
+#   2. Create service user: sudo useradd -r -s /bin/false mother
+#   3. Create config directory: sudo mkdir -p /etc/mother
+#   4. Copy environment file: sudo cp .env /etc/mother/environment
+#   5. Set permissions: sudo chown -R mother:mother /etc/mother /var/log/mother /var/lib/mother
+#   6. Enable and start:
+#      sudo systemctl daemon-reload
+#      sudo systemctl enable mother
+#      sudo systemctl start mother
+#
+# Logs: journalctl -u mother -f
+
+[Unit]
+Description=Mother AI OS - AI Agent Operating System
+Documentation=https://github.com/Mother-AI-OS/mother
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mother
+Group=mother
+
+# Environment configuration
+EnvironmentFile=/etc/mother/environment
+
+# Working directory
+WorkingDirectory=/var/lib/mother
+
+# Start command
+ExecStart=/usr/local/bin/mother serve --host 0.0.0.0 --port 8080
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mother
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+
+# Allow write access to specific directories
+ReadWritePaths=/var/log/mother /var/lib/mother
+
+# Network access (required for LLM API calls)
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# Capabilities - drop all except network binding
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
