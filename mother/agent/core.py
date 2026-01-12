@@ -151,7 +151,11 @@ Guidelines:
 4. Parse tool results and provide clear, concise summaries
 5. If a tool fails, explain why and suggest alternatives
 6. When listing items, summarize the key information
-7. For email/folder operations: when user mentions a folder name (Spam, Inbox, Archive, etc.), always use the folder parameter to filter. "Delete Spam emails" means list/delete from folder="Spam", not from INBOX.
+7. For email/folder operations: when user mentions a folder name, ALWAYS use the folder parameter:
+   - "Delete Spam emails" → call list with folder="Spam" (NOT INBOX)
+   - "Show emails in Archive" → call list with folder="Archive"
+   - "Clean up Trash" → call list with folder="Trash"
+   NEVER list INBOX when user specifically asks about another folder.
 8. For verification requests: when user says "let me verify first" or similar, show them the specific items that will be affected before taking action.
 
 Be concise but informative. Focus on actionable information."""
