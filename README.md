@@ -171,6 +171,43 @@ cd mother
 pip install -e .
 ```
 
+### Docker
+
+Run Mother in a container with all security defaults enabled:
+
+```bash
+# Quick start with Docker Compose
+git clone https://github.com/Mother-AI-OS/mother.git
+cd mother
+cp .env.example .env
+# Edit .env with your API keys (AI_PROVIDER, ANTHROPIC_API_KEY, etc.)
+docker compose up -d
+```
+
+Or build and run manually:
+
+```bash
+# Build the image
+docker build -t mother-ai-os:latest .
+
+# Run with environment variables
+docker run -d \
+  --name mother \
+  -p 8080:8080 \
+  -e AI_PROVIDER=anthropic \
+  -e ANTHROPIC_API_KEY=sk-ant-... \
+  -e MOTHER_API_KEY=your-secret-key \
+  -v mother-logs:/app/logs \
+  -v mother-workspace:/app/workspace \
+  mother-ai-os:latest
+```
+
+The Docker image includes:
+- **Non-root user** for security
+- **Health check** at `/health`
+- **Security defaults**: `MOTHER_SAFE_MODE=true`, `MOTHER_SANDBOX_MODE=true`
+- **Persistent volumes** for logs and workspace
+
 ### Configuration
 
 The recommended way to configure Mother is via the setup wizard:
