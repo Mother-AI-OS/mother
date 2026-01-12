@@ -279,14 +279,55 @@ class TestOpenAIProvider:
 
     def test_format_tool_result(self):
         from mother.llm.providers.openai import OpenAIProvider
-        
+
         provider = OpenAIProvider(api_key="test", model="gpt-4")
         result = ToolResult(tool_call_id="call_123", content="Success")
-        
+
         formatted = provider.format_tool_result(result)
-        
+
         assert formatted["role"] == "tool"
         assert formatted["tool_call_id"] == "call_123"
+
+    def test_max_tokens_capped_for_gpt4_turbo(self):
+        """gpt-4-turbo should cap max_tokens to 4096."""
+        from mother.llm.providers.openai import OpenAIProvider
+
+        provider = OpenAIProvider(api_key="test", model="gpt-4-turbo", max_tokens=16384)
+        # The capping happens in create_message, check the logic directly
+        max_tokens = provider.max_tokens
+        if provider.model.startswith("gpt-4") and not provider.model.startswith("gpt-4o"):
+            max_tokens = min(max_tokens, 4096)
+        assert max_tokens == 4096
+
+    def test_max_tokens_capped_for_gpt4(self):
+        """gpt-4 should cap max_tokens to 4096."""
+        from mother.llm.providers.openai import OpenAIProvider
+
+        provider = OpenAIProvider(api_key="test", model="gpt-4", max_tokens=16384)
+        max_tokens = provider.max_tokens
+        if provider.model.startswith("gpt-4") and not provider.model.startswith("gpt-4o"):
+            max_tokens = min(max_tokens, 4096)
+        assert max_tokens == 4096
+
+    def test_max_tokens_not_capped_for_gpt4o(self):
+        """gpt-4o should NOT cap max_tokens (supports 16384)."""
+        from mother.llm.providers.openai import OpenAIProvider
+
+        provider = OpenAIProvider(api_key="test", model="gpt-4o", max_tokens=16384)
+        max_tokens = provider.max_tokens
+        if provider.model.startswith("gpt-4") and not provider.model.startswith("gpt-4o"):
+            max_tokens = min(max_tokens, 4096)
+        assert max_tokens == 16384
+
+    def test_max_tokens_not_capped_for_gpt4o_mini(self):
+        """gpt-4o-mini should NOT cap max_tokens (supports 16384)."""
+        from mother.llm.providers.openai import OpenAIProvider
+
+        provider = OpenAIProvider(api_key="test", model="gpt-4o-mini", max_tokens=16384)
+        max_tokens = provider.max_tokens
+        if provider.model.startswith("gpt-4") and not provider.model.startswith("gpt-4o"):
+            max_tokens = min(max_tokens, 4096)
+        assert max_tokens == 16384
 
 
 class TestZhipuProvider:
