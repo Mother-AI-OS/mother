@@ -436,7 +436,7 @@ Respond ONLY with the JSON plan, no other text."""
         context_parts = [user_input]
         if memory_context:
             context_parts.append(f"\n---\n{memory_context}")
-        if self.cognitive and self.cognitive.state.cognitive_summary:
+        if self.cognitive and self.state.cognitive_summary:
             context_parts.append(f"\n---\n## Cognitive Context\n{self.cognitive.get_cognitive_summary()}")
 
         user_content = "".join(context_parts)
