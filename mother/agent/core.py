@@ -10,8 +10,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-import anthropic
-
+from ..llm import LLMProvider, LLMResponse, ToolCall as LLMToolCall
+from ..llm.factory import get_provider_for_settings, create_provider
+from ..llm.providers.anthropic import AnthropicProvider
 from ..memory import MemoryManager
 from ..tools.base import ToolResult
 from ..tools.registry import ToolRegistry
@@ -193,15 +194,40 @@ Respond ONLY with the JSON plan, no other text."""
     def __init__(
         self,
         tool_registry: ToolRegistry,
-        model: str = "claude-sonnet-4-20250514",
+        model: str | None = None,
         max_iterations: int = 10,
         api_key: str | None = None,
         openai_api_key: str | None = None,
         enable_memory: bool = True,
+        provider: LLMProvider | None = None,
+        settings: Any | None = None,
     ):
-        self.client = anthropic.Anthropic(api_key=api_key)
+        """Initialize the Mother agent.
+
+        Args:
+            tool_registry: Registry of available tools and plugins
+            model: Model name (deprecated, use settings.llm_model or provider)
+            max_iterations: Maximum tool-use loop iterations
+            api_key: API key (deprecated, use settings or provider)
+            openai_api_key: OpenAI API key for memory embeddings
+            enable_memory: Enable persistent memory
+            provider: Pre-configured LLM provider instance
+            settings: Application settings for provider configuration
+        """
+        # Initialize LLM provider
+        if provider:
+            self.provider = provider
+        elif settings:
+            self.provider = get_provider_for_settings(settings)
+        else:
+            # Legacy fallback for backward compatibility
+            import os
+            self.provider = AnthropicProvider(
+                api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", ""),
+                model=model or "claude-sonnet-4-20250514",
+            )
+
         self.tool_registry = tool_registry
-        self.model = model
         self.max_iterations = max_iterations
         self.error_handler = ErrorHandler()
         self.state = AgentState()
@@ -354,46 +380,42 @@ Respond ONLY with the JSON plan, no other text."""
         while iteration < self.max_iterations:
             iteration += 1
 
-            # Call Claude
+            # Call LLM provider
             try:
-                response = self.client.messages.create(
-                    model=self.model,
-                    max_tokens=4096,
-                    system=self.get_system_prompt(),
-                    tools=self.get_tools(),
+                response = await self.provider.create_message(
                     messages=self.state.messages,
+                    system_prompt=self.get_system_prompt(),
+                    tools=self.get_tools(),
                 )
-            except anthropic.APIError as e:
+            except Exception as e:
                 return AgentResponse(
                     text=f"API error: {e}",
                     success=False,
                     errors=[self.error_handler.classify_error(str(e))],
                 )
 
-            # Process response
-            assistant_content = []
-            tool_uses = []
-            text_response = ""
+            # Process unified response
+            text_response = response.text
+            tool_uses = response.tool_calls
 
-            for block in response.content:
-                if block.type == "text":
-                    text_response += block.text
-                    assistant_content.append(
-                        {
-                            "type": "text",
-                            "text": block.text,
-                        }
-                    )
-                elif block.type == "tool_use":
-                    tool_uses.append(block)
-                    assistant_content.append(
-                        {
-                            "type": "tool_use",
-                            "id": block.id,
-                            "name": block.name,
-                            "input": block.input,
-                        }
-                    )
+            # Build assistant content for message history
+            assistant_content: list[dict[str, Any]] = []
+            if text_response:
+                assistant_content.append(
+                    {
+                        "type": "text",
+                        "text": text_response,
+                    }
+                )
+            for tool_call in tool_uses:
+                assistant_content.append(
+                    {
+                        "type": "tool_use",
+                        "id": tool_call.id,
+                        "name": tool_call.name,
+                        "input": tool_call.arguments,
+                    }
+                )
 
             # Store assistant message
             self.state.messages.append(
@@ -425,13 +447,13 @@ Respond ONLY with the JSON plan, no other text."""
 
             # Execute tools
             tool_results = []
-            for tool_use in tool_uses:
+            for tool_call in tool_uses:
                 # Check if this is a plugin capability first
-                is_plugin = self.tool_registry.is_plugin_capability(tool_use.name)
+                is_plugin = self.tool_registry.is_plugin_capability(tool_call.name)
 
                 if is_plugin:
                     # Plugin execution path
-                    tool_result = await self._execute_plugin_tool(tool_use, tool_calls_made, pre_confirmed)
+                    tool_result = await self._execute_plugin_tool_unified(tool_call, tool_calls_made, pre_confirmed)
                     if tool_result is None:
                         # Pending confirmation
                         return AgentResponse(
@@ -444,21 +466,21 @@ Respond ONLY with the JSON plan, no other text."""
                     if tool_result.get("is_error"):
                         error = self.error_handler.classify_error(
                             tool_result.get("content", "Unknown error"),
-                            tool_name=tool_use.name,
+                            tool_name=tool_call.name,
                         )
                         errors.append(error)
                     continue
 
                 # Legacy tool execution path
                 # Parse tool name
-                wrapper_name, command = self.tool_registry.parse_tool_name(tool_use.name)
+                wrapper_name, command = self.tool_registry.parse_tool_name(tool_call.name)
 
                 if not wrapper_name or not command:
-                    result_content = f"Unknown tool: {tool_use.name}"
+                    result_content = f"Unknown tool: {tool_call.name}"
                     tool_results.append(
                         {
                             "type": "tool_result",
-                            "tool_use_id": tool_use.id,
+                            "tool_use_id": tool_call.id,
                             "content": result_content,
                             "is_error": True,
                         }
@@ -471,7 +493,7 @@ Respond ONLY with the JSON plan, no other text."""
                     tool_results.append(
                         {
                             "type": "tool_result",
-                            "tool_use_id": tool_use.id,
+                            "tool_use_id": tool_call.id,
                             "content": result_content,
                             "is_error": True,
                         }
@@ -480,15 +502,15 @@ Respond ONLY with the JSON plan, no other text."""
 
                 # Check confirmation requirement
                 if wrapper.is_confirmation_required(command):
-                    confirmation_id = f"{tool_use.id}"
+                    confirmation_id = f"{tool_call.id}"
                     if confirmation_id not in self.state.confirmed_actions and not pre_confirmed:
                         # Create pending confirmation
                         pending = PendingConfirmation(
                             id=confirmation_id,
                             tool_name=wrapper_name,
                             command=command,
-                            args=tool_use.input,
-                            description=self._describe_action(wrapper_name, command, tool_use.input),
+                            args=tool_call.arguments,
+                            description=self._describe_action(wrapper_name, command, tool_call.arguments),
                         )
                         self.state.pending_confirmation = pending
 
@@ -500,11 +522,11 @@ Respond ONLY with the JSON plan, no other text."""
                         )
 
                 # Execute tool
-                result = wrapper.execute(command, tool_use.input)
+                result = wrapper.execute(command, tool_call.arguments)
 
                 tool_call_info = {
                     "tool": f"{wrapper_name}_{command}",
-                    "args": tool_use.input,
+                    "args": tool_call.arguments,
                     "success": result.success,
                     "execution_time": result.execution_time,
                 }
@@ -519,7 +541,7 @@ Respond ONLY with the JSON plan, no other text."""
                         self.memory.remember_tool_result(
                             self.state.session_id,
                             tool_name=f"{wrapper_name}_{command}",
-                            tool_args=tool_use.input,
+                            tool_args=tool_call.arguments,
                             result=result_summary,
                             success=result.success,
                         )
@@ -544,7 +566,7 @@ Respond ONLY with the JSON plan, no other text."""
                 tool_results.append(
                     {
                         "type": "tool_result",
-                        "tool_use_id": tool_use.id,
+                        "tool_use_id": tool_call.id,
                         "content": result_content,
                         "is_error": not result.success,
                     }
@@ -651,16 +673,16 @@ Respond ONLY with the JSON plan, no other text."""
 
         return f"Execute {tool_name} {command} with args: {json.dumps(args)}"
 
-    async def _execute_plugin_tool(
+    async def _execute_plugin_tool_unified(
         self,
-        tool_use: Any,
+        tool_call: LLMToolCall,
         tool_calls_made: list[dict],
         pre_confirmed: bool,
     ) -> dict | None:
-        """Execute a plugin capability.
+        """Execute a plugin capability using unified ToolCall type.
 
         Args:
-            tool_use: The tool use block from Claude
+            tool_call: The unified ToolCall from LLM response
             tool_calls_made: List to append tool call info to
             pre_confirmed: If True, skip confirmation
 
@@ -670,26 +692,26 @@ Respond ONLY with the JSON plan, no other text."""
         if not PLUGINS_AVAILABLE:
             return {
                 "type": "tool_result",
-                "tool_use_id": tool_use.id,
+                "tool_use_id": tool_call.id,
                 "content": "Plugin system not available",
                 "is_error": True,
             }
 
         # Check confirmation requirement
-        if self.tool_registry.requires_confirmation(tool_use.name):
-            confirmation_id = f"{tool_use.id}"
+        if self.tool_registry.requires_confirmation(tool_call.name):
+            confirmation_id = f"{tool_call.id}"
             if confirmation_id not in self.state.confirmed_actions and not pre_confirmed:
                 # Parse plugin/capability names for description
-                plugin_name, capability = self.tool_registry.parse_tool_name(tool_use.name)
+                plugin_name, capability = self.tool_registry.parse_tool_name(tool_call.name)
                 pending = PendingConfirmation(
                     id=confirmation_id,
-                    tool_name=plugin_name or tool_use.name,
+                    tool_name=plugin_name or tool_call.name,
                     command=capability or "",
-                    args=tool_use.input,
+                    args=tool_call.arguments,
                     description=self._describe_action(
-                        plugin_name or tool_use.name,
+                        plugin_name or tool_call.name,
                         capability or "",
-                        tool_use.input,
+                        tool_call.arguments,
                     ),
                 )
                 self.state.pending_confirmation = pending
@@ -698,15 +720,15 @@ Respond ONLY with the JSON plan, no other text."""
         # Execute via plugin system
         try:
             result = await self.tool_registry.execute_plugin(
-                tool_use.name,
-                tool_use.input,
+                tool_call.name,
+                tool_call.arguments,
             )
 
             # Track the call
-            plugin_name, capability = self.tool_registry.parse_tool_name(tool_use.name)
+            plugin_name, capability = self.tool_registry.parse_tool_name(tool_call.name)
             tool_call_info = {
-                "tool": tool_use.name,
-                "args": tool_use.input,
+                "tool": tool_call.name,
+                "args": tool_call.arguments,
                 "success": result.success,
                 "execution_time": result.execution_time,
                 "source": "plugin",
@@ -719,8 +741,8 @@ Respond ONLY with the JSON plan, no other text."""
                     result_summary = str(result.data)[:1000] if result.data else (result.raw_output or "")[:1000]
                     self.memory.remember_tool_result(
                         self.state.session_id,
-                        tool_name=tool_use.name,
-                        tool_args=tool_use.input,
+                        tool_name=tool_call.name,
+                        tool_args=tool_call.arguments,
                         result=result_summary,
                         success=result.success,
                     )
@@ -729,12 +751,12 @@ Respond ONLY with the JSON plan, no other text."""
 
             # Check for pending confirmation response
             if PLUGINS_AVAILABLE and ResultStatus and result.status == ResultStatus.PENDING_CONFIRMATION:
-                plugin_name, capability = self.tool_registry.parse_tool_name(tool_use.name)
+                plugin_name, capability = self.tool_registry.parse_tool_name(tool_call.name)
                 pending = PendingConfirmation(
-                    id=f"{tool_use.id}",
-                    tool_name=plugin_name or tool_use.name,
+                    id=f"{tool_call.id}",
+                    tool_name=plugin_name or tool_call.name,
                     command=capability or "",
-                    args=tool_use.input,
+                    args=tool_call.arguments,
                     description=result.data.get("action", "Action requires confirmation")
                     if result.data
                     else "Action requires confirmation",
@@ -755,7 +777,7 @@ Respond ONLY with the JSON plan, no other text."""
 
             return {
                 "type": "tool_result",
-                "tool_use_id": tool_use.id,
+                "tool_use_id": tool_call.id,
                 "content": result_content,
                 "is_error": not result.success,
             }
@@ -764,7 +786,7 @@ Respond ONLY with the JSON plan, no other text."""
             logger.error(f"Plugin execution failed: {e}")
             return {
                 "type": "tool_result",
-                "tool_use_id": tool_use.id,
+                "tool_use_id": tool_call.id,
                 "content": f"Plugin execution failed: {str(e)}",
                 "is_error": True,
             }
@@ -810,25 +832,21 @@ Respond ONLY with the JSON plan, no other text."""
         else:
             self.state = AgentState(session_id=session_id or str(uuid.uuid4()))
 
-        # Call Claude with planning prompt
+        # Call LLM provider with planning prompt
         try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=4096,
-                system=self.get_planning_prompt(),
+            response = await self.provider.create_message(
                 messages=[{"role": "user", "content": user_input}],
+                system_prompt=self.get_planning_prompt(),
+                tools=None,  # No tools in planning mode
             )
-        except anthropic.APIError as e:
+        except Exception as e:
             return AgentResponse(
                 text=f"API error during planning: {e}",
                 success=False,
             )
 
         # Parse the plan from response
-        plan_text = ""
-        for block in response.content:
-            if block.type == "text":
-                plan_text += block.text
+        plan_text = response.text
 
         try:
             # Extract JSON from response (handle markdown code blocks)

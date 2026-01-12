@@ -24,14 +24,31 @@ class Settings(BaseSettings):
     api_port: int = Field(default=8080, alias="MOTHER_PORT")
     api_key: str | None = Field(default=None, alias="MOTHER_API_KEY")
 
-    # Claude Settings
-    anthropic_api_key: str | None = Field(None, alias="ANTHROPIC_API_KEY")
-    claude_model: str = Field(default="claude-sonnet-4-20250514", alias="CLAUDE_MODEL")
+    # LLM Provider Selection
+    ai_provider: str = Field(
+        default="anthropic",
+        alias="AI_PROVIDER",
+        description="LLM provider: anthropic, openai, zhipu, gemini",
+    )
+    llm_model: str | None = Field(
+        default=None,
+        alias="LLM_MODEL",
+        description="Override default model for selected provider",
+    )
+    max_tokens: int = Field(default=4096, alias="MAX_TOKENS")
     max_iterations: int = Field(default=10, alias="MAX_ITERATIONS")
+
+    # Provider API Keys
+    anthropic_api_key: str | None = Field(None, alias="ANTHROPIC_API_KEY")
+    openai_api_key: str | None = Field(None, alias="OPENAI_API_KEY")
+    zhipu_api_key: str | None = Field(None, alias="ZHIPU_API_KEY")
+    gemini_api_key: str | None = Field(None, alias="GEMINI_API_KEY")
+
+    # Legacy alias (deprecated, use LLM_MODEL instead)
+    claude_model: str = Field(default="claude-sonnet-4-20250514", alias="CLAUDE_MODEL")
 
     # Tool Credentials
     mailcraft_password: str | None = Field(None, alias="MAILCRAFT_PASSWORD")
-    openai_api_key: str | None = Field(None, alias="OPENAI_API_KEY")
 
     # Paths
     config_dir: Path = Field(
