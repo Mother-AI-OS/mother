@@ -10,8 +10,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from ..llm import LLMProvider, LLMResponse, ToolCall as LLMToolCall
-from ..llm.factory import get_provider_for_settings, create_provider
+from ..llm import LLMProvider
+from ..llm import ToolCall as LLMToolCall
+from ..llm.factory import get_provider_for_settings
 from ..llm.providers.anthropic import AnthropicProvider
 from ..memory import MemoryManager
 from ..tools.base import ToolResult
