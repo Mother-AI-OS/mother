@@ -19,6 +19,20 @@ class OpenAIProvider(LLMProvider):
     # OpenAI has a max of 128 tools
     MAX_TOOLS = 128
 
+    @staticmethod
+    def _sanitize_tool_name(name: str) -> str:
+        """Sanitize tool name for OpenAI (no dots allowed).
+
+        OpenAI function names must match ^[a-zA-Z0-9_-]+$
+        We replace dots with double underscores.
+        """
+        return name.replace(".", "__")
+
+    @staticmethod
+    def _restore_tool_name(name: str) -> str:
+        """Restore original tool name from sanitized OpenAI name."""
+        return name.replace("__", ".")
+
     @property
     def provider_type(self) -> ProviderType:
         return ProviderType.OPENAI
@@ -61,10 +75,12 @@ class OpenAIProvider(LLMProvider):
 
         if message.tool_calls:
             for tc in message.tool_calls:
+                # Restore original tool name (convert __ back to .)
+                original_name = self._restore_tool_name(tc.function.name)
                 tool_calls.append(
                     ToolCall(
                         id=tc.id,
-                        name=tc.function.name,
+                        name=original_name,
                         arguments=json.loads(tc.function.arguments),
                     )
                 )
@@ -119,12 +135,14 @@ class OpenAIProvider(LLMProvider):
                         if item.get("type") == "text":
                             text_parts.append(item["text"])
                         elif item.get("type") == "tool_use":
+                            # Sanitize name for OpenAI
+                            sanitized_name = self._sanitize_tool_name(item["name"])
                             tool_calls.append(
                                 {
                                     "id": item["id"],
                                     "type": "function",
                                     "function": {
-                                        "name": item["name"],
+                                        "name": sanitized_name,
                                         "arguments": json.dumps(item["input"]),
                                     },
                                 }
@@ -146,10 +164,12 @@ class OpenAIProvider(LLMProvider):
         params = anthropic_schema.get("input_schema", {"type": "object", "properties": {}})
         # OpenAI requires 'items' on array types - fix any missing
         params = self._fix_array_schemas(params)
+        # Sanitize name for OpenAI (no dots allowed)
+        sanitized_name = self._sanitize_tool_name(anthropic_schema["name"])
         return {
             "type": "function",
             "function": {
-                "name": anthropic_schema["name"],
+                "name": sanitized_name,
                 "description": anthropic_schema.get("description", ""),
                 "parameters": params,
             },
