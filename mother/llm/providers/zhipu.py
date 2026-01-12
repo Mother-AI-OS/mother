@@ -85,9 +85,7 @@ class ZhipuProvider(LLMProvider):
         system_prompt: str,
     ) -> list[dict[str, Any]]:
         """Convert Anthropic messages to GLM-4 format (OpenAI-compatible)."""
-        glm_messages: list[dict[str, Any]] = [
-            {"role": "system", "content": system_prompt}
-        ]
+        glm_messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 
         for msg in messages:
             role = msg["role"]
@@ -107,9 +105,7 @@ class ZhipuProvider(LLMProvider):
                                 }
                             )
                         else:
-                            glm_messages.append(
-                                {"role": "user", "content": str(item)}
-                            )
+                            glm_messages.append({"role": "user", "content": str(item)})
             elif role == "assistant":
                 if isinstance(content, str):
                     glm_messages.append({"role": "assistant", "content": content})
@@ -166,10 +162,7 @@ class ZhipuProvider(LLMProvider):
             result["items"] = {"type": "string"}
 
         if "properties" in result:
-            result["properties"] = {
-                k: self._fix_array_schemas(v)
-                for k, v in result["properties"].items()
-            }
+            result["properties"] = {k: self._fix_array_schemas(v) for k, v in result["properties"].items()}
 
         if "items" in result and isinstance(result["items"], dict):
             result["items"] = self._fix_array_schemas(result["items"])

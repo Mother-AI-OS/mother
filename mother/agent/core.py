@@ -223,6 +223,7 @@ Respond ONLY with the JSON plan, no other text."""
         else:
             # Legacy fallback for backward compatibility
             import os
+
             self.provider = AnthropicProvider(
                 api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", ""),
                 model=model or "claude-sonnet-4-20250514",
