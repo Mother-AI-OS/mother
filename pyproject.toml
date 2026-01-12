@@ -44,7 +44,7 @@ dependencies = [
     "anthropic>=0.40.0",
     "openai>=1.0.0",
     "zhipuai>=2.0.0",  # GLM-4 provider
-    "google-generativeai>=0.3.0",  # Gemini provider
+    "google-genai>=1.0.0",  # Gemini provider (unified SDK)
     # Core dependencies
     "numpy>=1.26.0",
     "pydantic>=2.6.0",
