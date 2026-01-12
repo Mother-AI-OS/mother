@@ -3,7 +3,7 @@
 **The AI agent operating system built by a lawyer, for organizations that need control.**
 
 [![CI](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml/badge.svg)](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-66%25-yellowgreen)](https://github.com/Mother-AI-OS/mother)
+[![Coverage](https://img.shields.io/badge/coverage-67%25-yellowgreen)](https://github.com/Mother-AI-OS/mother)
 [![PyPI version](https://badge.fury.io/py/mother-ai-os.svg)](https://badge.fury.io/py/mother-ai-os)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -57,9 +57,27 @@ mother serve
 ```
 
 The setup wizard will guide you through:
-- Configuring your Anthropic API key
+- Configuring your LLM provider and API key
 - Setting up email accounts (optional)
 - Enabling optional features
+
+### Multi-LLM Provider Support
+
+Mother supports multiple LLM providers. Choose your preferred AI backend:
+
+| Provider | Environment Variable | Default Model |
+|----------|---------------------|---------------|
+| **Anthropic Claude** | `AI_PROVIDER=anthropic` | claude-sonnet-4-20250514 |
+| **OpenAI GPT** | `AI_PROVIDER=openai` | gpt-4-turbo-preview |
+| **Zhipu GLM-4** | `AI_PROVIDER=zhipu` | glm-4 |
+| **Google Gemini** | `AI_PROVIDER=gemini` | gemini-1.5-pro |
+
+```bash
+# Use OpenAI instead of Anthropic
+export AI_PROVIDER=openai
+export OPENAI_API_KEY=sk-...
+mother serve
+```
 
 Then send natural language commands:
 
@@ -117,6 +135,8 @@ Response:
 | **datacraft** | parse documents, search, extract tables |
 | **tasks** | add, list, complete, prioritize tasks |
 | **transmit** | send documents via email, fax, post, beA |
+| **tor** | anonymous browsing, .onion sites, Tor proxy |
+| **tor-shell** | curl/wget/ssh/nmap through Tor network |
 | **taxlord** | German tax & document management (optional) |
 | **leads** | German tender discovery (optional) |
 | **google-docs** | Google Docs templates (optional) |
@@ -167,14 +187,19 @@ You can also set environment variables directly:
 
 ```bash
 # Required
-export ANTHROPIC_API_KEY="sk-ant-..."    # Claude API access
 export MOTHER_API_KEY="your-secret-key"  # API authentication
 
+# LLM Provider (choose one)
+export AI_PROVIDER="anthropic"           # anthropic, openai, zhipu, or gemini
+export ANTHROPIC_API_KEY="sk-ant-..."    # For Anthropic Claude
+export OPENAI_API_KEY="sk-..."           # For OpenAI GPT
+export ZHIPU_API_KEY="..."               # For Zhipu GLM-4
+export GEMINI_API_KEY="..."              # For Google Gemini
+
 # Optional
-export CLAUDE_MODEL="claude-sonnet-4-20250514"
+export LLM_MODEL="claude-sonnet-4-20250514"  # Override default model
 export MOTHER_HOST="127.0.0.1"
 export MOTHER_PORT="8080"
-export OPENAI_API_KEY="..."              # For memory/embeddings
 ```
 
 #### Email Configuration
