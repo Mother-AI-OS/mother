@@ -7,8 +7,8 @@ from typing import Any
 from .response import LLMResponse, ToolResult
 
 
-class ProviderType(str, Enum):
-    """Supported LLM providers."""
+class ProviderType(Enum):
+    """Supported LLM provider types."""
 
     ANTHROPIC = "anthropic"
     OPENAI = "openai"
@@ -19,18 +19,18 @@ class ProviderType(str, Enum):
 class LLMProvider(ABC):
     """Abstract base class for LLM providers.
 
-    All providers must implement:
-    - create_message(): Send messages and get a response
-    - convert_tool_schema(): Convert Anthropic-format schema to provider format
-    - format_tool_result(): Format tool results for the provider
+    Each provider implementation must handle:
+    - Converting tool schemas to provider-specific format
+    - Sending messages and receiving responses
+    - Formatting tool results for the provider
     """
 
     def __init__(
         self,
         api_key: str,
         model: str,
-        max_tokens: int = 4096,
-        timeout: int = 300,
+        max_tokens: int = 16384,
+        **kwargs: Any,
     ):
         """Initialize the provider.
 
@@ -38,18 +38,18 @@ class LLMProvider(ABC):
             api_key: API key for the provider
             model: Model identifier to use
             max_tokens: Maximum tokens in response
-            timeout: Request timeout in seconds
+            **kwargs: Additional provider-specific configuration
         """
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
-        self.timeout = timeout
+        self._config = kwargs
         self._client: Any = None
 
     @property
     @abstractmethod
     def provider_type(self) -> ProviderType:
-        """Return the provider type."""
+        """Return the provider type enum."""
         ...
 
     @abstractmethod
@@ -64,59 +64,51 @@ class LLMProvider(ABC):
         system_prompt: str,
         tools: list[dict[str, Any]] | None = None,
     ) -> LLMResponse:
-        """Send messages to the LLM and get a response.
+        """Send a message to the LLM and get a response.
 
         Args:
-            messages: Conversation history in Anthropic format
-            system_prompt: System instructions
-            tools: Tool definitions in Anthropic format (will be converted)
+            messages: List of conversation messages in Anthropic format
+            system_prompt: System prompt
+            tools: List of tool definitions in Anthropic format
 
         Returns:
-            Unified LLMResponse
+            Unified LLMResponse object
         """
         ...
 
     @abstractmethod
-    def convert_tool_schema(
-        self,
-        anthropic_schema: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Convert Anthropic tool schema to provider format.
+    def convert_tool_schema(self, anthropic_schema: dict[str, Any]) -> dict[str, Any]:
+        """Convert Anthropic tool schema to provider-specific format.
 
         Args:
-            anthropic_schema: Tool definition in Anthropic format:
-                {name, description, input_schema: {type, properties, required}}
+            anthropic_schema: Tool definition in Anthropic format
 
         Returns:
-            Tool definition in provider's format
+            Tool definition in provider-specific format
         """
         ...
 
     @abstractmethod
-    def format_tool_result(
-        self,
-        tool_result: ToolResult,
-    ) -> dict[str, Any]:
-        """Format a tool result for the provider's message format.
+    def format_tool_result(self, tool_result: ToolResult) -> dict[str, Any]:
+        """Format a tool result for the provider.
 
         Args:
-            tool_result: Unified tool result
+            tool_result: ToolResult object
 
         Returns:
-            Provider-specific tool result message
+            Tool result in provider-specific message format
         """
         ...
 
-    def convert_tools(
-        self,
-        anthropic_tools: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
-        """Convert multiple tool schemas.
+    def convert_tools(self, tools: list[dict[str, Any]] | None) -> list[dict[str, Any]] | None:
+        """Convert a list of tools to provider-specific format.
 
         Args:
-            anthropic_tools: List of Anthropic-format tool schemas
+            tools: List of tools in Anthropic format
 
         Returns:
-            List of provider-format tool schemas
+            List of tools in provider-specific format, or None
         """
-        return [self.convert_tool_schema(t) for t in anthropic_tools]
+        if tools is None:
+            return None
+        return [self.convert_tool_schema(tool) for tool in tools]
