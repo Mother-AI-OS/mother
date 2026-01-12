@@ -16,6 +16,8 @@ Plugins:
 - taxlord: German tax and document management (optional)
 - leads: German tender and lead generation (optional)
 - google_docs: Google Docs template management (optional)
+- tor: Tor network and darknet access (anonymous browsing, .onion sites)
+- tor_shell: Shell command wrappers for darknet functionality
 """
 
 from .datacraft import DatacraftPlugin
@@ -26,6 +28,8 @@ from .google import GoogleDocsPlugin
 from .pdf import PDFPlugin
 from .shell import ShellPlugin
 from .tasks import TasksPlugin
+from .tor import TorPlugin
+from .tor_shell import TorShellPlugin
 from .transmit import TransmitPlugin
 from .web import WebPlugin
 
@@ -43,6 +47,8 @@ BUILTIN_PLUGINS: dict[str, type] = {
     "taxlord": TaxlordPlugin,
     "leads": LeadsPlugin,
     "google-docs": GoogleDocsPlugin,
+    "tor": TorPlugin,
+    "tor-shell": TorShellPlugin,
 }
 
 
@@ -77,6 +83,8 @@ __all__ = [
     "ShellPlugin",
     "TasksPlugin",
     "TaxlordPlugin",
+    "TorPlugin",
+    "TorShellPlugin",
     "TransmitPlugin",
     "WebPlugin",
     "BUILTIN_PLUGINS",
