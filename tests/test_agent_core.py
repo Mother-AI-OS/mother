@@ -427,6 +427,8 @@ class TestMotherAgentInit:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         assert agent.tool_registry is mock_registry
@@ -508,6 +510,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         tools = agent.get_tools()
@@ -526,6 +530,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._generate_tool_descriptions()
@@ -549,6 +555,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._generate_tool_descriptions()
@@ -575,6 +583,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._generate_tool_descriptions()
@@ -600,6 +610,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._generate_tool_descriptions()
@@ -618,6 +630,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         prompt = agent.get_system_prompt()
@@ -637,6 +651,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         prompt = agent.get_planning_prompt()
@@ -662,6 +678,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._generate_tool_descriptions()
@@ -687,6 +705,8 @@ class TestMotherAgentTools:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._generate_tool_descriptions()
@@ -709,6 +729,8 @@ class TestMotherAgentState:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         # Modify state
@@ -733,6 +755,8 @@ class TestMotherAgentState:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         session_id = agent.get_session_id()
@@ -754,6 +778,8 @@ class TestMotherAgentMemory:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         stats = agent.get_memory_stats()
@@ -791,6 +817,8 @@ class TestMotherAgentMemory:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         results = agent.search_memory("test query")
@@ -832,6 +860,8 @@ class TestMotherAgentDescribeAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._describe_action(
@@ -853,6 +883,8 @@ class TestMotherAgentDescribeAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._describe_action("mailcraft", "reply", {"message_id": "12345"})
@@ -869,6 +901,8 @@ class TestMotherAgentDescribeAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._describe_action("mailcraft", "delete", {"message_id": "12345", "permanent": True})
@@ -886,6 +920,8 @@ class TestMotherAgentDescribeAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._describe_action("mailcraft", "delete", {"message_id": "12345", "permanent": False})
@@ -903,6 +939,8 @@ class TestMotherAgentDescribeAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         desc = agent._describe_action("filesystem", "delete", {"path": "/tmp/test.txt"})
@@ -925,6 +963,8 @@ class TestMotherAgentConfirmAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.confirm_action("some-id")
@@ -943,6 +983,8 @@ class TestMotherAgentConfirmAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         # Set a pending confirmation
@@ -971,6 +1013,8 @@ class TestMotherAgentConfirmAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         agent.state.pending_confirmation = PendingConfirmation(
@@ -1007,6 +1051,8 @@ class TestMotherAgentConfirmAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         agent.state.pending_confirmation = PendingConfirmation(
@@ -1045,6 +1091,8 @@ class TestMotherAgentConfirmAction:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         agent.state.pending_confirmation = PendingConfirmation(
@@ -1081,6 +1129,8 @@ class TestMotherAgentProcessCommand:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("Hello")
@@ -1112,6 +1162,8 @@ class TestMotherAgentProcessCommand:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("Hello")
@@ -1154,6 +1206,8 @@ class TestMotherAgentProcessCommand:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("Do something")
@@ -1189,6 +1243,8 @@ class TestMotherAgentProcessCommand:
             tool_registry=mock_registry,
             max_iterations=3,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("Loop forever")
@@ -1220,6 +1276,8 @@ class TestMotherAgentProcessCommand:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("Hello", session_id="custom-session")
@@ -1273,6 +1331,8 @@ class TestMotherAgentProcessCommand:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("List files")
@@ -1312,6 +1372,8 @@ class TestMotherAgentProcessCommand:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("Delete file")
@@ -1340,6 +1402,8 @@ class TestMotherAgentCreatePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.create_plan("Create a plan")
@@ -1370,6 +1434,8 @@ class TestMotherAgentCreatePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.create_plan("Create a plan")
@@ -1426,6 +1492,8 @@ class TestMotherAgentCreatePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.create_plan("List and read files")
@@ -1477,6 +1545,8 @@ class TestMotherAgentCreatePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.create_plan("Run test")
@@ -1499,6 +1569,8 @@ class TestMotherAgentExecutePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.execute_plan()
@@ -1517,6 +1589,8 @@ class TestMotherAgentExecutePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         agent.state.pending_plan = ExecutionPlan(
@@ -1553,6 +1627,8 @@ class TestMotherAgentExecutePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         step = PlanStep(
@@ -1589,6 +1665,8 @@ class TestMotherAgentExecutePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         step = PlanStep(
@@ -1634,6 +1712,8 @@ class TestMotherAgentExecutePlan:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         steps = [
@@ -1694,6 +1774,8 @@ class TestMotherAgentProcessWithPlanning:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         # Set up pending plan
@@ -1728,6 +1810,8 @@ class TestMotherAgentProcessWithPlanning:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         agent.state.pending_plan = ExecutionPlan(
@@ -1783,6 +1867,8 @@ class TestMotherAgentProcessWithPlanning:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_with_planning("Do something new")
@@ -1807,6 +1893,8 @@ class TestMotherAgentPluginExecution:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         tool_call = ToolCall(id="tool-1", name="plugin_capability", arguments={})
@@ -1831,6 +1919,8 @@ class TestMotherAgentPluginExecution:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={"param": "value"})
@@ -1864,6 +1954,8 @@ class TestMotherAgentPluginExecution:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={})
@@ -1898,6 +1990,8 @@ class TestMotherAgentPluginExecution:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={})
@@ -1922,6 +2016,8 @@ class TestMotherAgentPluginExecution:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         tool_call = ToolCall(id="tool-1", name="plugin_action", arguments={})
@@ -1954,6 +2050,8 @@ class TestMotherAgentPluginExecution:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         tool_call = ToolCall(id="tool-1", name="plugin_dangerous_action", arguments={})
@@ -2007,6 +2105,8 @@ class TestMotherAgentPluginExecution:
         agent = MotherAgent(
             tool_registry=mock_registry,
             enable_memory=False,
+            enable_cognitive=False,
+            enable_session_persistence=False,
         )
 
         response = await agent.process_command("Fetch example.com")

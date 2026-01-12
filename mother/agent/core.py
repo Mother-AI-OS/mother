@@ -1,12 +1,18 @@
 """Claude-powered agent loop for CLI orchestration.
 
 Supports both legacy ToolWrapper-based tools and the new plugin system.
+Features:
+- Multi-LLM provider support (Anthropic, OpenAI, Zhipu, Gemini)
+- Persistent sessions that survive server restarts
+- Cognitive reasoning with reflection and goal decomposition
+- Semantic memory with vector search
 """
 
 import json
 import logging
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -17,7 +23,9 @@ from ..llm.providers.anthropic import AnthropicProvider
 from ..memory import MemoryManager
 from ..tools.base import ToolResult
 from ..tools.registry import ToolRegistry
+from .cognitive import CognitiveEngine
 from .errors import AgentError, ErrorHandler
+from .session import Session, SessionStore
 
 # Import plugin types for type checking
 try:
@@ -113,6 +121,11 @@ class AgentState:
     confirmed_actions: set[str] = field(default_factory=set)
     pending_plan: ExecutionPlan | None = None
     current_plan: ExecutionPlan | None = None
+    # Cognitive state tracking
+    iteration_count: int = 0
+    tool_call_count: int = 0
+    last_reflection: str | None = None
+    cognitive_summary: str | None = None
 
 
 @dataclass
@@ -206,6 +219,8 @@ Respond ONLY with the JSON plan, no other text."""
         api_key: str | None = None,
         openai_api_key: str | None = None,
         enable_memory: bool = True,
+        enable_cognitive: bool = True,
+        enable_session_persistence: bool = True,
         provider: LLMProvider | None = None,
         settings: Any | None = None,
     ):
@@ -218,6 +233,8 @@ Respond ONLY with the JSON plan, no other text."""
             api_key: API key (deprecated, use settings or provider)
             openai_api_key: OpenAI API key for memory embeddings
             enable_memory: Enable persistent memory
+            enable_cognitive: Enable cognitive reasoning (reflection, goal decomposition)
+            enable_session_persistence: Enable session persistence to database
             provider: Pre-configured LLM provider instance
             settings: Application settings for provider configuration
         """
@@ -248,6 +265,21 @@ Respond ONLY with the JSON plan, no other text."""
                 logger.info("Memory manager initialized with vector search")
             except Exception as e:
                 logger.warning(f"Failed to initialize memory: {e}")
+
+        # Initialize cognitive engine for reasoning and reflection
+        self.cognitive: CognitiveEngine | None = None
+        if enable_cognitive:
+            self.cognitive = CognitiveEngine()
+            logger.info("Cognitive engine initialized")
+
+        # Initialize session persistence
+        self.session_store: SessionStore | None = None
+        if enable_session_persistence:
+            try:
+                self.session_store = SessionStore()
+                logger.info("Session persistence enabled")
+            except Exception as e:
+                logger.warning(f"Failed to initialize session store: {e}")
 
     def get_tools(self) -> list[dict]:
         """Generate tool definitions for Claude."""
@@ -333,6 +365,12 @@ Respond ONLY with the JSON plan, no other text."""
         """
         Process a natural language command through the agent loop.
 
+        Features:
+        - Persistent sessions (survive server restarts)
+        - Cognitive reasoning with reflection
+        - Dynamic context evolution
+        - Confidence tracking
+
         Args:
             user_input: The user's natural language command
             session_id: Optional session ID for context continuity
@@ -345,14 +383,34 @@ Respond ONLY with the JSON plan, no other text."""
         if session_id and session_id == self.state.session_id:
             # Continue existing session
             pass
+        elif session_id and self.session_store:
+            # Try to restore from persistent storage
+            stored_session = self.session_store.get(session_id)
+            if stored_session:
+                self.state = AgentState(
+                    session_id=session_id,
+                    messages=stored_session.messages,
+                )
+                # Restore cognitive state if available
+                if self.cognitive and stored_session.metadata.get("cognitive"):
+                    self.cognitive.restore_state(stored_session.metadata["cognitive"])
+                logger.info(f"Restored session {session_id} with {len(self.state.messages)} messages")
+            else:
+                self.state = AgentState(session_id=session_id)
         else:
             # New session
             self.state = AgentState(session_id=session_id or str(uuid.uuid4()))
+            if self.cognitive:
+                self.cognitive.reset()
 
         if pre_confirmed:
             # Mark all pending confirmations as confirmed
             if self.state.pending_confirmation:
                 self.state.confirmed_actions.add(self.state.pending_confirmation.id)
+
+        # Set cognitive goal and determine thinking mode
+        if self.cognitive:
+            self.cognitive.set_goal(user_input)
 
         # Retrieve relevant context from memory
         memory_context = ""
@@ -374,11 +432,14 @@ Respond ONLY with the JSON plan, no other text."""
             except Exception as e:
                 logger.warning(f"Failed to store user input: {e}")
 
-        # Add user message (with memory context if available)
+        # Build enhanced context with cognitive state
+        context_parts = [user_input]
         if memory_context:
-            user_content = f"{user_input}\n\n---\n{memory_context}"
-        else:
-            user_content = user_input
+            context_parts.append(f"\n---\n{memory_context}")
+        if self.cognitive and self.cognitive.state.cognitive_summary:
+            context_parts.append(f"\n---\n## Cognitive Context\n{self.cognitive.get_cognitive_summary()}")
+
+        user_content = "".join(context_parts)
         self.state.messages.append({"role": "user", "content": user_content})
 
         tool_calls_made = []
@@ -445,6 +506,9 @@ Respond ONLY with the JSON plan, no other text."""
                         )
                     except Exception as e:
                         logger.warning(f"Failed to store response: {e}")
+
+                # Persist session
+                self._save_session()
 
                 return AgentResponse(
                     text=text_response,
@@ -588,6 +652,13 @@ Respond ONLY with the JSON plan, no other text."""
                 }
             )
 
+            # Perform reflection on tool results (cognitive enhancement)
+            await self._reflect_on_results(tool_results, tool_calls_made)
+
+            # Update iteration count
+            self.state.iteration_count = iteration
+            self.state.tool_call_count += len(tool_results)
+
             # Check if we hit end_turn
             if response.stop_reason == "end_turn":
                 # Store response in memory
@@ -601,6 +672,9 @@ Respond ONLY with the JSON plan, no other text."""
                     except Exception as e:
                         logger.warning(f"Failed to store response: {e}")
 
+                # Persist session
+                self._save_session()
+
                 return AgentResponse(
                     text=text_response,
                     success=True,
@@ -608,7 +682,9 @@ Respond ONLY with the JSON plan, no other text."""
                     errors=errors,
                 )
 
-        # Reached max iterations
+        # Reached max iterations - save session anyway
+        self._save_session()
+
         return AgentResponse(
             text="I reached the maximum number of steps. Please try a more specific request.",
             success=False,
@@ -802,6 +878,91 @@ Respond ONLY with the JSON plan, no other text."""
     def reset(self) -> None:
         """Reset agent state for new conversation."""
         self.state = AgentState()
+        if self.cognitive:
+            self.cognitive.reset()
+
+    def _save_session(self) -> None:
+        """Save current session to persistent storage."""
+        if not self.session_store:
+            return
+
+        try:
+            # Build session metadata including cognitive state
+            metadata: dict[str, Any] = {
+                "tool_call_count": self.state.tool_call_count,
+                "iteration_count": self.state.iteration_count,
+            }
+            if self.cognitive:
+                metadata["cognitive"] = self.cognitive.get_state_dict()
+
+            session = Session(
+                id=self.state.session_id,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                messages=self.state.messages,
+                metadata=metadata,
+                status="active",
+            )
+            self.session_store.save(session)
+            logger.debug(f"Saved session {session.id} with {len(session.messages)} messages")
+        except Exception as e:
+            logger.warning(f"Failed to save session: {e}")
+
+    async def _reflect_on_results(
+        self,
+        tool_results: list[dict[str, Any]],
+        tool_calls_made: list[dict[str, Any]],
+    ) -> None:
+        """Perform cognitive reflection on tool execution results.
+
+        This enables learning from outcomes and adapting behavior.
+        """
+        if not self.cognitive:
+            return
+
+        # Check if we should reflect
+        for result in tool_results:
+            if not self.cognitive.should_reflect_on_result(result):
+                continue
+
+            tool_call_id = result.get("tool_use_id")
+            tool_info = next(
+                (tc for tc in tool_calls_made if tc.get("tool") and tool_call_id),
+                None,
+            )
+
+            if not tool_info:
+                continue
+
+            tool_name = tool_info.get("tool", "unknown")
+            is_error = result.get("is_error", False)
+            content = result.get("content", "")
+
+            # Simple reflection without additional LLM call for efficiency
+            # (Full LLM reflection can be added for complex scenarios)
+            if is_error:
+                insight = f"Tool {tool_name} failed: {content[:100]}"
+                self.cognitive.state.reflections.append(
+                    self.cognitive.process_reflection_response(
+                        json.dumps(
+                            {
+                                "success": False,
+                                "insight": insight,
+                                "should_retry": "timeout" not in content.lower(),
+                                "confidence_adjustment": -10,
+                            }
+                        ),
+                        tool_name=tool_name,
+                        expected="successful execution",
+                        actual=content[:200],
+                    )
+                )
+            else:
+                # Successful execution - update confidence positively
+                self.cognitive._adjust_confidence(5)
+
+            # Update cognitive summary for next iteration
+            self.state.cognitive_summary = self.cognitive.get_cognitive_summary()
 
     def get_session_id(self) -> str:
         """Get current session ID."""
@@ -818,6 +979,61 @@ Respond ONLY with the JSON plan, no other text."""
         if self.memory:
             return self.memory.recall(query, limit=limit)
         return []
+
+    def get_session_stats(self) -> dict[str, Any] | None:
+        """Get session store statistics."""
+        if self.session_store:
+            return self.session_store.get_stats()
+        return None
+
+    def list_sessions(self, limit: int = 10) -> list[dict[str, Any]]:
+        """List recent sessions."""
+        if not self.session_store:
+            return []
+
+        sessions = self.session_store.get_recent(limit=limit)
+        return [
+            {
+                "id": s.id,
+                "created_at": s.created_at.isoformat(),
+                "updated_at": s.updated_at.isoformat(),
+                "message_count": len(s.messages),
+                "status": s.status,
+                "summary": s.summary,
+            }
+            for s in sessions
+        ]
+
+    def resume_session(self, session_id: str) -> bool:
+        """Resume a previous session by ID.
+
+        Returns:
+            True if session was found and restored, False otherwise
+        """
+        if not self.session_store:
+            return False
+
+        stored_session = self.session_store.get(session_id)
+        if not stored_session:
+            return False
+
+        self.state = AgentState(
+            session_id=session_id,
+            messages=stored_session.messages,
+        )
+
+        # Restore cognitive state if available
+        if self.cognitive and stored_session.metadata.get("cognitive"):
+            self.cognitive.restore_state(stored_session.metadata["cognitive"])
+
+        logger.info(f"Resumed session {session_id} with {len(self.state.messages)} messages")
+        return True
+
+    def get_cognitive_state(self) -> dict[str, Any] | None:
+        """Get current cognitive state for debugging/inspection."""
+        if self.cognitive:
+            return self.cognitive.get_state_dict()
+        return None
 
     async def create_plan(
         self,
