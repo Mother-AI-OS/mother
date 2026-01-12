@@ -1,0 +1,255 @@
+name: Verify Installation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  verify-repo-install:
+    name: Verify Repository Installation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+
+      - name: Install Mother from source
+        run: |
+          source .venv/bin/activate
+          pip install -e .
+
+      - name: Verify CLI installation
+        run: |
+          source .venv/bin/activate
+          mother --help
+          mother --version || true
+
+      - name: Install test dependencies
+        run: |
+          source .venv/bin/activate
+          pip install httpx
+
+      - name: Create test directories
+        run: |
+          mkdir -p workspace logs
+
+      - name: Start server with mock LLM
+        run: |
+          source .venv/bin/activate
+          export MOTHER_MOCK_LLM=1
+          export AI_PROVIDER=mock
+          export MOTHER_POLICY_PATH=./verify/policy.verification.yaml
+          export MOTHER_SAFE_MODE=true
+          export MOTHER_AUDIT_ENABLED=true
+          export MOTHER_HOST=127.0.0.1
+          export MOTHER_PORT=8080
+          export MOTHER_API_KEY=test-key
+          export MOTHER_REQUIRE_AUTH=false
+          mother serve &
+          echo $! > server.pid
+          # Wait for server to start
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health > /dev/null; then
+              echo "Server is ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run E2E verification
+        run: |
+          source .venv/bin/activate
+          python verify/verify_run_e2e.py \
+            --url http://localhost:8080 \
+            --key test-key \
+            --output verify/verify_report.md
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+          fi
+
+      - name: Upload verification report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-report-repo
+          path: verify/verify_report.md
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: logs-repo
+          path: |
+            logs/
+            verify/*.log
+
+  verify-docker-install:
+    name: Verify Docker Installation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t mother-ai-os:verify .
+
+      - name: Create volumes
+        run: |
+          docker volume create mother-verify-logs
+          docker volume create mother-verify-workspace
+
+      - name: Run container
+        run: |
+          docker run -d \
+            --name mother-verify \
+            -p 8080:8080 \
+            -e MOTHER_MOCK_LLM=1 \
+            -e AI_PROVIDER=mock \
+            -e MOTHER_SAFE_MODE=true \
+            -e MOTHER_AUDIT_ENABLED=true \
+            -e MOTHER_REQUIRE_AUTH=false \
+            -e MOTHER_API_KEY=test-key \
+            -v mother-verify-logs:/app/logs \
+            -v mother-verify-workspace:/app/workspace \
+            mother-ai-os:verify
+
+      - name: Wait for container to be healthy
+        run: |
+          for i in {1..60}; do
+            if curl -s http://localhost:8080/health > /dev/null; then
+              echo "Container is healthy"
+              break
+            fi
+            echo "Waiting for container... ($i/60)"
+            sleep 1
+          done
+          # Final check
+          curl -s http://localhost:8080/health
+
+      - name: Test health endpoint
+        run: |
+          curl -s http://localhost:8080/health | grep -q "healthy"
+
+      - name: Test tools endpoint
+        run: |
+          curl -s -H "X-API-Key: test-key" http://localhost:8080/tools | grep -q "tools"
+
+      - name: Test non-root user
+        run: |
+          USER=$(docker exec mother-verify whoami)
+          if [ "$USER" = "root" ]; then
+            echo "ERROR: Container running as root"
+            exit 1
+          fi
+          echo "Container running as: $USER"
+
+      - name: Test volume mounts
+        run: |
+          docker exec mother-verify ls -la /app/logs
+          docker exec mother-verify ls -la /app/workspace
+
+      - name: Set up Python for E2E tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run E2E verification
+        run: |
+          pip install httpx
+          python verify/verify_run_e2e.py \
+            --url http://localhost:8080 \
+            --key test-key \
+            --output verify/verify_report_docker.md
+
+      - name: Get container logs
+        if: always()
+        run: |
+          docker logs mother-verify > verify/container.log 2>&1 || true
+
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop mother-verify || true
+          docker rm mother-verify || true
+          docker volume rm mother-verify-logs mother-verify-workspace || true
+
+      - name: Upload verification report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-report-docker
+          path: |
+            verify/verify_report_docker.md
+            verify/container.log
+
+  verification-summary:
+    name: Verification Summary
+    needs: [verify-repo-install, verify-docker-install]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Download repo report
+        uses: actions/download-artifact@v4
+        with:
+          name: verification-report-repo
+          path: reports/repo
+
+      - name: Download docker report
+        uses: actions/download-artifact@v4
+        with:
+          name: verification-report-docker
+          path: reports/docker
+
+      - name: Create summary
+        run: |
+          echo "# Verification Summary" > summary.md
+          echo "" >> summary.md
+          echo "## Repository Installation" >> summary.md
+          cat reports/repo/verify_report.md >> summary.md || echo "No report available" >> summary.md
+          echo "" >> summary.md
+          echo "---" >> summary.md
+          echo "" >> summary.md
+          echo "## Docker Installation" >> summary.md
+          cat reports/docker/verify_report_docker.md >> summary.md || echo "No report available" >> summary.md
+
+      - name: Upload combined report
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-summary
+          path: summary.md
+
+      - name: Check results
+        run: |
+          if [ "${{ needs.verify-repo-install.result }}" != "success" ]; then
+            echo "Repository verification failed"
+            exit 1
+          fi
+          if [ "${{ needs.verify-docker-install.result }}" != "success" ]; then
+            echo "Docker verification failed"
+            exit 1
+          fi
+          echo "All verifications passed!"
