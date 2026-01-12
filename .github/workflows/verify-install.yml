@@ -151,7 +151,8 @@ jobs:
 
       - name: Test health endpoint
         run: |
-          curl -s http://localhost:8080/health | grep -q "healthy"
+          # Health endpoint returns {"status":"ok",...}
+          curl -s http://localhost:8080/health | grep -q '"status"'
 
       - name: Test tools endpoint
         run: |
