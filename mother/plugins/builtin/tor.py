@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import socket
-import subprocess
 from typing import Any
 
 import httpx

@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING, Any
 
 from .base import LLMProvider, ProviderType
 from .providers.anthropic import AnthropicProvider
+from .providers.gemini import GeminiProvider
 from .providers.openai import OpenAIProvider
 from .providers.zhipu import ZhipuProvider
-from .providers.gemini import GeminiProvider
 
 if TYPE_CHECKING:
     from ..config.settings import Settings

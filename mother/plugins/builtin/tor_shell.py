@@ -13,8 +13,6 @@ from ..manifest import (
     CapabilitySpec,
     ExecutionSpec,
     ExecutionType,
-    ParameterSpec,
-    ParameterType,
     PluginManifest,
     PluginMetadata,
     PythonExecutionSpec,
