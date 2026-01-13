@@ -20,7 +20,7 @@ This document covers installation, deployment, multi-key authentication, and rat
 
 ```bash
 # Install with pipx for isolated environment
-pipx install mother-ai
+pipx install mother-ai-os
 
 # Verify installation
 mother --version
@@ -37,7 +37,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # Install from PyPI
-pip install mother-ai
+pip install mother-ai-os
 
 # Or install from source
 git clone https://github.com/Mother-AI-OS/mother.git
@@ -48,11 +48,11 @@ pip install -e .
 ### Option 3: Docker (Recommended for production)
 
 ```bash
-# Pull the official image
-docker pull mother-ai:latest
+# Pull the official image (when published)
+docker pull mother-ai-os:latest
 
 # Or build from source
-docker build -t mother-ai:latest .
+docker build -t mother-ai-os:latest .
 
 # Run with environment variables
 docker run -d \
@@ -61,7 +61,7 @@ docker run -d \
   -e MOTHER_REQUIRE_AUTH=true \
   -e ANTHROPIC_API_KEY=your-key \
   -v mother_data:/app/data \
-  mother-ai:latest
+  mother-ai-os:latest
 ```
 
 ### Option 4: Docker Compose (Full stack)
@@ -106,10 +106,11 @@ my-mother-instance/
 ├── docker-compose.yml    # Docker Compose configuration
 ├── Dockerfile            # Container build instructions
 ├── .env.example          # Environment template (no secrets!)
-├── config/
-│   └── policy.yaml       # Security policy template
-└── workspace/            # Sandboxed file operations directory
+└── config/
+    └── policy.yaml       # Security policy template
 ```
+
+**Note:** The `workspace/` and `logs/` directories are created automatically when the server starts.
 
 ### Deploying the Bundle
 
