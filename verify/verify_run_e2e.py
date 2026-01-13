@@ -28,7 +28,6 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import httpx
 
@@ -253,7 +252,7 @@ def test_status(client: VerificationClient):
             version = resp.get("version", "unknown")
             model = resp.get("model", "unknown")
             return True, f"Version: {version}, Model: {model}", resp
-        return False, f"Status response missing expected fields", resp
+        return False, "Status response missing expected fields", resp
     return _test
 
 

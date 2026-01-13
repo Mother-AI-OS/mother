@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 import json
-import tempfile
-import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -20,7 +17,6 @@ from mother.audit import (
     SensitiveDataType,
     get_audit_logger,
     get_redactor,
-    redact,
     redact_string,
 )
 
@@ -596,6 +592,7 @@ class TestGlobalAuditLogger:
 
         # Should be the same instance when no config is passed
         # Note: When config is passed, it creates a new instance
+        assert logger2 is not None
 
         logger1.close()
 

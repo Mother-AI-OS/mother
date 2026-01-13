@@ -19,7 +19,6 @@ from typing import Any
 from ..base import LLMProvider, ProviderType
 from ..response import LLMResponse, ToolCall
 
-
 # Prompt patterns mapped to tool calls
 # Pattern: (regex, tool_name, arguments_template)
 # Tool names use format: plugin_command (e.g., shell_run_command)

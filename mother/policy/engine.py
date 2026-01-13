@@ -113,9 +113,9 @@ class PolicyEngine:
 
         # Evaluate rules in priority order
         for rule in rules:
-            decision = self._evaluate_rule(rule, capability_name, params, context)
-            if decision is not None:
-                return decision
+            rule_decision = self._evaluate_rule(rule, capability_name, params, context)
+            if rule_decision is not None:
+                return rule_decision
 
         # Apply default action
         return self._apply_default_action(capability_name)

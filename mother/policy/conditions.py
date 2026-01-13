@@ -417,7 +417,7 @@ def evaluate_data_condition(
                 )
         elif destination:
             return PolicyDecision.deny(
-                reason=f"Sensitive data detected, no allowed export domains configured",
+                reason="Sensitive data detected, no allowed export domains configured",
                 matched_rules=[f"sensitive_pattern:{p}" for p in sensitive_matches[:3]],
                 risk_tier=RiskTier.CRITICAL,
             )

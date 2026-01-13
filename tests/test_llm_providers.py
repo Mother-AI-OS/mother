@@ -1,20 +1,19 @@
 """Tests for the multi-LLM provider abstraction layer."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, MagicMock, patch
 
 from mother.llm import (
-    LLMProvider,
-    ProviderType,
+    DEFAULT_MODELS,
     LLMResponse,
+    ProviderType,
     ToolCall,
     ToolResult,
     Usage,
-    DEFAULT_MODELS,
     create_provider,
     get_available_providers,
 )
-from mother.llm.base import LLMProvider as BaseLLMProvider
 from mother.llm.factory import get_provider_for_settings
 
 
@@ -145,9 +144,9 @@ class TestCreateProvider:
     def test_creates_provider(self, mock_load):
         mock_provider_class = Mock()
         mock_load.return_value = {"test": mock_provider_class}
-        
+
         create_provider("test", api_key="sk-test", model="test-model")
-        
+
         mock_provider_class.assert_called_once_with(
             api_key="sk-test",
             model="test-model",
@@ -164,7 +163,7 @@ class TestGetProviderForSettings:
         settings.openai_api_key = None
         settings.zhipu_api_key = None
         settings.gemini_api_key = None
-        
+
         with pytest.raises(ValueError) as exc_info:
             get_provider_for_settings(settings)
         assert "API key not configured" in str(exc_info.value)
@@ -178,9 +177,9 @@ class TestGetProviderForSettings:
         settings.zhipu_api_key = None
         settings.gemini_api_key = None
         settings.llm_model = "gpt-4"
-        
+
         get_provider_for_settings(settings)
-        
+
         mock_create.assert_called_once_with(
             provider_name="openai",
             api_key="sk-test",
@@ -197,9 +196,9 @@ class TestGetProviderForSettings:
         settings.gemini_api_key = None
         settings.llm_model = None
         settings.claude_model = "claude-3-opus"
-        
+
         get_provider_for_settings(settings)
-        
+
         mock_create.assert_called_once_with(
             provider_name="anthropic",
             api_key="sk-ant-test",
@@ -212,13 +211,13 @@ class TestAnthropicProvider:
 
     def test_provider_type(self):
         from mother.llm.providers.anthropic import AnthropicProvider
-        
+
         provider = AnthropicProvider(api_key="test", model="claude-3")
         assert provider.provider_type == ProviderType.ANTHROPIC
 
     def test_convert_tool_schema_passthrough(self):
         from mother.llm.providers.anthropic import AnthropicProvider
-        
+
         provider = AnthropicProvider(api_key="test", model="claude-3")
         schema = {"name": "test", "description": "Test tool"}
         result = provider.convert_tool_schema(schema)
@@ -226,12 +225,12 @@ class TestAnthropicProvider:
 
     def test_format_tool_result(self):
         from mother.llm.providers.anthropic import AnthropicProvider
-        
+
         provider = AnthropicProvider(api_key="test", model="claude-3")
         result = ToolResult(tool_call_id="call_123", content="Success")
-        
+
         formatted = provider.format_tool_result(result)
-        
+
         assert formatted["type"] == "tool_result"
         assert formatted["tool_use_id"] == "call_123"
         assert formatted["content"] == "Success"
@@ -242,25 +241,25 @@ class TestOpenAIProvider:
 
     def test_provider_type(self):
         from mother.llm.providers.openai import OpenAIProvider
-        
+
         provider = OpenAIProvider(api_key="test", model="gpt-4")
         assert provider.provider_type == ProviderType.OPENAI
 
     def test_sanitize_tool_name(self):
         from mother.llm.providers.openai import OpenAIProvider
-        
+
         assert OpenAIProvider._sanitize_tool_name("plugin.command") == "plugin__command"
         assert OpenAIProvider._sanitize_tool_name("simple") == "simple"
 
     def test_restore_tool_name(self):
         from mother.llm.providers.openai import OpenAIProvider
-        
+
         assert OpenAIProvider._restore_tool_name("plugin__command") == "plugin.command"
         assert OpenAIProvider._restore_tool_name("simple") == "simple"
 
     def test_convert_tool_schema(self):
         from mother.llm.providers.openai import OpenAIProvider
-        
+
         provider = OpenAIProvider(api_key="test", model="gpt-4")
         schema = {
             "name": "test.tool",
@@ -270,9 +269,9 @@ class TestOpenAIProvider:
                 "properties": {"arg1": {"type": "string"}},
             },
         }
-        
+
         result = provider.convert_tool_schema(schema)
-        
+
         assert result["type"] == "function"
         assert result["function"]["name"] == "test__tool"
         assert result["function"]["description"] == "Test description"
@@ -335,22 +334,22 @@ class TestZhipuProvider:
 
     def test_provider_type(self):
         from mother.llm.providers.zhipu import ZhipuProvider
-        
+
         provider = ZhipuProvider(api_key="test", model="glm-4")
         assert provider.provider_type == ProviderType.ZHIPU
 
     def test_convert_tool_schema(self):
         from mother.llm.providers.zhipu import ZhipuProvider
-        
+
         provider = ZhipuProvider(api_key="test", model="glm-4")
         schema = {
             "name": "test.tool",
             "description": "Test description",
             "input_schema": {"type": "object", "properties": {}},
         }
-        
+
         result = provider.convert_tool_schema(schema)
-        
+
         assert result["type"] == "function"
         assert result["function"]["name"] == "test__tool"
 
@@ -360,21 +359,21 @@ class TestGeminiProvider:
 
     def test_provider_type(self):
         from mother.llm.providers.gemini import GeminiProvider
-        
+
         provider = GeminiProvider(api_key="test", model="gemini-pro")
         assert provider.provider_type == ProviderType.GEMINI
 
     def test_convert_tool_schema(self):
         from mother.llm.providers.gemini import GeminiProvider
-        
+
         provider = GeminiProvider(api_key="test", model="gemini-pro")
         schema = {
             "name": "test_tool",
             "description": "Test description",
             "input_schema": {"type": "object", "properties": {}},
         }
-        
+
         result = provider.convert_tool_schema(schema)
-        
+
         assert result["name"] == "test_tool"
         assert result["description"] == "Test description"

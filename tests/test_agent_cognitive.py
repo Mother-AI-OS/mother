@@ -1,8 +1,6 @@
 """Tests for the cognitive reasoning module."""
 
 import json
-import pytest
-from datetime import datetime
 
 from mother.agent.cognitive import (
     CognitiveEngine,

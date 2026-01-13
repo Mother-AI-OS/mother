@@ -56,7 +56,7 @@ def load_policy_from_file(path: str | Path) -> PolicyConfig:
             data = yaml.safe_load(f)
     except yaml.YAMLError as e:
         raise PolicyLoadError(f"Invalid YAML in policy file: {e}")
-    except IOError as e:
+    except OSError as e:
         raise PolicyLoadError(f"Cannot read policy file: {e}")
 
     if not isinstance(data, dict):
@@ -363,7 +363,7 @@ def save_policy_to_file(config: PolicyConfig, path: str | Path) -> None:
         with open(path, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
         logger.info(f"Saved policy to {path}")
-    except IOError as e:
+    except OSError as e:
         raise PolicyLoadError(f"Cannot write policy file: {e}")
 
 

@@ -10,8 +10,6 @@ import logging
 import re
 from typing import Any
 
-from pydantic import ValidationError
-
 from .exceptions import PluginValidationError
 from .manifest import CapabilitySpec, ParameterSpec, ParameterType
 
