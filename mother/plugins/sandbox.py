@@ -436,16 +436,12 @@ class PluginSandbox:
             if mode == "read":
                 if not self.workspace_config.is_path_allowed_read(target):
                     if self.audit_enabled:
-                        logger.warning(
-                            f"[{self.plugin_name}] Workspace denied: read {target}"
-                        )
+                        logger.warning(f"[{self.plugin_name}] Workspace denied: read {target}")
                     return False
             elif mode in ("write", "delete"):
                 if not self.workspace_config.is_path_allowed_write(target):
                     if self.audit_enabled:
-                        logger.warning(
-                            f"[{self.plugin_name}] Workspace denied: {mode} {target}"
-                        )
+                        logger.warning(f"[{self.plugin_name}] Workspace denied: {mode} {target}")
                     return False
 
         required = Permission(type=action, scope=target)

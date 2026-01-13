@@ -134,9 +134,7 @@ class TestSafeModeBlocksTor:
         assert engine._is_high_risk_capability("tor_verified_sites") is True
         assert engine._is_high_risk_capability("darknet_bbc") is False  # Not prefixed with tor_
 
-    def test_safe_mode_denies_tor_fetch_no_allow_rule(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_safe_mode_denies_tor_fetch_no_allow_rule(self, safe_mode_policy: PolicyConfig) -> None:
         """Test that safe mode DENIES tor_fetch when no explicit allow rule exists."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -148,9 +146,7 @@ class TestSafeModeBlocksTor:
         assert decision.risk_tier == RiskTier.HIGH
         assert "safe_mode" in decision.matched_rules
 
-    def test_safe_mode_denies_tor_browse_no_allow_rule(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_safe_mode_denies_tor_browse_no_allow_rule(self, safe_mode_policy: PolicyConfig) -> None:
         """Test that safe mode DENIES tor_browse when no explicit allow rule exists."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -168,9 +164,7 @@ class TestSafeModeBlocksTor:
         assert decision.allowed is False
         assert "safe mode" in decision.reason.lower()
 
-    def test_safe_mode_denies_tor_new_identity(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_safe_mode_denies_tor_new_identity(self, safe_mode_policy: PolicyConfig) -> None:
         """Test that safe mode DENIES tor_new_identity."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -197,9 +191,7 @@ class TestSafeModeBlocksTor:
             decision = engine.evaluate(capability, {})
             assert decision.allowed is False, f"{capability} should be blocked"
 
-    def test_is_capability_enabled_returns_false_for_tor(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_is_capability_enabled_returns_false_for_tor(self, safe_mode_policy: PolicyConfig) -> None:
         """Test is_capability_enabled returns False for tor capabilities in safe mode."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -207,9 +199,7 @@ class TestSafeModeBlocksTor:
         assert engine.is_capability_enabled("tor_browse") is False
         assert engine.is_capability_enabled("tor_start") is False
 
-    def test_get_allowed_capabilities_filters_tor(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_get_allowed_capabilities_filters_tor(self, safe_mode_policy: PolicyConfig) -> None:
         """Test that get_allowed_capabilities filters out tor capabilities."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -251,9 +241,7 @@ class TestSafeModeBlocksTorShell:
         assert engine._is_high_risk_capability("tor-shell_darknet_bookmarks") is True
         assert engine._is_high_risk_capability("tor-shell_darknet_news") is True
 
-    def test_safe_mode_denies_tor_shell_dw(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_safe_mode_denies_tor_shell_dw(self, safe_mode_policy: PolicyConfig) -> None:
         """Test that safe mode DENIES tor-shell_darknet_dw."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -263,9 +251,7 @@ class TestSafeModeBlocksTorShell:
         assert "safe mode" in decision.reason.lower()
         assert decision.risk_tier == RiskTier.HIGH
 
-    def test_safe_mode_denies_all_tor_shell_capabilities(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_safe_mode_denies_all_tor_shell_capabilities(self, safe_mode_policy: PolicyConfig) -> None:
         """Test that safe mode DENIES all tor-shell capabilities."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -293,9 +279,7 @@ class TestSafeModeBlocksTorShell:
         decision = engine.evaluate("tor-shell_darknet_dw", {})
         assert decision.allowed is False
 
-    def test_is_capability_enabled_returns_false_for_tor_shell(
-        self, safe_mode_policy: PolicyConfig
-    ) -> None:
+    def test_is_capability_enabled_returns_false_for_tor_shell(self, safe_mode_policy: PolicyConfig) -> None:
         """Test is_capability_enabled returns False for tor-shell capabilities."""
         engine = PolicyEngine(safe_mode_policy)
 
@@ -311,9 +295,7 @@ class TestSafeModeBlocksTorShell:
 class TestExplicitAllowEnablesTor:
     """Tests that verify explicit ALLOW rules enable Tor execution paths."""
 
-    def test_explicit_allow_rule_allows_tor_fetch(
-        self, safe_mode_policy_with_tor_allow: PolicyConfig
-    ) -> None:
+    def test_explicit_allow_rule_allows_tor_fetch(self, safe_mode_policy_with_tor_allow: PolicyConfig) -> None:
         """Test that explicit ALLOW rule permits tor_fetch even in safe mode."""
         engine = PolicyEngine(safe_mode_policy_with_tor_allow)
 
@@ -323,9 +305,7 @@ class TestExplicitAllowEnablesTor:
         assert decision.action == PolicyAction.ALLOW
         assert "allow-tor-fetch" in decision.matched_rules
 
-    def test_explicit_allow_does_not_affect_other_tor_caps(
-        self, safe_mode_policy_with_tor_allow: PolicyConfig
-    ) -> None:
+    def test_explicit_allow_does_not_affect_other_tor_caps(self, safe_mode_policy_with_tor_allow: PolicyConfig) -> None:
         """Test that allowing tor_fetch doesn't allow tor_browse."""
         engine = PolicyEngine(safe_mode_policy_with_tor_allow)
 
@@ -338,9 +318,7 @@ class TestExplicitAllowEnablesTor:
         assert browse_decision.allowed is False
 
     @pytest.mark.asyncio
-    async def test_tor_fetch_execution_with_mocked_network(
-        self, tor_plugin: TorPlugin
-    ) -> None:
+    async def test_tor_fetch_execution_with_mocked_network(self, tor_plugin: TorPlugin) -> None:
         """Test tor_fetch execution with monkeypatched network call.
 
         This test verifies the execution path works when policy allows,
@@ -372,9 +350,7 @@ class TestExplicitAllowEnablesTor:
         mock_client.get.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_tor_verified_sites_no_network_required(
-        self, tor_plugin: TorPlugin
-    ) -> None:
+    async def test_tor_verified_sites_no_network_required(self, tor_plugin: TorPlugin) -> None:
         """Test tor_verified_sites returns data without network calls."""
         # This capability returns static data and doesn't need network access
         result = await tor_plugin.execute("tor_verified_sites", {})
@@ -399,9 +375,7 @@ class TestExplicitAllowEnablesTor:
 class TestExplicitAllowEnablesTorShell:
     """Tests that verify explicit ALLOW rules enable Tor-shell execution paths."""
 
-    def test_explicit_allow_rule_allows_tor_shell_dw(
-        self, safe_mode_policy_with_tor_shell_allow: PolicyConfig
-    ) -> None:
+    def test_explicit_allow_rule_allows_tor_shell_dw(self, safe_mode_policy_with_tor_shell_allow: PolicyConfig) -> None:
         """Test that explicit ALLOW rule permits tor-shell_darknet_dw."""
         engine = PolicyEngine(safe_mode_policy_with_tor_shell_allow)
 
@@ -426,18 +400,14 @@ class TestExplicitAllowEnablesTorShell:
         assert voa_decision.allowed is False
 
     @pytest.mark.asyncio
-    async def test_tor_shell_dw_execution_with_mocked_subprocess(
-        self, tor_shell_plugin: TorShellPlugin
-    ) -> None:
+    async def test_tor_shell_dw_execution_with_mocked_subprocess(self, tor_shell_plugin: TorShellPlugin) -> None:
         """Test tor-shell darknet_dw execution with monkeypatched subprocess.
 
         This test verifies the execution path works when policy allows,
         without spawning real processes.
         """
         mock_process = AsyncMock()
-        mock_process.communicate = AsyncMock(
-            return_value=(b"Stubbed Deutsche Welle content from Tor", b"")
-        )
+        mock_process.communicate = AsyncMock(return_value=(b"Stubbed Deutsche Welle content from Tor", b""))
         mock_process.returncode = 0
 
         with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
@@ -456,9 +426,7 @@ class TestExplicitAllowEnablesTorShell:
         assert call_args[0][1] == "w3m"  # Second arg is w3m browser
 
     @pytest.mark.asyncio
-    async def test_tor_shell_bookmarks_no_subprocess_required(
-        self, tor_shell_plugin: TorShellPlugin
-    ) -> None:
+    async def test_tor_shell_bookmarks_no_subprocess_required(self, tor_shell_plugin: TorShellPlugin) -> None:
         """Test darknet_bookmarks returns data without subprocess calls."""
         # This capability returns static data and doesn't need subprocess access
         result = await tor_shell_plugin.execute("darknet_bookmarks", {})
@@ -472,9 +440,7 @@ class TestExplicitAllowEnablesTorShell:
         assert "Darknet Bookmarks" in result.raw_output
 
     @pytest.mark.asyncio
-    async def test_tor_shell_news_no_subprocess_required(
-        self, tor_shell_plugin: TorShellPlugin
-    ) -> None:
+    async def test_tor_shell_news_no_subprocess_required(self, tor_shell_plugin: TorShellPlugin) -> None:
         """Test darknet_news returns data without subprocess calls."""
         result = await tor_shell_plugin.execute("darknet_news", {})
 
@@ -627,8 +593,7 @@ class TestPolicyPluginIntegration:
         # Plugin execution should NOT happen in real flow due to policy denial
         # This test demonstrates the separation of concerns
         assert decision.reason == (
-            "Capability 'tor_fetch' is blocked in safe mode. "
-            "Add an explicit policy rule to enable it."
+            "Capability 'tor_fetch' is blocked in safe mode. Add an explicit policy rule to enable it."
         )
 
     @pytest.mark.asyncio
@@ -686,9 +651,7 @@ class TestTorPluginErrorHandling:
         mock_client.__aexit__ = AsyncMock(return_value=None)
 
         with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await tor_plugin.execute(
-                "tor_fetch", {"url": "http://example.onion", "timeout": 30}
-            )
+            result = await tor_plugin.execute("tor_fetch", {"url": "http://example.onion", "timeout": 30})
 
         assert result.success is False
         assert result.status == ResultStatus.TIMEOUT
@@ -699,29 +662,21 @@ class TestTorPluginErrorHandling:
         import httpx
 
         mock_client = AsyncMock()
-        mock_client.get = AsyncMock(
-            side_effect=httpx.ConnectError("Connection refused")
-        )
+        mock_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=None)
 
         with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await tor_plugin.execute(
-                "tor_fetch", {"url": "http://example.onion"}
-            )
+            result = await tor_plugin.execute("tor_fetch", {"url": "http://example.onion"})
 
         assert result.success is False
         assert result.error_code == "CONNECT_ERROR"
 
     @pytest.mark.asyncio
-    async def test_tor_shell_subprocess_error(
-        self, tor_shell_plugin: TorShellPlugin
-    ) -> None:
+    async def test_tor_shell_subprocess_error(self, tor_shell_plugin: TorShellPlugin) -> None:
         """Test tor-shell handles subprocess errors gracefully."""
         mock_process = AsyncMock()
-        mock_process.communicate = AsyncMock(
-            return_value=(b"", b"Error: connection failed")
-        )
+        mock_process.communicate = AsyncMock(return_value=(b"", b"Error: connection failed"))
         mock_process.returncode = 1
 
         with patch("asyncio.create_subprocess_exec", return_value=mock_process):
@@ -731,9 +686,7 @@ class TestTorPluginErrorHandling:
         assert result.error_code == "BROWSER_FAILED"
 
     @pytest.mark.asyncio
-    async def test_tor_shell_browser_not_found(
-        self, tor_shell_plugin: TorShellPlugin
-    ) -> None:
+    async def test_tor_shell_browser_not_found(self, tor_shell_plugin: TorShellPlugin) -> None:
         """Test tor-shell handles missing browser gracefully."""
         with patch(
             "asyncio.create_subprocess_exec",

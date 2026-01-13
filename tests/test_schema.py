@@ -335,7 +335,9 @@ class TestVersionTracker:
                 parameters=[
                     ParameterSpec(name="to", type=ParameterType.STRING, required=True),
                     ParameterSpec(name="body", type=ParameterType.STRING, required=True),
-                    ParameterSpec(name="priority", type=ParameterType.STRING, required=False, choices=["low", "normal", "high"]),
+                    ParameterSpec(
+                        name="priority", type=ParameterType.STRING, required=False, choices=["low", "normal", "high"]
+                    ),
                 ],
             ),
         ]
@@ -350,7 +352,9 @@ class TestVersionTracker:
                 parameters=[
                     ParameterSpec(name="to", type=ParameterType.STRING, required=True),
                     ParameterSpec(name="body", type=ParameterType.STRING, required=True),
-                    ParameterSpec(name="priority", type=ParameterType.STRING, required=False, choices=["low", "normal", "high"]),
+                    ParameterSpec(
+                        name="priority", type=ParameterType.STRING, required=False, choices=["low", "normal", "high"]
+                    ),
                     ParameterSpec(name="cc", type=ParameterType.STRING, required=False),  # New optional param
                 ],
             ),

@@ -426,7 +426,10 @@ def demo_edition_features() -> None:
     features = [
         ("policy_engine", lambda m: m.features.policy_engine),
         ("custom_policy_rules", lambda m: "Yes" if m.has_custom_policy_rules() else "No"),
-        ("audit_retention_days", lambda m: str(m.get_audit_retention_days()) if m.get_audit_retention_days() > 0 else "Unlimited"),
+        (
+            "audit_retention_days",
+            lambda m: str(m.get_audit_retention_days()) if m.get_audit_retention_days() > 0 else "Unlimited",
+        ),
         ("pii_redaction", lambda m: m.get_pii_redaction_level()),
         ("sandbox_isolation", lambda m: m.features.sandbox_isolation),
         ("ldap_sso", lambda m: "Yes" if m.has_ldap_sso() else "No"),

@@ -24,58 +24,33 @@ from ..response import LLMResponse, ToolCall
 # Tool names use format: plugin_command (e.g., shell_run_command)
 MOCK_TOOL_MAPPINGS: list[tuple[str, str, dict[str, Any]]] = [
     # Shell operations (available in safe mode, but execution blocked by policy)
-    (r"(run|execute|shell).*(command|script|bash)", "shell_run_command", {
-        "command": "echo 'Hello from mock'"
-    }),
-    (r"(get|show|check).*(env|environment)", "shell_get_env", {
-        "name": "HOME"
-    }),
+    (r"(run|execute|shell).*(command|script|bash)", "shell_run_command", {"command": "echo 'Hello from mock'"}),
+    (r"(get|show|check).*(env|environment)", "shell_get_env", {"name": "HOME"}),
     (r"(hostname|host name|machine name)", "shell_hostname", {}),
     (r"(whoami|who am i|current user)", "shell_whoami", {}),
-
     # Email operations (available but requires confirmation/policy check)
-    (r"(send|compose).*(email|mail)", "email_send_message", {
-        "to": "test@example.com",
-        "subject": "Test email",
-        "body": "Test body"
-    }),
-    (r"(list|show|check).*(email|mail|inbox)", "email_list_messages", {
-        "folder": "INBOX",
-        "limit": 10
-    }),
-    (r"(read|open).*(email|mail|message)", "email_read_message", {
-        "message_id": "1"
-    }),
-
+    (
+        r"(send|compose).*(email|mail)",
+        "email_send_message",
+        {"to": "test@example.com", "subject": "Test email", "body": "Test body"},
+    ),
+    (r"(list|show|check).*(email|mail|inbox)", "email_list_messages", {"folder": "INBOX", "limit": 10}),
+    (r"(read|open).*(email|mail|message)", "email_read_message", {"message_id": "1"}),
     # Tor operations (high-risk, blocked by policy)
-    (r"(tor|darknet|onion).*(browse|fetch|access)", "tor_tor_fetch", {
-        "url": "http://example.onion"
-    }),
-
+    (r"(tor|darknet|onion).*(browse|fetch|access)", "tor_tor_fetch", {"url": "http://example.onion"}),
     # Demo plugin operations (safe, for testing)
     (r"(hello|greet|hi)", "demo_hello", {}),
-    (r"(calculate|compute|math).*(add|sum|\+)", "demo_calculate", {
-        "operation": "add",
-        "a": 5,
-        "b": 3
-    }),
-    (r"(echo|repeat|say)", "demo_echo", {
-        "message": "Test message from mock"
-    }),
-
+    (r"(calculate|compute|math).*(add|sum|\+)", "demo_calculate", {"operation": "add", "a": 5, "b": 3}),
+    (r"(echo|repeat|say)", "demo_echo", {"message": "Test message from mock"}),
     # Transmit operations
-    (r"(transmit|send).*(document|file).*(email|fax|post)", "transmit_email", {
-        "to": "test@example.com",
-        "document": "./workspace/test.pdf"
-    }),
-
+    (
+        r"(transmit|send).*(document|file).*(email|fax|post)",
+        "transmit_email",
+        {"to": "test@example.com", "document": "./workspace/test.pdf"},
+    ),
     # Generic fallback patterns
-    (r"(delete|remove).*(file|document|message)", "email_delete_message", {
-        "message_id": "1"
-    }),
-    (r"(fetch|get|download|http).*(url|web|http)", "tor_tor_fetch", {
-        "url": "https://example.com"
-    }),
+    (r"(delete|remove).*(file|document|message)", "email_delete_message", {"message_id": "1"}),
+    (r"(fetch|get|download|http).*(url|web|http)", "tor_tor_fetch", {"url": "https://example.com"}),
 ]
 
 # Default response when no pattern matches
@@ -83,7 +58,7 @@ DEFAULT_RESPONSE = LLMResponse(
     text="I understand your request, but I don't have a specific tool to handle it in mock mode. Available operations: create/read/delete files, run commands, fetch URLs, manage tasks.",
     tool_calls=[],
     stop_reason="end_turn",
-    usage={"input_tokens": 50, "output_tokens": 30}
+    usage={"input_tokens": 50, "output_tokens": 30},
 )
 
 
@@ -156,7 +131,7 @@ class MockProvider(LLMProvider):
                             text="I've completed the requested operation successfully.",
                             tool_calls=[],
                             stop_reason="end_turn",
-                            usage={"input_tokens": 20, "output_tokens": 10}
+                            usage={"input_tokens": 20, "output_tokens": 10},
                         )
 
         # Match prompt against patterns
@@ -166,16 +141,12 @@ class MockProvider(LLMProvider):
             if re.search(pattern, user_message):
                 # Check if the tool is available
                 if not available_tools or tool_name in available_tools:
-                    tool_call = ToolCall(
-                        id=f"mock_call_{uuid.uuid4().hex[:8]}",
-                        name=tool_name,
-                        arguments=args.copy()
-                    )
+                    tool_call = ToolCall(id=f"mock_call_{uuid.uuid4().hex[:8]}", name=tool_name, arguments=args.copy())
                     return LLMResponse(
                         text=None,
                         tool_calls=[tool_call],
                         stop_reason="tool_use",
-                        usage={"input_tokens": 30, "output_tokens": 20}
+                        usage={"input_tokens": 30, "output_tokens": 20},
                     )
 
         # No matching pattern - return default text response

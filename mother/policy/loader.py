@@ -113,9 +113,7 @@ def apply_env_overrides(config: PolicyConfig) -> PolicyConfig:
         if safe_mode != config.safe_mode:
             logger.info(f"MOTHER_SAFE_MODE override: {config.safe_mode} -> {safe_mode}")
             # Create new config with overridden safe_mode
-            config = PolicyConfig(
-                **{**config.model_dump(), "safe_mode": safe_mode}
-            )
+            config = PolicyConfig(**{**config.model_dump(), "safe_mode": safe_mode})
 
     return config
 
