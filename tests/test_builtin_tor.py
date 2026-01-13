@@ -6,7 +6,6 @@ All network operations are mocked to enable offline testing.
 """
 
 import asyncio
-import socket
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -579,7 +578,7 @@ class TestDarknetShortcuts:
         with patch.object(plugin, "_tor_browse", new_callable=AsyncMock) as mock_browse:
             mock_browse.return_value = MagicMock(success=True)
 
-            result = await plugin.execute("darknet_bbc", {})
+            await plugin.execute("darknet_bbc", {})
 
             mock_browse.assert_called_once()
             call_args = mock_browse.call_args[0][0]
@@ -594,7 +593,7 @@ class TestDarknetShortcuts:
         with patch.object(plugin, "_tor_browse", new_callable=AsyncMock) as mock_browse:
             mock_browse.return_value = MagicMock(success=True)
 
-            result = await plugin.execute("darknet_cia", {})
+            await plugin.execute("darknet_cia", {})
 
             mock_browse.assert_called_once()
             call_args = mock_browse.call_args[0][0]
@@ -609,7 +608,7 @@ class TestDarknetShortcuts:
         with patch.object(plugin, "_tor_browse", new_callable=AsyncMock) as mock_browse:
             mock_browse.return_value = MagicMock(success=True)
 
-            result = await plugin.execute("darknet_ddg", {})
+            await plugin.execute("darknet_ddg", {})
 
             mock_browse.assert_called_once()
             call_args = mock_browse.call_args[0][0]
