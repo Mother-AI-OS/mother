@@ -1,39 +1,24 @@
-"""Tool registry for discovering and managing CLI wrappers.
+"""Tool registry for discovering and managing plugins.
 
-This module bridges legacy ToolWrapper-based tools with the new plugin system.
-Both systems work together, with plugins taking precedence for overlapping names.
+This module provides the ToolRegistry which manages plugin-based tools.
+Legacy ToolWrapper-based tools have been removed in favor of the plugin system.
 
-MIGRATION NOTE:
-Legacy ToolWrapper-based tools are deprecated in favor of the plugin system.
-The following tools have plugin equivalents:
-
-- mailcraft -> email plugin (mother.plugins.builtin.email)
-- pdf_merge -> pdf plugin (mother.plugins.builtin.pdf)
-- datacraft -> datacraft plugin (mother.plugins.builtin.datacraft)
-- acnjxn -> tasks plugin (mother.plugins.builtin.tasks)
-- transmit -> transmit plugin (mother.plugins.builtin.transmit)
-- taxlord -> taxlord plugin (mother.plugins.builtin.german.taxlord)
-- leads -> leads plugin (mother.plugins.builtin.german.leads)
-- gcp_draft -> google-docs plugin (mother.plugins.builtin.google.docs)
-
-Plugins will be used automatically when available. Legacy tools will continue
-to work but may be removed in a future version.
+All tool functionality is now provided by plugins in mother.plugins.builtin:
+- email: Email composition and sending
+- pdf: PDF manipulation (merge, split, extract, rotate)
+- datacraft: Document processing and search
+- tasks: Task management
+- transmit: Document transmission (email, fax, post, beA)
+- taxlord: German tax automation
+- leads: Lead generation
+- google-docs: Google Docs integration
 """
 
 import logging
-from pathlib import Path
 from typing import Any, Optional
 
 from ..config.settings import Settings
-from .acnjxn import AcnjxnWrapper
 from .base import ToolWrapper
-from .datacraft import DatacraftTool
-from .gcp_draft import GCPDraftTool
-from .leads import LeadsTool
-from .mailcraft import MailcraftTool
-from .pdf_merge import PDFMergeTool
-from .taxlord import TaxlordTool
-from .transmit import TransmitTool
 
 # Import plugin system (optional, for graceful degradation)
 try:
@@ -49,14 +34,10 @@ logger = logging.getLogger("mother.tools.registry")
 
 
 class ToolRegistry:
-    """Registry for managing CLI tool wrappers and plugins.
+    """Registry for managing plugins.
 
-    This registry bridges legacy ToolWrapper-based tools with the new
-    plugin system. Both systems work together:
-    - Legacy tools: Hardcoded ToolWrapper classes
-    - Plugins: Dynamically discovered via PluginManager
-
-    For tool name resolution, plugins take precedence over legacy wrappers.
+    This registry manages plugin-based tools via the PluginManager.
+    Legacy ToolWrapper-based tools have been removed.
     """
 
     def __init__(
@@ -69,9 +50,6 @@ class ToolRegistry:
         self._settings = settings
         self._plugin_manager: PluginManager | None = None
         self._plugins_enabled = enable_plugins and PLUGINS_AVAILABLE
-
-        # Load legacy tools
-        self._load_tools()
 
         # Initialize plugin system
         if self._plugins_enabled:
@@ -113,193 +91,31 @@ class ToolRegistry:
         """Get the plugin manager instance."""
         return self._plugin_manager
 
-    def _load_tools(self) -> None:
-        """Load all configured tool wrappers."""
-        if self._settings:
-            self._load_from_settings()
-        else:
-            self._load_defaults()
-
-    def _load_defaults(self) -> None:
-        """Load tools with default paths."""
-        home = Path.home()
-
-        # Mailcraft
-        mailcraft_bin = home / ".local" / "bin" / "mailcraft"
-        if mailcraft_bin.exists():
-            self.wrappers["mailcraft"] = MailcraftTool(binary=str(mailcraft_bin))
-
-        # Leads
-        leads_bin = home / ".local" / "bin" / "leads"
-        if leads_bin.exists():
-            self.wrappers["leads"] = LeadsTool(binary=str(leads_bin))
-
-        # Taxlord
-        taxlord_dir = home / "projects" / "taxlord"
-        if taxlord_dir.exists():
-            self.wrappers["taxlord"] = TaxlordTool(taxlord_dir=str(taxlord_dir))
-
-        # GCP Draft
-        gcp_draft_bin = home / ".local" / "bin" / "gcp-draft"
-        if gcp_draft_bin.exists():
-            self.wrappers["gcp_draft"] = GCPDraftTool(binary=str(gcp_draft_bin))
-
-        # Acnjxn (Action Jackson)
-        acnjxn_bin = home / ".local" / "bin" / "acnjxn"
-        acnjxn_venv = home / "projects" / "acnjxn" / ".venv" / "bin" / "acnjxn"
-        if acnjxn_bin.exists():
-            self.wrappers["acnjxn"] = AcnjxnWrapper(acnjxn_bin=acnjxn_bin)
-        elif acnjxn_venv.exists():
-            self.wrappers["acnjxn"] = AcnjxnWrapper(acnjxn_bin=acnjxn_venv)
-
-        # Datacraft (Document Processing)
-        datacraft_bin = home / ".local" / "bin" / "datacraft"
-        datacraft_dir = home / "projects" / "datacraft"
-        if datacraft_bin.exists():
-            self.wrappers["datacraft"] = DatacraftTool()
-        elif datacraft_dir.exists():
-            self.wrappers["datacraft"] = DatacraftTool(datacraft_path=str(datacraft_dir))
-
-        # PDF Merge
-        pdf_merge_bin = home / ".local" / "bin" / "pdf-merge"
-        if pdf_merge_bin.exists():
-            self.wrappers["pdf_merge"] = PDFMergeTool(binary=str(pdf_merge_bin))
-
-        # Transmit (universal document transmission)
-        transmit_bin = home / ".local" / "bin" / "transmit"
-        if transmit_bin.exists():
-            self.wrappers["transmit"] = TransmitTool(binary=str(transmit_bin))
-
-    def _load_from_settings(self) -> None:
-        """Load tools using settings configuration."""
-        s = self._settings
-
-        # Mailcraft
-        if s.mailcraft_bin.exists():
-            self.wrappers["mailcraft"] = MailcraftTool(
-                binary=str(s.mailcraft_bin),
-                password=s.mailcraft_password,
-                timeout=s.tool_timeout,
-            )
-
-        # Leads
-        if s.leads_bin.exists():
-            self.wrappers["leads"] = LeadsTool(
-                binary=str(s.leads_bin),
-                timeout=s.tool_timeout,
-            )
-
-        # Taxlord
-        if s.taxlord_dir.exists():
-            self.wrappers["taxlord"] = TaxlordTool(
-                taxlord_dir=str(s.taxlord_dir),
-                timeout=s.tool_timeout,
-            )
-
-        # GCP Draft
-        if s.gcp_draft_bin.exists():
-            self.wrappers["gcp_draft"] = GCPDraftTool(
-                binary=str(s.gcp_draft_bin),
-                timeout=60,  # Shorter timeout for this simple tool
-            )
-
-        # Acnjxn (Action Jackson)
-        acnjxn_bin = s.acnjxn_bin if hasattr(s, "acnjxn_bin") else Path.home() / ".local" / "bin" / "acnjxn"
-        acnjxn_venv = Path.home() / "projects" / "acnjxn" / ".venv" / "bin" / "acnjxn"
-        if acnjxn_bin.exists():
-            self.wrappers["acnjxn"] = AcnjxnWrapper(acnjxn_bin=acnjxn_bin)
-        elif acnjxn_venv.exists():
-            self.wrappers["acnjxn"] = AcnjxnWrapper(acnjxn_bin=acnjxn_venv)
-
-        # Datacraft (Document Processing)
-        datacraft_bin = Path.home() / ".local" / "bin" / "datacraft"
-        datacraft_dir = Path.home() / "projects" / "datacraft"
-        if datacraft_bin.exists():
-            self.wrappers["datacraft"] = DatacraftTool(timeout=s.tool_timeout)
-        elif datacraft_dir.exists():
-            self.wrappers["datacraft"] = DatacraftTool(
-                datacraft_path=str(datacraft_dir),
-                timeout=s.tool_timeout,
-            )
-
-        # PDF Merge
-        pdf_merge_bin = Path.home() / ".local" / "bin" / "pdf-merge"
-        if pdf_merge_bin.exists():
-            self.wrappers["pdf_merge"] = PDFMergeTool(
-                binary=str(pdf_merge_bin),
-                timeout=60,
-            )
-
-        # Transmit (universal document transmission)
-        transmit_bin = Path.home() / ".local" / "bin" / "transmit"
-        if transmit_bin.exists():
-            self.wrappers["transmit"] = TransmitTool(
-                binary=str(transmit_bin),
-                timeout=120,
-            )
-
     def get_wrapper(self, name: str) -> ToolWrapper | None:
-        """Get a tool wrapper by name."""
+        """Get a tool wrapper by name.
+
+        Note: Legacy wrappers have been removed. This method is kept for
+        backwards compatibility but will always return None.
+        """
         return self.wrappers.get(name)
 
     def get_all_anthropic_schemas(self) -> list[dict]:
         """Get all tool schemas in Anthropic format.
 
-        Combines schemas from both legacy tools and plugins.
-        Plugin schemas take precedence (appear first).
+        Returns schemas from all registered plugins.
         """
         schemas = []
-        seen_names = set()
 
-        # Plugin schemas first (higher priority)
+        # Plugin schemas
         if self._plugin_manager is not None:
             for schema in self._plugin_manager.get_all_schemas():
                 schemas.append(schema)
-                seen_names.add(schema.get("name", ""))
-
-        # Legacy tool schemas
-        for wrapper in self.wrappers.values():
-            for command in wrapper.get_commands():
-                try:
-                    schema = wrapper.get_anthropic_tool_schema(command)
-                    # Skip if plugin already provides this capability
-                    if schema.get("name", "") not in seen_names:
-                        schemas.append(schema)
-                except Exception:
-                    # Skip commands that fail to generate schema
-                    pass
 
         return schemas
 
-    # Mapping of legacy tool names to their plugin replacements
-    LEGACY_TO_PLUGIN: dict[str, str] = {
-        "mailcraft": "email",
-        "pdf_merge": "pdf",
-        "datacraft": "datacraft",
-        "acnjxn": "tasks",
-        "transmit": "transmit",
-        "taxlord": "taxlord",
-        "leads": "leads",
-        "gcp_draft": "google-docs",
-    }
-
     def list_tools(self) -> dict[str, dict]:
-        """List all available tools with their info.
-
-        Combines legacy tools and plugins.
-        """
+        """List all available tools with their info."""
         result = {}
-
-        # Legacy tools
-        for name, wrapper in self.wrappers.items():
-            plugin_replacement = self.LEGACY_TO_PLUGIN.get(name)
-            result[name] = {
-                "description": wrapper.description,
-                "commands": list(wrapper.get_commands().keys()),
-                "source": "legacy",
-                "deprecated": True,
-                "replacement": plugin_replacement,
-            }
 
         # Plugin tools
         if self._plugin_manager is not None:
@@ -316,34 +132,20 @@ class ToolRegistry:
         return result
 
     def get_tool_details(self, name: str) -> dict | None:
-        """Get detailed information about a tool."""
-        wrapper = self.wrappers.get(name)
-        if not wrapper:
-            return None
+        """Get detailed information about a tool.
 
-        commands = {}
-        for cmd_name, cmd_def in wrapper.get_commands().items():
-            commands[cmd_name] = {
-                "description": cmd_def.get("description", ""),
-                "parameters": cmd_def.get("parameters", []),
-                "confirmation_required": cmd_def.get("confirmation_required", False),
-            }
-
-        return {
-            "name": name,
-            "description": wrapper.description,
-            "commands": commands,
-        }
+        Note: Legacy wrapper details have been removed. Use plugin_manager
+        for plugin details.
+        """
+        return None
 
     def parse_tool_name(self, full_name: str) -> tuple[str | None, str | None]:
-        """Parse a full tool name into wrapper/plugin name and command/capability.
+        """Parse a full tool name into plugin name and capability.
 
-        Example: "mailcraft_list" -> ("mailcraft", "list")
-        Example: "taxlord_elster_vat" -> ("taxlord", "elster.vat")
-
-        Checks plugins first, then legacy wrappers.
+        Example: "email_send" -> ("email", "send")
+        Example: "pdf_merge" -> ("pdf", "merge")
         """
-        # Check plugins first
+        # Check plugins
         if self._plugin_manager is not None and full_name in self._plugin_manager:
             try:
                 plugin_name, capability = self._plugin_manager.parse_capability_name(full_name)
@@ -351,34 +153,13 @@ class ToolRegistry:
             except Exception:
                 pass
 
-        # Check legacy wrappers
-        for wrapper_name in self.wrappers:
-            if full_name.startswith(f"{wrapper_name}_"):
-                command_part = full_name[len(wrapper_name) + 1 :]
-                # Handle nested commands (elster_vat -> elster.vat)
-                wrapper = self.wrappers[wrapper_name]
-                commands = wrapper.get_commands()
-
-                # Try direct match first
-                if command_part in commands:
-                    return wrapper_name, command_part
-
-                # Try converting underscores to dots
-                dotted = command_part.replace("_", ".")
-                if dotted in commands:
-                    return wrapper_name, dotted
-
-                # Try just the first part
-                if command_part in commands:
-                    return wrapper_name, command_part
-
         return None, None
 
     def is_plugin_capability(self, full_name: str) -> bool:
         """Check if a tool name refers to a plugin capability.
 
         Args:
-            full_name: Full tool name (e.g., "mailcraft_send_email")
+            full_name: Full tool name (e.g., "email_send")
 
         Returns:
             True if this is a plugin capability
@@ -395,7 +176,7 @@ class ToolRegistry:
         """Execute a plugin capability.
 
         Args:
-            full_name: Full capability name (e.g., "mailcraft_send_email")
+            full_name: Full capability name (e.g., "email_send")
             params: Parameters for the capability
 
         Returns:
@@ -418,17 +199,8 @@ class ToolRegistry:
         Returns:
             True if confirmation is required
         """
-        # Check plugins first
+        # Check plugins
         if self._plugin_manager is not None and full_name in self._plugin_manager:
             return self._plugin_manager.requires_confirmation(full_name)
-
-        # Check legacy wrappers
-        wrapper_name, command = self.parse_tool_name(full_name)
-        if wrapper_name and command:
-            wrapper = self.wrappers.get(wrapper_name)
-            if wrapper:
-                commands = wrapper.get_commands()
-                cmd_def = commands.get(command, {})
-                return cmd_def.get("confirmation_required", False)
 
         return False
