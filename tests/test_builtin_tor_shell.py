@@ -48,7 +48,11 @@ class TestCreateManifest:
     def test_all_browse_capabilities_have_timeout(self):
         """Test that all browse capabilities have appropriate timeout."""
         manifest = _create_manifest()
-        browse_caps = [c for c in manifest.capabilities if c.name.startswith("darknet_") and c.name not in ("darknet_bookmarks", "darknet_news")]
+        browse_caps = [
+            c
+            for c in manifest.capabilities
+            if c.name.startswith("darknet_") and c.name not in ("darknet_bookmarks", "darknet_news")
+        ]
 
         for cap in browse_caps:
             assert cap.timeout >= 60, f"{cap.name} should have timeout >= 60"
@@ -464,6 +468,7 @@ class TestOnionURLValidation:
             # Onion addresses are 56 chars (v3) or 16 chars (v2)
             # Extract onion address from URL
             import re
+
             match = re.search(r"([a-z2-7]{16,56})\.onion", url)
             assert match is not None, f"{key}: Could not extract onion address from {url}"
 

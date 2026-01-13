@@ -136,9 +136,7 @@ class TestRedactor:
 
     def test_redactor_custom_config(self):
         """Test Redactor with custom configuration."""
-        config = RedactionConfig(
-            redact_types={SensitiveDataType.EMAIL, SensitiveDataType.PHONE}
-        )
+        config = RedactionConfig(redact_types={SensitiveDataType.EMAIL, SensitiveDataType.PHONE})
         redactor = Redactor(config)
 
         # Should redact email
@@ -480,9 +478,7 @@ class TestAuditLogger:
             plugin="http",
             params={
                 "url": "https://api.example.com",
-                "headers": {
-                    "Authorization": "Bearer sk-secret123token456"
-                },
+                "headers": {"Authorization": "Bearer sk-secret123token456"},
                 "api_key": "sk-abc123456789012345678901234",
             },
         )

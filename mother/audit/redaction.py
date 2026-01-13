@@ -155,14 +155,19 @@ _REDACTION_PATTERNS: list[RedactionPattern] = [
     # Private keys
     RedactionPattern(
         SensitiveDataType.PRIVATE_KEY,
-        re.compile(r"-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----.*?-----END (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----", re.DOTALL),
+        re.compile(
+            r"-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----.*?-----END (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----",
+            re.DOTALL,
+        ),
         "[REDACTED:PRIVATE_KEY]",
         "Private key block",
     ),
     # Generic secrets (catch-all for key=value patterns with sensitive names)
     RedactionPattern(
         SensitiveDataType.GENERIC_SECRET,
-        re.compile(r"(?i)(api[_-]?key|access[_-]?token|client[_-]?secret|private[_-]?key)[\"']?\s*[:=]\s*[\"']?[a-zA-Z0-9\-_/+=]{8,}"),
+        re.compile(
+            r"(?i)(api[_-]?key|access[_-]?token|client[_-]?secret|private[_-]?key)[\"']?\s*[:=]\s*[\"']?[a-zA-Z0-9\-_/+=]{8,}"
+        ),
         r"\1=[REDACTED]",
         "Generic secret pattern",
     ),
@@ -174,9 +179,7 @@ class RedactionConfig:
     """Configuration for the redaction engine."""
 
     # Which data types to redact
-    redact_types: set[SensitiveDataType] = field(
-        default_factory=lambda: set(SensitiveDataType)
-    )
+    redact_types: set[SensitiveDataType] = field(default_factory=lambda: set(SensitiveDataType))
 
     # Additional custom patterns
     custom_patterns: list[RedactionPattern] = field(default_factory=list)

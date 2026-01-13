@@ -440,7 +440,9 @@ class TestTorStartStop:
             assert result.data["action"] == "start"
             assert result.data["success"] is True
             mock_exec.assert_called_once_with(
-                "systemctl", "start", "tor@default",
+                "systemctl",
+                "start",
+                "tor@default",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

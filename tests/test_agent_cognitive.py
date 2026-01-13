@@ -194,15 +194,17 @@ class TestCognitiveEngine:
         engine = CognitiveEngine()
         engine.set_goal("Test goal")
 
-        response = json.dumps({
-            "understanding": "Understood the problem",
-            "sub_goals": ["goal1", "goal2"],
-            "hypotheses": ["hyp1"],
-            "information_needed": ["info1"],
-            "approach": "Step by step",
-            "potential_issues": ["issue1"],
-            "confidence": "high",
-        })
+        response = json.dumps(
+            {
+                "understanding": "Understood the problem",
+                "sub_goals": ["goal1", "goal2"],
+                "hypotheses": ["hyp1"],
+                "information_needed": ["info1"],
+                "approach": "Step by step",
+                "potential_issues": ["issue1"],
+                "confidence": "high",
+            }
+        )
 
         result = engine.process_reasoning_response(response)
 
@@ -237,14 +239,16 @@ class TestCognitiveEngine:
         """Test processing reflection response."""
         engine = CognitiveEngine()
 
-        response = json.dumps({
-            "success": False,
-            "insight": "Tool failed due to invalid input",
-            "should_retry": True,
-            "alternative_approach": "Try different format",
-            "confidence_adjustment": -15,
-            "pattern_learned": "Always validate input format",
-        })
+        response = json.dumps(
+            {
+                "success": False,
+                "insight": "Tool failed due to invalid input",
+                "should_retry": True,
+                "alternative_approach": "Try different format",
+                "confidence_adjustment": -15,
+                "pattern_learned": "Always validate input format",
+            }
+        )
 
         result = engine.process_reflection_response(
             response=response,

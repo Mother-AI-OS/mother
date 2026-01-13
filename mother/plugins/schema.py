@@ -89,9 +89,7 @@ class SchemaValidator:
 
             # Validate choices
             if spec.choices and value not in spec.choices:
-                errors.append(
-                    f"Parameter '{param_name}' must be one of: {spec.choices}, got: {value}"
-                )
+                errors.append(f"Parameter '{param_name}' must be one of: {spec.choices}, got: {value}")
                 continue
 
             validated[param_name] = value
@@ -107,9 +105,7 @@ class SchemaValidator:
 
         return validated
 
-    def _validate_type(
-        self, param_name: str, value: Any, spec: ParameterSpec
-    ) -> str | None:
+    def _validate_type(self, param_name: str, value: Any, spec: ParameterSpec) -> str | None:
         """Validate a parameter's type.
 
         Returns:
@@ -140,9 +136,7 @@ class SchemaValidator:
             # Validate array items
             if spec.items_type:
                 for i, item in enumerate(value):
-                    item_error = self._validate_array_item(
-                        param_name, i, item, spec.items_type
-                    )
+                    item_error = self._validate_array_item(param_name, i, item, spec.items_type)
                     if item_error:
                         return item_error
 
@@ -152,9 +146,7 @@ class SchemaValidator:
 
         return None
 
-    def _validate_array_item(
-        self, param_name: str, index: int, item: Any, item_type: ParameterType
-    ) -> str | None:
+    def _validate_array_item(self, param_name: str, index: int, item: Any, item_type: ParameterType) -> str | None:
         """Validate an array item's type."""
         type_map = {
             ParameterType.STRING: str,
@@ -176,10 +168,7 @@ class SchemaValidator:
             return f"Parameter '{param_name}[{index}]' must be number, got: bool"
 
         if not isinstance(item, expected):
-            return (
-                f"Parameter '{param_name}[{index}]' must be {item_type.value}, "
-                f"got: {type(item).__name__}"
-            )
+            return f"Parameter '{param_name}[{index}]' must be {item_type.value}, got: {type(item).__name__}"
 
         return None
 
@@ -333,9 +322,7 @@ class VersionTracker:
     def __init__(self):
         self._schema_history: dict[str, list[dict]] = {}
 
-    def register_schema(
-        self, plugin_name: str, version: str, capabilities: list[CapabilitySpec]
-    ) -> None:
+    def register_schema(self, plugin_name: str, version: str, capabilities: list[CapabilitySpec]) -> None:
         """Register a schema version.
 
         Args:
@@ -369,9 +356,7 @@ class VersionTracker:
         self._schema_history[key].append(schema_snapshot)
         logger.debug(f"Registered schema for {plugin_name} v{version}")
 
-    def detect_breaking_changes(
-        self, plugin_name: str, old_version: str, new_version: str
-    ) -> list[str]:
+    def detect_breaking_changes(self, plugin_name: str, old_version: str, new_version: str) -> list[str]:
         """Detect breaking changes between two schema versions.
 
         Args:
@@ -414,9 +399,7 @@ class VersionTracker:
             for param_name, param_info in old_params.items():
                 if param_name not in new_params:
                     if param_info["required"]:
-                        breaking_changes.append(
-                            f"{cap_name}: Removed required parameter '{param_name}'"
-                        )
+                        breaking_changes.append(f"{cap_name}: Removed required parameter '{param_name}'")
                     continue
 
                 new_param = new_params[param_name]
@@ -424,23 +407,18 @@ class VersionTracker:
                 # Check for type changes
                 if param_info["type"] != new_param["type"]:
                     breaking_changes.append(
-                        f"{cap_name}: Changed type of '{param_name}' "
-                        f"from {param_info['type']} to {new_param['type']}"
+                        f"{cap_name}: Changed type of '{param_name}' from {param_info['type']} to {new_param['type']}"
                     )
 
                 # Check for optional becoming required
                 if not param_info["required"] and new_param["required"]:
-                    breaking_changes.append(
-                        f"{cap_name}: Made optional parameter '{param_name}' required"
-                    )
+                    breaking_changes.append(f"{cap_name}: Made optional parameter '{param_name}' required")
 
                 # Check for removed choices
                 if param_info["choices"] and new_param["choices"]:
                     removed = set(param_info["choices"]) - set(new_param["choices"])
                     if removed:
-                        breaking_changes.append(
-                            f"{cap_name}: Removed choices for '{param_name}': {removed}"
-                        )
+                        breaking_changes.append(f"{cap_name}: Removed choices for '{param_name}': {removed}")
 
         return breaking_changes
 

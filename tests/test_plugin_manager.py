@@ -423,7 +423,9 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_load_all_after_discover(self) -> None:
         """Test load_all loads all discovered plugins."""
-        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
+        config = PluginConfig(
+            require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False
+        )
         manager = PluginManager(config)
 
         # Discover plugins
@@ -579,7 +581,9 @@ class TestPluginManagerIntegration:
         """Test load_all skips plugins that failed discovery (covers line 235)."""
         from mother.plugins.base import PluginInfo
 
-        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
+        config = PluginConfig(
+            require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False
+        )
         manager = PluginManager(config)
 
         # Manually add a plugin that "failed discovery" (loaded=False)
@@ -605,7 +609,9 @@ class TestPluginManagerIntegration:
         """Test load_all handles plugin load failures (covers lines 240-243)."""
         from mother.plugins.base import PluginInfo
 
-        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
+        config = PluginConfig(
+            require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False
+        )
         manager = PluginManager(config)
 
         # Manually add a plugin that will fail to load
@@ -633,7 +639,9 @@ class TestPluginManagerIntegration:
     @pytest.mark.asyncio
     async def test_load_manifest_not_found(self) -> None:
         """Test load raises PluginLoadError when manifest missing (covers line 266)."""
-        config = PluginConfig(require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False)
+        config = PluginConfig(
+            require_permissions=False, allow_high_risk_plugins=True, auto_load=False, auto_discover=False
+        )
         manager = PluginManager(config)
 
         # Discover plugins

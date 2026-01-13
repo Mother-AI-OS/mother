@@ -154,8 +154,7 @@ def get_provider_for_settings(settings: "Settings") -> LLMProvider:
         else:
             key_name = f"{provider_name.upper()}_API_KEY"
             raise ValueError(
-                f"API key not configured for provider '{provider_name}'. "
-                f"Set the {key_name} environment variable."
+                f"API key not configured for provider '{provider_name}'. Set the {key_name} environment variable."
             )
 
     # Determine model to use

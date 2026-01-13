@@ -173,10 +173,7 @@ class ExecutorBase(ABC):
         decision = engine.evaluate(capability, params, context)
 
         if not decision.allowed:
-            logger.warning(
-                f"Policy violation: {capability} - {decision.reason} "
-                f"(rules: {decision.matched_rules})"
-            )
+            logger.warning(f"Policy violation: {capability} - {decision.reason} (rules: {decision.matched_rules})")
             raise PolicyViolationError(
                 plugin_name=self.plugin_name,
                 capability=capability,
@@ -187,10 +184,7 @@ class ExecutorBase(ABC):
 
         # Log if audit is required
         if decision.requires_audit:
-            logger.info(
-                f"[AUDIT] Capability execution allowed: {capability} "
-                f"(reason: {decision.reason})"
-            )
+            logger.info(f"[AUDIT] Capability execution allowed: {capability} (reason: {decision.reason})")
 
     def validate_params(
         self,
@@ -288,6 +282,7 @@ class BuiltinExecutor(ExecutorBase):
         # Validate parameters against schema
         try:
             from .exceptions import PluginValidationError
+
             params = self.validate_params(capability, params)
         except PluginValidationError as e:
             return PluginResult.error_result(
@@ -522,6 +517,7 @@ class CLIExecutor(ExecutorBase):
         # Validate parameters against schema
         try:
             from .exceptions import PluginValidationError
+
             params = self.validate_params(capability, params)
         except PluginValidationError as e:
             return PluginResult.error_result(

@@ -53,6 +53,7 @@ FAKE_SECRET = "sk-ant-TESTSECRET123456789"
 @dataclass
 class TestResult:
     """Result of a single test."""
+
     name: str
     passed: bool
     message: str = ""
@@ -63,6 +64,7 @@ class TestResult:
 @dataclass
 class VerificationReport:
     """Complete verification report."""
+
     timestamp: str = ""
     commit_hash: str = ""
     api_url: str = ""
@@ -115,17 +117,19 @@ class VerificationReport:
         if failed_tests:
             lines.extend(["", "## Failed Test Details", ""])
             for test in failed_tests:
-                lines.extend([
-                    f"### {test.name}",
-                    "",
-                    f"**Message:** {test.message}",
-                    "",
-                    "**Details:**",
-                    "```json",
-                    json.dumps(test.details, indent=2),
-                    "```",
-                    "",
-                ])
+                lines.extend(
+                    [
+                        f"### {test.name}",
+                        "",
+                        f"**Message:** {test.message}",
+                        "",
+                        "**Details:**",
+                        "```json",
+                        json.dumps(test.details, indent=2),
+                        "```",
+                        "",
+                    ]
+                )
 
         return "\n".join(lines)
 
@@ -179,6 +183,7 @@ def get_commit_hash() -> str:
     """Get current git commit hash."""
     try:
         import subprocess
+
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
             capture_output=True,
@@ -231,8 +236,10 @@ def run_test(name: str, test_func) -> TestResult:
 # TEST FUNCTIONS
 # =============================================================================
 
+
 def test_health(client: VerificationClient):
     """Test 1: Health endpoint responds."""
+
     def _test():
         resp = client.health()
         status = resp.get("status", "")
@@ -240,11 +247,13 @@ def test_health(client: VerificationClient):
         if status in ("ok", "healthy", "OK", "HEALTHY"):
             return True, f"Health check passed (status={status})", resp
         return False, f"Unexpected status: {status}", resp
+
     return _test
 
 
 def test_status(client: VerificationClient):
     """Test 2: Status endpoint returns config summary."""
+
     def _test():
         resp = client.status()
         # Check for any of the expected fields
@@ -253,11 +262,13 @@ def test_status(client: VerificationClient):
             model = resp.get("model", "unknown")
             return True, f"Version: {version}, Model: {model}", resp
         return False, "Status response missing expected fields", resp
+
     return _test
 
 
 def test_tools_endpoint(client: VerificationClient):
     """Test 3: Tools endpoint lists capabilities."""
+
     def _test():
         resp = client.tools()
         tools = resp.get("tools", [])
@@ -271,20 +282,30 @@ def test_tools_endpoint(client: VerificationClient):
         if len(found_core) < len(CORE_PLUGINS):
             missing = CORE_PLUGINS - tool_names
             # Not a hard failure - some plugins might not be installed
-            return True, f"Found {len(tools)} tools (missing optional: {missing})", {
+            return (
+                True,
+                f"Found {len(tools)} tools (missing optional: {missing})",
+                {
+                    "tool_count": len(tools),
+                    "plugins": list(tool_names),
+                },
+            )
+
+        return (
+            True,
+            f"Found {len(tools)} tools including core plugins",
+            {
                 "tool_count": len(tools),
                 "plugins": list(tool_names),
-            }
+            },
+        )
 
-        return True, f"Found {len(tools)} tools including core plugins", {
-            "tool_count": len(tools),
-            "plugins": list(tool_names),
-        }
     return _test
 
 
 def test_filesystem_write(client: VerificationClient):
     """Test 4: Filesystem write in workspace works."""
+
     def _test():
         # Create the file directly for this test (mock LLM would trigger the tool)
         # We test the actual capability via the policy system
@@ -297,11 +318,13 @@ def test_filesystem_write(client: VerificationClient):
         # Verify file was created (if direct execution happened)
         # Note: With mock LLM, the tool might not actually execute
         return True, "Write command accepted", resp
+
     return _test
 
 
 def test_filesystem_read(client: VerificationClient):
     """Test 5: Filesystem read in workspace works."""
+
     def _test():
         # First create a test file
         TEST_FILE.write_text(TEST_CONTENT)
@@ -312,11 +335,13 @@ def test_filesystem_read(client: VerificationClient):
             return False, "Policy blocked workspace read (unexpected)", resp
 
         return True, "Read command accepted", resp
+
     return _test
 
 
 def test_policy_blocks_delete(client: VerificationClient):
     """Test 6: Policy blocks filesystem delete."""
+
     def _test():
         resp = client.command(f"delete the file at {TEST_FILE}")
 
@@ -334,11 +359,13 @@ def test_policy_blocks_delete(client: VerificationClient):
             return True, "File still exists after delete attempt", resp
 
         return False, "Delete was not blocked by policy", resp
+
     return _test
 
 
 def test_policy_blocks_shell(client: VerificationClient):
     """Test 7: Policy blocks shell command execution."""
+
     def _test():
         resp = client.command("run the shell command: echo hello")
 
@@ -349,7 +376,9 @@ def test_policy_blocks_shell(client: VerificationClient):
             return True, "Shell command correctly blocked by policy", resp
 
         # Check for text rejection
-        if resp.get("text") and ("cannot" in resp.get("text", "").lower() or "not allowed" in resp.get("text", "").lower()):
+        if resp.get("text") and (
+            "cannot" in resp.get("text", "").lower() or "not allowed" in resp.get("text", "").lower()
+        ):
             return True, "Shell command correctly rejected", resp
 
         # Check if command requires confirmation (also a safety gate - not auto-executed)
@@ -363,11 +392,13 @@ def test_policy_blocks_shell(client: VerificationClient):
                 return True, "Shell command blocked by policy error", resp
 
         return False, "Shell command was not blocked by policy", resp
+
     return _test
 
 
 def test_policy_blocks_network(client: VerificationClient):
     """Test 8: Policy blocks external network access."""
+
     def _test():
         resp = client.command("fetch the URL https://example.com")
 
@@ -378,7 +409,9 @@ def test_policy_blocks_network(client: VerificationClient):
             return True, "Network access correctly blocked by policy", resp
 
         # Check for text rejection
-        if resp.get("text") and ("cannot" in resp.get("text", "").lower() or "not allowed" in resp.get("text", "").lower()):
+        if resp.get("text") and (
+            "cannot" in resp.get("text", "").lower() or "not allowed" in resp.get("text", "").lower()
+        ):
             return True, "Network access correctly rejected", resp
 
         # Check if command requires confirmation (also a safety gate - not auto-executed)
@@ -392,11 +425,13 @@ def test_policy_blocks_network(client: VerificationClient):
                 return True, "Network access blocked by policy error", resp
 
         return False, "Network access was not blocked by policy", resp
+
     return _test
 
 
 def test_audit_log_exists():
     """Test 9: Audit log file is created."""
+
     def _test():
         if not AUDIT_LOG.exists():
             # In CI, audit logging may not be configured - soft pass with note
@@ -410,11 +445,13 @@ def test_audit_log_exists():
             return False, "Audit log is empty", {"path": str(AUDIT_LOG)}
 
         return True, f"Audit log exists ({size} bytes)", {"path": str(AUDIT_LOG), "size": size}
+
     return _test
 
 
 def test_audit_log_structure():
     """Test 10: Audit log entries have required fields."""
+
     def _test():
         if not AUDIT_LOG.exists():
             # In CI, audit logging may not be configured - soft pass
@@ -446,15 +483,21 @@ def test_audit_log_structure():
         if not entries:
             return False, "No valid audit entries found", {}
 
-        return True, f"Found {len(entries)} valid audit entries", {
-            "entry_count": len(entries),
-            "sample_fields": list(entries[0].keys()) if entries else [],
-        }
+        return (
+            True,
+            f"Found {len(entries)} valid audit entries",
+            {
+                "entry_count": len(entries),
+                "sample_fields": list(entries[0].keys()) if entries else [],
+            },
+        )
+
     return _test
 
 
 def test_audit_redaction():
     """Test 11: Audit log redacts sensitive data."""
+
     def _test():
         if not AUDIT_LOG.exists():
             # In CI, audit logging may not be configured - soft pass
@@ -467,24 +510,34 @@ def test_audit_redaction():
 
         # Check if fake secret appears unredacted
         if FAKE_SECRET in content:
-            return False, "Fake secret found unredacted in audit log", {
-                "secret": FAKE_SECRET,
-                "found_in_log": True,
-            }
+            return (
+                False,
+                "Fake secret found unredacted in audit log",
+                {
+                    "secret": FAKE_SECRET,
+                    "found_in_log": True,
+                },
+            )
 
         # Check for common redaction patterns
         redaction_markers = ["[REDACTED]", "***", "REDACTED"]
         has_redaction = any(marker in content for marker in redaction_markers)
 
-        return True, "No unredacted secrets found in audit log", {
-            "has_redaction_markers": has_redaction,
-            "checked_secret": FAKE_SECRET[:10] + "...",
-        }
+        return (
+            True,
+            "No unredacted secrets found in audit log",
+            {
+                "has_redaction_markers": has_redaction,
+                "checked_secret": FAKE_SECRET[:10] + "...",
+            },
+        )
+
     return _test
 
 
 def test_plugin_inventory(client: VerificationClient):
     """Test 12: Plugin inventory matches expectations."""
+
     def _test():
         resp = client.tools()
         tools = resp.get("tools", [])
@@ -507,16 +560,22 @@ def test_plugin_inventory(client: VerificationClient):
         # Build inventory summary
         inventory = {plugin: len(caps) for plugin, caps in plugins.items()}
 
-        return True, f"Found {len(plugins)} plugins with {len(tools)} total capabilities", {
-            "inventory": inventory,
-            "total_capabilities": len(tools),
-        }
+        return (
+            True,
+            f"Found {len(plugins)} plugins with {len(tools)} total capabilities",
+            {
+                "inventory": inventory,
+                "total_capabilities": len(tools),
+            },
+        )
+
     return _test
 
 
 # =============================================================================
 # MAIN VERIFICATION RUNNER
 # =============================================================================
+
 
 def wait_for_server(url: str, timeout: int = 30) -> bool:
     """Wait for server to become available."""
@@ -553,11 +612,13 @@ def run_verification(
     # Wait for server
     print(f"Waiting for server at {api_url}...")
     if not wait_for_server(api_url):
-        report.add_result(TestResult(
-            name="server_available",
-            passed=False,
-            message=f"Server not available at {api_url} after 30s",
-        ))
+        report.add_result(
+            TestResult(
+                name="server_available",
+                passed=False,
+                message=f"Server not available at {api_url} after 30s",
+            )
+        )
         report.duration = time.time() - start_time
         return report
 
@@ -628,16 +689,18 @@ def main():
     print("=" * 60)
 
     if args.json:
-        print(json.dumps({
-            "success": report.success,
-            "passed": report.passed,
-            "failed": report.failed,
-            "duration": report.duration,
-            "tests": [
-                {"name": t.name, "passed": t.passed, "message": t.message}
-                for t in report.tests
-            ],
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "success": report.success,
+                    "passed": report.passed,
+                    "failed": report.failed,
+                    "duration": report.duration,
+                    "tests": [{"name": t.name, "passed": t.passed, "message": t.message} for t in report.tests],
+                },
+                indent=2,
+            )
+        )
 
     sys.exit(0 if report.success else 1)
 

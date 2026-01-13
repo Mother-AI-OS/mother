@@ -1,6 +1,5 @@
 """Tests for the policy engine module."""
 
-
 import pytest
 
 from mother.policy import (
@@ -679,6 +678,7 @@ class TestSafeModeEnvironmentOverride:
 
         # Apply env overrides should enable safe mode
         from mother.policy.loader import apply_env_overrides
+
         result = apply_env_overrides(config)
 
         assert result.safe_mode is True
@@ -692,6 +692,7 @@ class TestSafeModeEnvironmentOverride:
 
         # Apply env overrides should disable safe mode
         from mother.policy.loader import apply_env_overrides
+
         result = apply_env_overrides(config)
 
         assert result.safe_mode is False
@@ -702,6 +703,7 @@ class TestSafeModeEnvironmentOverride:
 
         config = PolicyConfig(name="test", safe_mode=True)
         from mother.policy.loader import apply_env_overrides
+
         result = apply_env_overrides(config)
 
         assert result.safe_mode is False
@@ -712,6 +714,7 @@ class TestSafeModeEnvironmentOverride:
 
         config = PolicyConfig(name="test", safe_mode=True)
         from mother.policy.loader import apply_env_overrides
+
         result = apply_env_overrides(config)
 
         assert result.safe_mode is False
@@ -722,6 +725,7 @@ class TestSafeModeEnvironmentOverride:
 
         config = PolicyConfig(name="test", safe_mode=False)
         from mother.policy.loader import apply_env_overrides
+
         result = apply_env_overrides(config)
 
         assert result.safe_mode is True
@@ -732,6 +736,7 @@ class TestSafeModeEnvironmentOverride:
 
         config = PolicyConfig(name="test", safe_mode=True)
         from mother.policy.loader import apply_env_overrides
+
         result = apply_env_overrides(config)
 
         assert result.safe_mode is True
@@ -750,6 +755,7 @@ default_action: allow
         monkeypatch.setenv("MOTHER_SAFE_MODE", "1")  # Override to enable
 
         from mother.policy.loader import load_policy
+
         policy = load_policy()
 
         # Even though file says safe_mode=false, env overrides to true

@@ -85,9 +85,7 @@ class AuditEntry(BaseModel):
         user_agent: Client user agent
     """
 
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     event_type: AuditEventType
     correlation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     session_id: str | None = None
@@ -386,11 +384,7 @@ class AuditLogger:
             matched_rules: List of rules that matched
             **metadata: Additional metadata
         """
-        event_type = (
-            AuditEventType.CAPABILITY_ALLOWED
-            if allowed
-            else AuditEventType.CAPABILITY_DENIED
-        )
+        event_type = AuditEventType.CAPABILITY_ALLOWED if allowed else AuditEventType.CAPABILITY_DENIED
 
         entry = AuditEntry(
             event_type=event_type,
@@ -428,11 +422,7 @@ class AuditLogger:
             correlation_id: Request correlation ID
             **metadata: Additional metadata
         """
-        event_type = (
-            AuditEventType.CAPABILITY_EXECUTED
-            if success
-            else AuditEventType.CAPABILITY_FAILED
-        )
+        event_type = AuditEventType.CAPABILITY_EXECUTED if success else AuditEventType.CAPABILITY_FAILED
 
         entry = AuditEntry(
             event_type=event_type,
