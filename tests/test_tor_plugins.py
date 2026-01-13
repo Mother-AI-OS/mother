@@ -11,29 +11,28 @@ All tests are designed to run offline in CI without a Tor daemon.
 
 from __future__ import annotations
 
-import asyncio
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from mother.plugins.base import PluginResult, ResultStatus
-from mother.plugins.builtin.tor import TorPlugin, _create_manifest as create_tor_manifest
+from mother.plugins.base import ResultStatus
+from mother.plugins.builtin.tor import TorPlugin
+from mother.plugins.builtin.tor import _create_manifest as create_tor_manifest
 from mother.plugins.builtin.tor_shell import (
     TorShellPlugin,
+)
+from mother.plugins.builtin.tor_shell import (
     _create_manifest as create_tor_shell_manifest,
 )
 from mother.policy import (
     NetworkCondition,
     PolicyAction,
     PolicyConfig,
-    PolicyDecision,
     PolicyEngine,
     PolicyRule,
     RiskTier,
     get_default_policy,
 )
-
 
 # =============================================================================
 # Test Fixtures
@@ -366,6 +365,7 @@ class TestExplicitAllowEnablesTor:
 
         assert result.success is True
         assert result.data is not None
+        assert isinstance(result.data, dict)
         assert result.data["status_code"] == 200
         assert "Stubbed Tor content" in result.data["content"]
         # Verify no real network call was made - the mock was used
@@ -381,6 +381,7 @@ class TestExplicitAllowEnablesTor:
 
         assert result.success is True
         assert result.data is not None
+        assert isinstance(result.data, dict)
         assert "news" in result.data
         assert "search" in result.data
         # Verify it contains expected sites
@@ -444,6 +445,7 @@ class TestExplicitAllowEnablesTorShell:
 
         assert result.success is True
         assert result.data is not None
+        assert isinstance(result.data, dict)
         assert result.data["site"] == "Deutsche Welle"
         assert result.data["site_key"] == "dw"
         assert "Stubbed Deutsche Welle content" in result.data["content"]
@@ -478,6 +480,7 @@ class TestExplicitAllowEnablesTorShell:
 
         assert result.success is True
         assert result.data is not None
+        assert isinstance(result.data, dict)
         assert "sites" in result.data
         assert len(result.data["sites"]) > 0
         # All sites should be verified
@@ -659,6 +662,8 @@ class TestPolicyPluginIntegration:
             result = await tor_plugin.execute("tor_fetch", {"url": "http://example.onion"})
 
         assert result.success is True
+        assert result.data is not None
+        assert isinstance(result.data, dict)
         assert result.data["status_code"] == 200
 
 
@@ -738,6 +743,7 @@ class TestTorPluginErrorHandling:
 
         assert result.success is False
         assert result.error_code == "BROWSER_NOT_FOUND"
+        assert result.error_message is not None
         assert "w3m" in result.error_message
 
 

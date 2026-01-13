@@ -5,7 +5,6 @@ including manifest validation, capability execution, and error handling.
 All shell operations are mocked to enable offline testing.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
