@@ -64,3 +64,8 @@ Thumbs.db
 *.log
 data/
 uv.lock
+
+# Runtime directories
+logs/
+workspace/
+config/
