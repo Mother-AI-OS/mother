@@ -13,17 +13,16 @@ from __future__ import annotations
 import atexit
 import json
 import logging
-import os
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .redaction import Redactor, RedactionConfig, get_redactor
+from .redaction import get_redactor
 
 logger = logging.getLogger("mother.audit")
 
@@ -87,7 +86,7 @@ class AuditEntry(BaseModel):
     """
 
     timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
     event_type: AuditEventType
     correlation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -192,7 +191,7 @@ class AuditLogger:
             self._file_handle = None
 
         # Generate rotation timestamp
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         rotated_name = f"{self.config.log_path.stem}_{timestamp}{self.config.log_path.suffix}"
         rotated_path = self.config.log_path.parent / rotated_name
 
@@ -571,13 +570,15 @@ class AuditLogger:
             correlation_id: Request correlation ID
             **metadata: Additional metadata
         """
-        entry = AuditEntry(
-            event_type=event_type,
-            capability=capability,
-            correlation_id=correlation_id,
-            reason=details,
-            metadata=metadata,
-        )
+        entry_kwargs: dict[str, Any] = {
+            "event_type": event_type,
+            "capability": capability,
+            "reason": details,
+            "metadata": metadata,
+        }
+        if correlation_id is not None:
+            entry_kwargs["correlation_id"] = correlation_id
+        entry = AuditEntry(**entry_kwargs)
         self._write_entry(entry)
 
     def log_raw(self, entry: AuditEntry) -> None:

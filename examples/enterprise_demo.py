@@ -15,10 +15,8 @@ Run: python examples/enterprise_demo.py
 
 from __future__ import annotations
 
-import asyncio
 import json
 import tempfile
-from datetime import datetime
 from pathlib import Path
 
 # ============================================================================
@@ -32,7 +30,7 @@ def demo_policy_engine() -> None:
     print("1. POLICY ENGINE DEMO")
     print("=" * 60)
 
-    from mother.policy import PolicyAction, PolicyConfig, PolicyEngine, PolicyRule, RiskTier
+    from mother.policy import PolicyAction, PolicyConfig, PolicyEngine, PolicyRule
 
     # Create policy rules
     rules = [
@@ -120,13 +118,12 @@ def demo_schema_validation() -> None:
     print("3. SCHEMA VALIDATION DEMO")
     print("=" * 60)
 
+    from mother.plugins.manifest import CapabilitySpec, ParameterSpec, ParameterType
     from mother.plugins.schema import (
         SchemaValidator,
-        VersionTracker,
         is_version_compatible,
         parse_semver,
     )
-    from mother.plugins.manifest import CapabilitySpec, ParameterSpec, ParameterType
 
     # Version parsing and comparison
     print("\nVersion parsing:")
@@ -168,13 +165,13 @@ def demo_schema_validation() -> None:
 
     try:
         validator.validate(capability, valid_params)
-        print(f"  Valid params: PASSED")
+        print("  Valid params: PASSED")
     except Exception as e:
         print(f"  Valid params: FAILED - {e}")
 
     try:
         validator.validate(capability, invalid_params)
-        print(f"  Invalid params: PASSED (unexpected)")
+        print("  Invalid params: PASSED (unexpected)")
     except Exception as e:
         print(f"  Invalid params: REJECTED - {type(e).__name__}")
 
@@ -191,7 +188,6 @@ def demo_audit_logging() -> None:
     print("=" * 60)
 
     from mother.audit import (
-        AuditEventType,
         AuditLogConfig,
         AuditLogger,
         redact,
@@ -211,7 +207,7 @@ def demo_audit_logging() -> None:
             redact_sensitive=True,
         )
 
-        print(f"\nAudit log configuration:")
+        print("\nAudit log configuration:")
         print(f"  Log directory: {log_dir}")
         print(f"  Max file size: {config.max_file_size_mb}MB")
         print(f"  Max files: {config.max_files}")
@@ -317,7 +313,7 @@ def demo_sandbox_isolation() -> None:
             allowed_read_paths=["/usr/share", "/etc/mother/templates"],
         )
 
-        print(f"\nWorkspace isolation:")
+        print("\nWorkspace isolation:")
         print(f"  Workspace directory: {workspace}")
         print(f"  Allow read outside: {workspace_config.allow_read_outside}")
         print(f"  Allowed read paths: {workspace_config.allowed_read_paths}")
@@ -344,7 +340,7 @@ def demo_sandbox_isolation() -> None:
             allow_network=True,
         )
 
-        print(f"\nSandbox configuration:")
+        print("\nSandbox configuration:")
         print(f"  Enabled: {sandbox_config.enabled}")
         print(f"  Shell allowed: {sandbox_config.allow_shell}")
         print(f"  Network allowed: {sandbox_config.allow_network}")
@@ -359,7 +355,7 @@ def demo_sandbox_isolation() -> None:
         # Check sandbox exists
         sandbox1 = manager.get_sandbox("safe-plugin")
         sandbox2 = manager.get_sandbox("network-plugin")
-        print(f"\nCreated sandboxes for 2 plugins:")
+        print("\nCreated sandboxes for 2 plugins:")
         print(f"  - safe-plugin: {sandbox1 is not None}")
         print(f"  - network-plugin: {sandbox2 is not None}")
 
@@ -418,7 +414,7 @@ def demo_edition_features() -> None:
     print("7. EDITION FEATURE GATING DEMO")
     print("=" * 60)
 
-    from mother.config import Edition, EditionManager, set_edition
+    from mother.config import Edition, EditionManager
 
     editions = [Edition.COMMUNITY, Edition.PROFESSIONAL, Edition.ENTERPRISE]
 

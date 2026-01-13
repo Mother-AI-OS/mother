@@ -56,10 +56,11 @@ class ZhipuProvider(LLMProvider):
         if tools:
             converted = self.convert_tools(tools)
             # Truncate to max tools if needed
-            if len(converted) > self.MAX_TOOLS:
-                converted = converted[: self.MAX_TOOLS]
-            kwargs["tools"] = converted
-            kwargs["tool_choice"] = "auto"
+            if converted is not None:
+                if len(converted) > self.MAX_TOOLS:
+                    converted = converted[: self.MAX_TOOLS]
+                kwargs["tools"] = converted
+                kwargs["tool_choice"] = "auto"
 
         response = self._client.chat.completions.create(**kwargs)
 
