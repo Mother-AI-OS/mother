@@ -272,6 +272,268 @@ def create_parser() -> argparse.ArgumentParser:
         help="Credentials subcommand and arguments",
     )
 
+    # keys command
+    keys_parser = subparsers.add_parser(
+        "keys",
+        help="Manage API keys",
+        description="Add, list, revoke, and rotate API keys for multi-key authentication",
+    )
+    keys_subparsers = keys_parser.add_subparsers(
+        dest="keys_command",
+        help="Key management commands",
+    )
+
+    # keys init
+    keys_init = keys_subparsers.add_parser(
+        "init",
+        help="Initialize the API key store",
+    )
+    keys_init.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # keys add
+    keys_add = keys_subparsers.add_parser(
+        "add",
+        help="Create a new API key",
+    )
+    keys_add.add_argument(
+        "name",
+        help="Human-readable name for the key (must be unique)",
+    )
+    keys_add.add_argument(
+        "--role",
+        "-r",
+        default="operator",
+        choices=["admin", "operator", "readonly"],
+        help="Role for the key (default: operator)",
+    )
+    keys_add.add_argument(
+        "--scope",
+        "-s",
+        action="append",
+        dest="scopes",
+        help="Add a scope (can be used multiple times)",
+    )
+    keys_add.add_argument(
+        "--expires",
+        "-e",
+        type=int,
+        dest="expires_days",
+        help="Number of days until expiration",
+    )
+    keys_add.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # keys list
+    keys_list = keys_subparsers.add_parser(
+        "list",
+        help="List all API keys",
+    )
+    keys_list.add_argument(
+        "--all",
+        "-a",
+        action="store_true",
+        dest="include_revoked",
+        help="Include revoked keys",
+    )
+    keys_list.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # keys info
+    keys_info = keys_subparsers.add_parser(
+        "info",
+        help="Show detailed key information",
+    )
+    keys_info.add_argument(
+        "identifier",
+        help="Key ID or name",
+    )
+    keys_info.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # keys revoke
+    keys_revoke = keys_subparsers.add_parser(
+        "revoke",
+        help="Revoke an API key",
+    )
+    keys_revoke.add_argument(
+        "identifier",
+        help="Key ID or name",
+    )
+    keys_revoke.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Skip confirmation prompt",
+    )
+    keys_revoke.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # keys rotate
+    keys_rotate = keys_subparsers.add_parser(
+        "rotate",
+        help="Rotate an API key (revoke old, create new)",
+    )
+    keys_rotate.add_argument(
+        "identifier",
+        help="Key ID or name",
+    )
+    keys_rotate.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Skip confirmation prompt",
+    )
+    keys_rotate.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # keys delete
+    keys_delete = keys_subparsers.add_parser(
+        "delete",
+        help="Permanently delete an API key",
+    )
+    keys_delete.add_argument(
+        "identifier",
+        help="Key ID or name",
+    )
+    keys_delete.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Skip confirmation prompt",
+    )
+    keys_delete.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # doctor command
+    doctor_parser = subparsers.add_parser(
+        "doctor",
+        help="Check production readiness",
+        description="Run comprehensive health checks for production deployment",
+    )
+    doctor_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Show detailed information for each check",
+    )
+    doctor_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # init command
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize a new Mother instance",
+        description="Generate deployment files (docker-compose, .env, policy templates)",
+    )
+    init_parser.add_argument(
+        "-o",
+        "--output",
+        dest="output_dir",
+        default=".",
+        help="Output directory (default: current directory)",
+    )
+    init_parser.add_argument(
+        "--no-docker",
+        action="store_true",
+        help="Skip Docker files",
+    )
+    init_parser.add_argument(
+        "--no-policy",
+        action="store_true",
+        help="Skip policy template",
+    )
+    init_parser.add_argument(
+        "--no-env",
+        action="store_true",
+        help="Skip .env.example",
+    )
+    init_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # export command
+    export_parser = subparsers.add_parser(
+        "export",
+        help="Export configuration",
+        description="Export current configuration to a portable archive",
+    )
+    export_parser.add_argument(
+        "-o",
+        "--output",
+        default="mother-export.tar.gz",
+        help="Output file path (default: mother-export.tar.gz)",
+    )
+    export_parser.add_argument(
+        "--include-keys",
+        action="store_true",
+        help="Include API keys database (security sensitive!)",
+    )
+    export_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # import command
+    import_parser = subparsers.add_parser(
+        "import",
+        help="Import configuration",
+        description="Import configuration from an exported archive",
+    )
+    import_parser.add_argument(
+        "archive",
+        help="Path to the export archive",
+    )
+    import_parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="Overwrite existing files",
+    )
+    import_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
     return parser
 
 
@@ -403,6 +665,107 @@ def run_credentials(args: argparse.Namespace) -> int:
         sys.argv = original_argv
 
 
+def run_keys(args: argparse.Namespace) -> int:
+    """Run API key management commands."""
+    from .keys import (
+        cmd_add,
+        cmd_delete,
+        cmd_info,
+        cmd_init,
+        cmd_list,
+        cmd_revoke,
+        cmd_rotate,
+    )
+
+    if args.keys_command == "init":
+        return cmd_init(json_output=args.json_output)
+    elif args.keys_command == "add":
+        return cmd_add(
+            name=args.name,
+            role=args.role,
+            scopes=args.scopes,
+            expires_days=args.expires_days,
+            json_output=args.json_output,
+        )
+    elif args.keys_command == "list":
+        return cmd_list(
+            include_revoked=args.include_revoked,
+            json_output=args.json_output,
+        )
+    elif args.keys_command == "info":
+        return cmd_info(
+            identifier=args.identifier,
+            json_output=args.json_output,
+        )
+    elif args.keys_command == "revoke":
+        return cmd_revoke(
+            identifier=args.identifier,
+            yes=args.yes,
+            json_output=args.json_output,
+        )
+    elif args.keys_command == "rotate":
+        return cmd_rotate(
+            identifier=args.identifier,
+            yes=args.yes,
+            json_output=args.json_output,
+        )
+    elif args.keys_command == "delete":
+        return cmd_delete(
+            identifier=args.identifier,
+            yes=args.yes,
+            json_output=args.json_output,
+        )
+    else:
+        print("Usage: mother keys <command>")
+        print("Commands: init, add, list, info, revoke, rotate, delete")
+        return 1
+
+
+def run_doctor(args: argparse.Namespace) -> int:
+    """Run doctor command."""
+    from .doctor import cmd_doctor
+
+    return cmd_doctor(
+        verbose=args.verbose,
+        json_output=args.json_output,
+    )
+
+
+def run_init(args: argparse.Namespace) -> int:
+    """Run init command."""
+    from .init_cmd import cmd_init
+
+    return cmd_init(
+        output_dir=args.output_dir,
+        no_docker=args.no_docker,
+        no_policy=args.no_policy,
+        no_env=args.no_env,
+        json_output=args.json_output,
+    )
+
+
+def run_export(args: argparse.Namespace) -> int:
+    """Run export command."""
+    from .init_cmd import cmd_export
+
+    return cmd_export(
+        output=args.output,
+        include_keys=args.include_keys,
+        json_output=args.json_output,
+    )
+
+
+def run_import(args: argparse.Namespace) -> int:
+    """Run import command."""
+    from .init_cmd import cmd_import
+
+    return cmd_import(
+        archive=args.archive,
+        force=args.force,
+        json_output=args.json_output,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     """Main CLI entry point."""
     parser = create_parser()
@@ -428,6 +791,16 @@ def main(argv: list[str] | None = None) -> int:
             return run_email(args)
         elif args.command == "credentials":
             return run_credentials(args)
+        elif args.command == "keys":
+            return run_keys(args)
+        elif args.command == "doctor":
+            return run_doctor(args)
+        elif args.command == "init":
+            return run_init(args)
+        elif args.command == "export":
+            return run_export(args)
+        elif args.command == "import":
+            return run_import(args)
         else:
             parser.print_help()
             return 1

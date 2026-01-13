@@ -46,6 +46,15 @@ class AuditEventType(str, Enum):
     AUTH_FAILURE = "auth_failure"
     AUTH_REVOKED = "auth_revoked"
 
+    # API key management events
+    KEY_CREATED = "key_created"
+    KEY_REVOKED = "key_revoked"
+    KEY_ROTATED = "key_rotated"
+    KEY_DELETED = "key_deleted"
+
+    # Scope/role enforcement events
+    SCOPE_DENIED = "scope_denied"
+
     # System events
     SYSTEM_START = "system_start"
     SYSTEM_SHUTDOWN = "system_shutdown"
@@ -70,7 +79,8 @@ class AuditEntry(BaseModel):
         event_type: Type of audit event
         correlation_id: Request correlation ID for tracing
         session_id: Session identifier
-        user_id: User/API key identifier
+        user_id: User/API key identifier (legacy, prefer actor)
+        actor: Actor information from multi-key auth
         capability: Capability name (if applicable)
         plugin: Plugin name (if applicable)
         action: Policy action taken
@@ -90,6 +100,7 @@ class AuditEntry(BaseModel):
     correlation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     session_id: str | None = None
     user_id: str | None = None
+    actor: dict[str, Any] | None = None  # {key_id, name, role} from IdentityContext
     capability: str | None = None
     plugin: str | None = None
     action: str | None = None
@@ -327,6 +338,7 @@ class AuditLogger:
         correlation_id: str | None = None,
         session_id: str | None = None,
         user_id: str | None = None,
+        actor: dict[str, Any] | None = None,
         source_ip: str | None = None,
         **metadata: Any,
     ) -> str:
@@ -338,7 +350,8 @@ class AuditLogger:
             params: Request parameters
             correlation_id: Correlation ID (generated if not provided)
             session_id: Session ID
-            user_id: User ID
+            user_id: User ID (legacy, prefer actor)
+            actor: Actor dict from IdentityContext.to_dict()
             source_ip: Client IP
             **metadata: Additional metadata
 
@@ -349,7 +362,8 @@ class AuditLogger:
             event_type=AuditEventType.CAPABILITY_REQUEST,
             correlation_id=correlation_id or str(uuid.uuid4()),
             session_id=session_id,
-            user_id=user_id,
+            user_id=user_id or (actor.get("name") if actor else None),
+            actor=actor,
             capability=capability,
             plugin=plugin,
             params=params if self.config.include_params else None,
@@ -569,6 +583,74 @@ class AuditLogger:
         if correlation_id is not None:
             entry_kwargs["correlation_id"] = correlation_id
         entry = AuditEntry(**entry_kwargs)
+        self._write_entry(entry)
+
+    def log_key_event(
+        self,
+        event_type: AuditEventType,
+        key_name: str,
+        key_id: str | None = None,
+        role: str | None = None,
+        actor: dict[str, Any] | None = None,
+        source_ip: str | None = None,
+        details: str | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log an API key management event.
+
+        Args:
+            event_type: KEY_CREATED, KEY_REVOKED, KEY_ROTATED, or KEY_DELETED
+            key_name: Name of the key being managed
+            key_id: ID of the key
+            role: Role of the key
+            actor: Actor performing the action (from IdentityContext)
+            source_ip: Client IP
+            details: Additional details
+            **metadata: Additional metadata
+        """
+        entry = AuditEntry(
+            event_type=event_type,
+            user_id=key_name,
+            actor=actor,
+            source_ip=source_ip,
+            reason=details,
+            metadata={"key_id": key_id, "role": role, **metadata},
+        )
+        self._write_entry(entry)
+
+    def log_scope_denied(
+        self,
+        capability: str,
+        plugin: str,
+        required_scope: str,
+        actor: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        source_ip: str | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log a scope enforcement denial.
+
+        Args:
+            capability: Capability that was denied
+            plugin: Plugin name
+            required_scope: The scope that was required
+            actor: Actor who was denied (from IdentityContext)
+            correlation_id: Request correlation ID
+            source_ip: Client IP
+            **metadata: Additional metadata
+        """
+        entry = AuditEntry(
+            event_type=AuditEventType.SCOPE_DENIED,
+            correlation_id=correlation_id or str(uuid.uuid4()),
+            actor=actor,
+            user_id=actor.get("name") if actor else None,
+            capability=capability,
+            plugin=plugin,
+            allowed=False,
+            reason=f"Missing scope: {required_scope}",
+            source_ip=source_ip,
+            metadata={"required_scope": required_scope, **metadata},
+        )
         self._write_entry(entry)
 
     def log_raw(self, entry: AuditEntry) -> None:
