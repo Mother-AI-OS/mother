@@ -112,12 +112,14 @@ class ExecutorBase(ABC):
         self,
         capability: str,
         params: dict[str, Any],
+        identity: Any | None = None,
     ) -> PluginResult:
         """Execute a capability with parameters.
 
         Args:
             capability: Name of the capability to execute
             params: Parameters for the capability
+            identity: IdentityContext from authentication (for scope checking)
 
         Returns:
             PluginResult with execution outcome
@@ -142,6 +144,40 @@ class ExecutorBase(ABC):
         if cap and cap.timeout:
             return cap.timeout
         return self.config.get("timeout", 300)
+
+    def check_scope(
+        self,
+        capability: str,
+        identity: Any | None = None,
+    ) -> None:
+        """Check if identity has required scope for capability.
+
+        This is checked BEFORE policy evaluation for scope-based access control.
+
+        Args:
+            capability: The capability name being executed
+            identity: IdentityContext from authentication (None for legacy mode)
+
+        Raises:
+            PolicyViolationError: If scope check fails
+        """
+        try:
+            from ..auth.scopes import check_scope as do_check_scope
+        except ImportError:
+            # Auth module not available - allow by default
+            logger.debug("Auth scopes module not available - skipping scope check")
+            return
+
+        allowed, reason = do_check_scope(identity, capability)
+        if not allowed:
+            logger.warning(f"Scope check failed: {capability} - {reason}")
+            raise PolicyViolationError(
+                plugin_name=self.plugin_name,
+                capability=capability,
+                reason=reason,
+                matched_rules=["scope_enforcement"],
+                risk_tier="blocked",
+            )
 
     def check_policy(
         self,
@@ -256,19 +292,36 @@ class BuiltinExecutor(ExecutorBase):
         self,
         capability: str,
         params: dict[str, Any],
+        identity: Any | None = None,
     ) -> PluginResult:
         """Execute a capability on the built-in plugin.
 
         Args:
             capability: Capability name
             params: Execution parameters
+            identity: IdentityContext from authentication (for scope checking)
 
         Returns:
             PluginResult with execution outcome
         """
-        # Check policy FIRST - before any execution
+        # Check scope FIRST - before policy
         try:
-            self.check_policy(capability, params)
+            self.check_scope(capability, identity)
+        except PolicyViolationError as e:
+            return PluginResult.error_result(
+                e.reason,
+                code="SCOPE_VIOLATION",
+                metadata={
+                    "matched_rules": e.matched_rules,
+                    "risk_tier": e.risk_tier,
+                },
+            )
+
+        # Check policy - before any execution
+        try:
+            # Include identity in policy context for identity-aware rules
+            context = {"identity": identity.to_dict() if identity else None} if identity else None
+            self.check_policy(capability, params, context)
         except PolicyViolationError as e:
             return PluginResult.error_result(
                 e.reason,
@@ -404,10 +457,15 @@ class PythonExecutor(ExecutorBase):
         self,
         capability: str,
         params: dict[str, Any],
+        identity: Any | None = None,
     ) -> PluginResult:
         """Execute a capability via the Python plugin instance."""
-        # Check policy FIRST - before any execution
-        self.check_policy(capability, params)
+        # Check scope FIRST - before policy
+        self.check_scope(capability, identity)
+
+        # Check policy - before any execution
+        context = {"identity": identity.to_dict() if identity else None} if identity else None
+        self.check_policy(capability, params, context)
 
         # Validate parameters against schema
         params = self.validate_params(capability, params)
@@ -499,11 +557,26 @@ class CLIExecutor(ExecutorBase):
         self,
         capability: str,
         params: dict[str, Any],
+        identity: Any | None = None,
     ) -> PluginResult:
         """Execute a capability via CLI subprocess."""
-        # Check policy FIRST - before any execution
+        # Check scope FIRST - before policy
         try:
-            self.check_policy(capability, params)
+            self.check_scope(capability, identity)
+        except PolicyViolationError as e:
+            return PluginResult.error_result(
+                e.reason,
+                code="SCOPE_VIOLATION",
+                metadata={
+                    "matched_rules": e.matched_rules,
+                    "risk_tier": e.risk_tier,
+                },
+            )
+
+        # Check policy - before any execution
+        try:
+            context = {"identity": identity.to_dict() if identity else None} if identity else None
+            self.check_policy(capability, params, context)
         except PolicyViolationError as e:
             return PluginResult.error_result(
                 e.reason,
