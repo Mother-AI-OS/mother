@@ -73,9 +73,7 @@ class TestToolRegistryPlugins:
         custom_config = MagicMock()
 
         with patch("mother.tools.registry.PLUGINS_AVAILABLE", True):
-            with patch(
-                "mother.tools.registry.PluginManager", return_value=mock_plugin_manager
-            ) as mock_pm_class:
+            with patch("mother.tools.registry.PluginManager", return_value=mock_plugin_manager) as mock_pm_class:
                 registry = ToolRegistry(enable_plugins=False)
                 registry._init_plugins(custom_config)
 

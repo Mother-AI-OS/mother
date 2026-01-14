@@ -314,9 +314,7 @@ class APIKeyStore:
             if include_revoked:
                 rows = conn.execute("SELECT * FROM api_keys ORDER BY created_at DESC").fetchall()
             else:
-                rows = conn.execute(
-                    "SELECT * FROM api_keys WHERE revoked = 0 ORDER BY created_at DESC"
-                ).fetchall()
+                rows = conn.execute("SELECT * FROM api_keys WHERE revoked = 0 ORDER BY created_at DESC").fetchall()
 
             return [self._row_to_key(row) for row in rows]
         finally:
@@ -447,9 +445,7 @@ class APIKeyStore:
 
         conn = self._get_connection()
         try:
-            row = conn.execute(
-                "SELECT COUNT(*) as count FROM api_keys WHERE revoked = 0"
-            ).fetchone()
+            row = conn.execute("SELECT COUNT(*) as count FROM api_keys WHERE revoked = 0").fetchone()
             return row["count"]
         finally:
             conn.close()
@@ -466,9 +462,7 @@ class APIKeyStore:
             expires_at=datetime.fromisoformat(row["expires_at"]) if row["expires_at"] else None,
             revoked=bool(row["revoked"]),
             revoked_at=datetime.fromisoformat(row["revoked_at"]) if row["revoked_at"] else None,
-            last_used_at=(
-                datetime.fromisoformat(row["last_used_at"]) if row["last_used_at"] else None
-            ),
+            last_used_at=(datetime.fromisoformat(row["last_used_at"]) if row["last_used_at"] else None),
             metadata=json.loads(row["metadata"]),
         )
 

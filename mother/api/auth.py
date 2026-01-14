@@ -24,7 +24,7 @@ from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader
 
 from ..auth.keys import get_key_store
-from ..auth.models import IdentityContext
+from ..auth.models import IdentityContext, Role
 from ..config.settings import get_settings
 
 logger = logging.getLogger("mother.api.auth")
@@ -193,7 +193,7 @@ async def require_admin(
             return IdentityContext(
                 key_id="legacy",
                 name="legacy",
-                role="admin",
+                role=Role.ADMIN,
                 scopes=["*"],
             )
         raise HTTPException(
@@ -224,7 +224,7 @@ async def require_operator(
             return IdentityContext(
                 key_id="legacy",
                 name="legacy",
-                role="admin",
+                role=Role.ADMIN,
                 scopes=["*"],
             )
         raise HTTPException(
@@ -269,7 +269,7 @@ def create_scope_dependency(required_scope: str):
                 return IdentityContext(
                     key_id="legacy",
                     name="legacy",
-                    role="admin",
+                    role=Role.ADMIN,
                     scopes=["*"],
                 )
             raise HTTPException(
