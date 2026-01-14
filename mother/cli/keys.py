@@ -4,12 +4,11 @@ Commands for managing API keys in multi-key authentication mode.
 """
 
 import json
-import sys
 from datetime import datetime, timedelta
 
-from ..auth.keys import APIKeyStore, get_key_store
+from ..auth.keys import get_key_store
 from ..auth.models import Role
-from ..auth.scopes import get_role_scopes, validate_scopes
+from ..auth.scopes import validate_scopes
 
 
 def _format_datetime(dt: datetime | None) -> str:
@@ -121,14 +120,14 @@ def cmd_add(
             )
         )
     else:
-        print(f"\nAPI key created successfully!")
+        print("\nAPI key created successfully!")
         print(f"  Name: {api_key.name}")
         print(f"  Role: {api_key.role.value}")
         print(f"  Scopes: {_format_scopes(api_key.scopes)}")
         if expires_at:
             print(f"  Expires: {_format_datetime(expires_at)}")
         print(f"\n  API Key: {raw_key}")
-        print(f"\n  IMPORTANT: Save this key now. It cannot be retrieved later.")
+        print("\n  IMPORTANT: Save this key now. It cannot be retrieved later.")
 
     return 0
 
@@ -205,11 +204,11 @@ def cmd_info(identifier: str, json_output: bool = False) -> int:
     print(f"  Last Used:  {_format_datetime(key.last_used_at)}")
     if key.revoked:
         print(f"  Revoked:    {_format_datetime(key.revoked_at)}")
-    print(f"\n  Scopes:")
+    print("\n  Scopes:")
     for scope in key.scopes:
         print(f"    - {scope}")
     if key.metadata:
-        print(f"\n  Metadata:")
+        print("\n  Metadata:")
         for k, v in key.metadata.items():
             print(f"    {k}: {v}")
 
@@ -300,7 +299,7 @@ def cmd_rotate(identifier: str, yes: bool = False, json_output: bool = False) ->
         if json_output:
             print(json.dumps({"error": "Cannot rotate a revoked key"}))
         else:
-            print(f"Error: Cannot rotate a revoked key. Create a new one instead.")
+            print("Error: Cannot rotate a revoked key. Create a new one instead.")
         return 1
 
     # Confirm unless --yes
@@ -338,11 +337,11 @@ def cmd_rotate(identifier: str, yes: bool = False, json_output: bool = False) ->
             )
         )
     else:
-        print(f"\nKey rotated successfully!")
+        print("\nKey rotated successfully!")
         print(f"  Old key '{key.id[:16]}...' has been revoked.")
         print(f"  New key created with ID: {new_key.id[:16]}...")
         print(f"\n  New API Key: {raw_key}")
-        print(f"\n  IMPORTANT: Update your systems with this new key.")
+        print("\n  IMPORTANT: Update your systems with this new key.")
 
     return 0
 

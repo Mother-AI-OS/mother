@@ -23,7 +23,7 @@ import logging
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader
 
-from ..auth.keys import APIKeyStore, get_key_store
+from ..auth.keys import get_key_store
 from ..auth.models import IdentityContext
 from ..config.settings import get_settings
 

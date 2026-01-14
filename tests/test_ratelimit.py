@@ -1,12 +1,10 @@
 """Tests for the rate limiting module."""
 
 import time
-from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.requests import Request
 
 from mother.api.ratelimit import (
     RateLimitConfig,
@@ -14,7 +12,6 @@ from mother.api.ratelimit import (
     RateLimitMiddleware,
     TokenBucket,
     get_rate_limiter,
-    rate_limit_dependency,
 )
 
 
