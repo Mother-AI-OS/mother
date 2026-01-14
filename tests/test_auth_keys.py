@@ -1,7 +1,7 @@
 """Tests for the multi-key authentication system."""
 
 import tempfile
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -102,7 +102,7 @@ class TestAPIKey:
             name="test",
             key_hash="hash",
             role=Role.OPERATOR,
-            expires_at=datetime.utcnow() - timedelta(days=1),
+            expires_at=datetime.now(UTC) - timedelta(days=1),
         )
         assert not key.is_valid()
 
@@ -113,7 +113,7 @@ class TestAPIKey:
             name="test",
             key_hash="hash",
             role=Role.OPERATOR,
-            expires_at=datetime.utcnow() + timedelta(days=1),
+            expires_at=datetime.now(UTC) + timedelta(days=1),
         )
         assert key.is_valid()
 
@@ -248,7 +248,7 @@ class TestAPIKeyStore:
 
     def test_add_key_with_expiration(self, store):
         """Test adding a key with expiration."""
-        expires = datetime.utcnow() + timedelta(days=30)
+        expires = datetime.now(UTC) + timedelta(days=30)
         api_key, _ = store.add_key(
             "expiring-key",
             Role.OPERATOR,
@@ -285,7 +285,7 @@ class TestAPIKeyStore:
 
     def test_validate_key_expired(self, store):
         """Test validating an expired key returns None."""
-        expires = datetime.utcnow() - timedelta(days=1)
+        expires = datetime.now(UTC) - timedelta(days=1)
         api_key, raw_key = store.add_key(
             "expired-key",
             Role.OPERATOR,
