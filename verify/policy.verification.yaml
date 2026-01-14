@@ -1,0 +1,101 @@
+# Mother AI OS - Verification Policy
+# This policy is used during CI/CD verification tests.
+# It is restrictive but allows basic API operations for testing.
+
+version: "1.0"
+name: "verification"
+description: "Restricted policy for CI/CD verification testing"
+
+# Enable safe mode for verification
+safe_mode: true
+
+# Deny by default
+default_action: deny
+
+rules:
+  # Allow basic read operations for testing
+  - name: allow-read-operations
+    description: "Allow read-only operations for verification"
+    capability_pattern: ".*_list|.*_read|.*_get|.*_info"
+    action: allow
+    priority: 10
+
+  # Block all shell commands during verification
+  - name: block-shell
+    description: "Block all shell commands during verification"
+    capability_pattern: "shell_run.*"
+    action: deny
+    priority: 100
+
+  # Block file writes during verification
+  - name: block-file-writes
+    description: "Block file writes during verification"
+    capability_pattern: "file_write|file_delete|file_move"
+    action: deny
+    priority: 100
+
+filesystem:
+  # Only allow access to workspace during verification
+  allowed_paths:
+    - "/app/workspace/**"
+    - "/tmp/**"
+
+  denied_paths:
+    - "/etc/**"
+    - "/home/**"
+    - "/root/**"
+    - "**/.ssh/**"
+    - "**/.git/**"
+
+  read_only_paths:
+    - "/app/workspace/**"
+
+  allow_symlinks: false
+  max_file_size: 10485760  # 10MB
+
+commands:
+  # Only allow basic safe commands
+  allowed_commands:
+    - "^echo"
+    - "^ls"
+    - "^pwd"
+    - "^whoami"
+    - "^date"
+
+  denied_commands:
+    - ".*"  # Deny all by default
+
+  denied_patterns:
+    - "rm"
+    - "mv"
+    - "cp"
+    - "wget"
+    - "curl"
+    - "sh"
+    - "bash"
+    - "python"
+
+  max_timeout: 30
+  allow_pipes: false
+  allow_redirects: false
+
+network:
+  # Block all network access during verification
+  allowed_domains: []
+
+  denied_domains:
+    - "*"
+
+  block_private_ranges: true
+  max_request_size: 1048576   # 1MB
+  max_response_size: 10485760  # 10MB
+
+data:
+  max_classification: internal
+  block_exfiltration: true
+  sensitive_patterns:
+    - "password"
+    - "secret"
+    - "api_key"
+    - "token"
+  allowed_export_domains: []
