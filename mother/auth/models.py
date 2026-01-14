@@ -1,8 +1,13 @@
 """Authentication models for multi-key auth system."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
+
+
+def _utcnow() -> datetime:
+    """Return current UTC time as timezone-aware datetime."""
+    return datetime.now(UTC)
 
 
 class Role(str, Enum):
@@ -22,7 +27,7 @@ class APIKey:
     key_hash: str  # bcrypt hash of actual key
     role: Role
     scopes: list[str] = field(default_factory=list)  # Capability prefixes
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=_utcnow)
     expires_at: datetime | None = None
     revoked: bool = False
     revoked_at: datetime | None = None
@@ -33,7 +38,7 @@ class APIKey:
         """Check if the key is currently valid."""
         if self.revoked:
             return False
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and datetime.now(UTC) > self.expires_at:
             return False
         return True
 

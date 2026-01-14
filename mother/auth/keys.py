@@ -5,7 +5,7 @@ import json
 import logging
 import secrets
 import sqlite3
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -152,7 +152,7 @@ class APIKeyStore:
 
             scopes = get_role_scopes(role)
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         conn = self._get_connection()
         try:
@@ -281,7 +281,7 @@ class APIKeyStore:
                 return None
 
             # Update last_used_at
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             conn.execute(
                 "UPDATE api_keys SET last_used_at = ? WHERE id = ?",
                 (now.isoformat(), key.id),
@@ -335,7 +335,7 @@ class APIKeyStore:
 
         conn = self._get_connection()
         try:
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             result = conn.execute(
                 "UPDATE api_keys SET revoked = 1, revoked_at = ? WHERE id = ? AND revoked = 0",
                 (now.isoformat(), key_id),
@@ -373,7 +373,7 @@ class APIKeyStore:
         new_name = f"{old_key.name}"
         if self.get_key_by_name(new_name) is not None:
             # Name collision, append timestamp
-            new_name = f"{old_key.name}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+            new_name = f"{old_key.name}_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
 
         new_key, raw_key = self.add_key(
             name=new_name,
