@@ -3,6 +3,7 @@
 import tempfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,8 +12,6 @@ from fastapi import HTTPException
 from mother.auth.keys import APIKeyStore, _generate_api_key, _hash_key
 from mother.auth.models import APIKey, IdentityContext, Role
 from mother.auth.scopes import (
-    CAPABILITY_SCOPE_MAP,
-    ROLE_DEFAULT_SCOPES,
     capability_to_scope,
     check_scope,
     get_role_scopes,
@@ -722,9 +721,7 @@ class TestExecutorScopeEnforcement:
         from mother.plugins.executor import ExecutorBase
 
         # Create mock manifest
-        class MockManifest:
-            class plugin:
-                name = "test_plugin"
+        mock_manifest = SimpleNamespace(plugin=SimpleNamespace(name="test_plugin"))
 
         class TestExecutor(ExecutorBase):
             async def initialize(self):
@@ -733,7 +730,7 @@ class TestExecutorScopeEnforcement:
             async def execute(self, cap, params, identity=None):
                 pass
 
-        executor = TestExecutor(MockManifest(), {})
+        executor = TestExecutor(mock_manifest, {})
 
         identity = IdentityContext(
             key_id="test",
@@ -750,9 +747,7 @@ class TestExecutorScopeEnforcement:
         from mother.plugins.exceptions import PolicyViolationError
         from mother.plugins.executor import ExecutorBase
 
-        class MockManifest:
-            class plugin:
-                name = "test_plugin"
+        mock_manifest = SimpleNamespace(plugin=SimpleNamespace(name="test_plugin"))
 
         class TestExecutor(ExecutorBase):
             async def initialize(self):
@@ -761,7 +756,7 @@ class TestExecutorScopeEnforcement:
             async def execute(self, cap, params, identity=None):
                 pass
 
-        executor = TestExecutor(MockManifest(), {})
+        executor = TestExecutor(mock_manifest, {})
 
         identity = IdentityContext(
             key_id="test",
@@ -779,9 +774,7 @@ class TestExecutorScopeEnforcement:
         """Test that check_scope allows in legacy mode (no identity)."""
         from mother.plugins.executor import ExecutorBase
 
-        class MockManifest:
-            class plugin:
-                name = "test_plugin"
+        mock_manifest = SimpleNamespace(plugin=SimpleNamespace(name="test_plugin"))
 
         class TestExecutor(ExecutorBase):
             async def initialize(self):
@@ -790,7 +783,7 @@ class TestExecutorScopeEnforcement:
             async def execute(self, cap, params, identity=None):
                 pass
 
-        executor = TestExecutor(MockManifest(), {})
+        executor = TestExecutor(mock_manifest, {})
 
         # Should not raise when identity is None (legacy mode)
         executor.check_scope("filesystem_write_file", None)
@@ -799,9 +792,7 @@ class TestExecutorScopeEnforcement:
         """Test that admin with wildcard scope can access anything."""
         from mother.plugins.executor import ExecutorBase
 
-        class MockManifest:
-            class plugin:
-                name = "test_plugin"
+        mock_manifest = SimpleNamespace(plugin=SimpleNamespace(name="test_plugin"))
 
         class TestExecutor(ExecutorBase):
             async def initialize(self):
@@ -810,7 +801,7 @@ class TestExecutorScopeEnforcement:
             async def execute(self, cap, params, identity=None):
                 pass
 
-        executor = TestExecutor(MockManifest(), {})
+        executor = TestExecutor(mock_manifest, {})
 
         admin_identity = IdentityContext(
             key_id="admin",

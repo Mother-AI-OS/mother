@@ -1,12 +1,9 @@
 """Tests for the doctor command."""
 
 import json
-import os
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from mother.cli.doctor import (
     CheckResult,
@@ -15,8 +12,6 @@ from mother.cli.doctor import (
     check_audit_logging,
     check_authentication,
     check_config_directory,
-    check_database_integrity,
-    check_file_permissions,
     check_llm_provider,
     check_multikey_mode,
     check_network_binding,
@@ -295,7 +290,7 @@ class TestCmdDoctor:
 
     def test_json_output(self, capsys):
         """Test JSON output mode."""
-        exit_code = cmd_doctor(json_output=True)
+        cmd_doctor(json_output=True)
         captured = capsys.readouterr()
 
         # Should be valid JSON
@@ -305,7 +300,7 @@ class TestCmdDoctor:
 
     def test_verbose_output(self, capsys):
         """Test verbose output mode."""
-        exit_code = cmd_doctor(verbose=True)
+        cmd_doctor(verbose=True)
         captured = capsys.readouterr()
 
         # Should show details

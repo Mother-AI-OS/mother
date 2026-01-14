@@ -1,13 +1,10 @@
 """Tests for the init command."""
 
 import json
-import os
 import tarfile
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from mother.cli.init_cmd import (
     InitConfig,
@@ -56,7 +53,7 @@ class TestGenerateFiles:
                 output_dir=Path(tmpdir),
                 include_docker=False,
             )
-            generated = generate_files(config)
+            generate_files(config)
 
             assert not (Path(tmpdir) / "docker-compose.yml").exists()
             assert not (Path(tmpdir) / "Dockerfile").exists()
@@ -69,7 +66,7 @@ class TestGenerateFiles:
                 output_dir=Path(tmpdir),
                 include_policy=False,
             )
-            generated = generate_files(config)
+            generate_files(config)
 
             assert not (Path(tmpdir) / "config" / "policy.yaml").exists()
 
@@ -80,7 +77,7 @@ class TestGenerateFiles:
                 output_dir=Path(tmpdir),
                 include_env=False,
             )
-            generated = generate_files(config)
+            generate_files(config)
 
             assert not (Path(tmpdir) / ".env.example").exists()
 

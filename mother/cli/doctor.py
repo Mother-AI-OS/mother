@@ -12,7 +12,6 @@ Provides comprehensive system health checks with PASS/WARN/FAIL status:
 import json
 import os
 import sqlite3
-import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
