@@ -173,27 +173,19 @@ class TestIdentityContext:
 
     def test_is_admin(self):
         """Test is_admin method."""
-        admin_ctx = IdentityContext(
-            key_id="test", name="admin", role=Role.ADMIN, scopes=["*"]
-        )
-        op_ctx = IdentityContext(
-            key_id="test", name="op", role=Role.OPERATOR, scopes=[]
-        )
+        admin_ctx = IdentityContext(key_id="test", name="admin", role=Role.ADMIN, scopes=["*"])
+        op_ctx = IdentityContext(key_id="test", name="op", role=Role.OPERATOR, scopes=[])
         assert admin_ctx.is_admin()
         assert not op_ctx.is_admin()
 
     def test_is_operator(self):
         """Test is_operator method."""
-        op_ctx = IdentityContext(
-            key_id="test", name="op", role=Role.OPERATOR, scopes=[]
-        )
+        op_ctx = IdentityContext(key_id="test", name="op", role=Role.OPERATOR, scopes=[])
         assert op_ctx.is_operator()
 
     def test_is_readonly(self):
         """Test is_readonly method."""
-        ro_ctx = IdentityContext(
-            key_id="test", name="ro", role=Role.READONLY, scopes=[]
-        )
+        ro_ctx = IdentityContext(key_id="test", name="ro", role=Role.READONLY, scopes=[])
         assert ro_ctx.is_readonly()
 
 
