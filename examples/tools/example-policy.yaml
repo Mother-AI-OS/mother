@@ -1,0 +1,42 @@
+# Example Mother Tool Policy Configuration
+# Place as mother_tool_policy.yaml in project root or ~/.config/mother/
+
+# Enable or disable policy enforcement
+enabled: true
+
+# Default action when no specific rule matches
+# Options: allow, confirm, deny
+default_action: confirm
+
+# Rules based on tool risk level
+risk_rules:
+  # Low risk: formatters, linters, read-only tools
+  low: allow
+
+  # Medium risk: file modification, local network
+  medium: confirm
+
+  # High risk: system commands, external network
+  high: confirm
+
+  # Critical risk: elevated privileges, sensitive data
+  critical: deny
+
+# Tools that are always blocked (regardless of risk level)
+blocked_tools:
+  # - dangerous-tool
+  # - untrusted-tool
+
+# Tools that are always allowed (bypasses risk checks)
+allowed_tools:
+  # - verified-tool
+  # - internal-tool
+
+# Note: This is an example configuration.
+# Adjust based on your security requirements.
+#
+# For enterprise environments, consider:
+# - Setting default_action to 'deny'
+# - Blocking all critical risk tools
+# - Maintaining an explicit allowed_tools list
+# - Requiring confirmation for all non-low risk tools
