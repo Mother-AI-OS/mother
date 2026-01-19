@@ -141,6 +141,41 @@ Response:
 | **leads** | German tender discovery (optional) |
 | **google-docs** | Google Docs templates (optional) |
 
+### Ecosystem: Tool Repos
+
+Mother is designed to work **standalone** with its built-in plugins. However, it can also integrate with specialized **tool repos** — independent applications that provide additional capabilities.
+
+```
+/projects/                          # Your development root
+├── mother/                         # Mother AI OS (this repo)
+│   └── Built-in: filesystem, email, shell, web, pdf, tasks, tor
+│
+├── contentcraft/                   # Standalone: AI content creation
+├── datacraft/                      # Standalone: Document processing
+├── mailcraft/                      # Standalone: Email management
+├── taxlord/                        # Standalone: Tax & bookkeeping
+├── leadengine/                     # Standalone: Lead generation
+└── ...                             # Your own tools
+```
+
+**Key principles:**
+- Each tool repo has its own CLI/API and works independently
+- Mother provides a unified AI interface to these tools (optional)
+- Tool repos are never required — Mother works fine without them
+- Integration modes: Python plugin, CLI wrapper, HTTP service, Docker
+
+| Tool Repo | What It Does | Integration |
+|-----------|--------------|-------------|
+| [contentcraft](../contentcraft) | AI content for social media, blogs | CLI wrapper |
+| [datacraft](../datacraft) | Document parsing, embeddings, search | Python plugin |
+| [mailcraft](../mailcraft) | Email management with LLM categorization | CLI wrapper |
+| [taxlord](../taxlord) | German tax, ELSTER, invoices | HTTP service |
+| [leadengine](../leadengine) | German tender discovery | CLI wrapper |
+
+**Learn more:**
+- [Ecosystem Overview](docs/ecosystem/OVERVIEW.md) — Architecture and catalog
+- [Integration Contract](docs/ecosystem/INTEGRATION_CONTRACT.md) — Make your tool Mother-compatible
+
 ### Permission & Confirmation System
 
 Destructive actions require explicit confirmation:
