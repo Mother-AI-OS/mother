@@ -20,12 +20,14 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from ..audit import AuditEventType, get_audit_logger
 from .catalog import CatalogEntry, ToolCatalog
 from .exceptions import (
     ToolAlreadyInstalledError,
     ToolInstallError,
     ToolNotFoundError,
     ToolNotInstalledError,
+    ToolPolicyViolationError,
 )
 from .store import InstalledTool, ToolStore
 from .tool_manifest import ToolManifest, find_tool_manifest, load_tool_manifest
@@ -342,6 +344,20 @@ class ExternalToolRegistry:
 
         self._store.add_tool(tool)
         logger.info(f"Installed tool from local: {manifest.name} v{manifest.version}")
+
+        # Audit log the installation
+        try:
+            audit_logger = get_audit_logger()
+            audit_logger.log_tool_event(
+                event_type=AuditEventType.TOOL_INSTALLED,
+                tool_name=manifest.name,
+                tool_version=manifest.version,
+                source=f"local:{local_path}",
+                risk_level=manifest.risk_level.value,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to audit log tool install: {e}")
+
         return tool
 
     def _install_from_git(
@@ -402,6 +418,20 @@ class ExternalToolRegistry:
 
             self._store.add_tool(tool)
             logger.info(f"Installed tool from git: {manifest.name} v{manifest.version}")
+
+            # Audit log the installation
+            try:
+                audit_logger = get_audit_logger()
+                audit_logger.log_tool_event(
+                    event_type=AuditEventType.TOOL_INSTALLED,
+                    tool_name=manifest.name,
+                    tool_version=manifest.version,
+                    source=f"git:{url}",
+                    risk_level=manifest.risk_level.value,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to audit log tool install: {e}")
+
             return tool
 
     def _install_from_catalog(
@@ -446,6 +476,19 @@ class ExternalToolRegistry:
         self._store.remove_tool(name)
         logger.info(f"Uninstalled tool: {name}")
 
+        # Audit log the uninstall
+        try:
+            audit_logger = get_audit_logger()
+            audit_logger.log_tool_event(
+                event_type=AuditEventType.TOOL_UNINSTALLED,
+                tool_name=name,
+                tool_version=tool.version,
+                source=tool.source,
+                risk_level=tool.risk_level,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to audit log tool uninstall: {e}")
+
     def enable(self, name: str) -> None:
         """Enable an installed tool.
 
@@ -455,7 +498,21 @@ class ExternalToolRegistry:
         Raises:
             ToolNotInstalledError: If tool not installed
         """
+        tool = self._store.get_tool(name)
         self._store.enable_tool(name)
+
+        # Audit log
+        try:
+            audit_logger = get_audit_logger()
+            audit_logger.log_tool_event(
+                event_type=AuditEventType.TOOL_ENABLED,
+                tool_name=name,
+                tool_version=tool.version if tool else None,
+                source=tool.source if tool else None,
+                risk_level=tool.risk_level if tool else None,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to audit log tool enable: {e}")
 
     def disable(self, name: str) -> None:
         """Disable an installed tool.
@@ -466,7 +523,21 @@ class ExternalToolRegistry:
         Raises:
             ToolNotInstalledError: If tool not installed
         """
+        tool = self._store.get_tool(name)
         self._store.disable_tool(name)
+
+        # Audit log
+        try:
+            audit_logger = get_audit_logger()
+            audit_logger.log_tool_event(
+                event_type=AuditEventType.TOOL_DISABLED,
+                tool_name=name,
+                tool_version=tool.version if tool else None,
+                source=tool.source if tool else None,
+                risk_level=tool.risk_level if tool else None,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to audit log tool disable: {e}")
 
     def search_catalog(self, query: str) -> list[CatalogEntry]:
         """Search the catalog.

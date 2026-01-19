@@ -27,6 +27,15 @@ from .exceptions import (
     ToolValidationError,
 )
 from .external_registry import ExternalToolRegistry, InstallSource, ToolInfo, ToolStatus
+from .policy import (
+    ToolPolicyAction,
+    ToolPolicyConfig,
+    ToolPolicyDecision,
+    ToolPolicyEngine,
+    get_tool_policy_engine,
+    load_tool_policy,
+    reload_tool_policy,
+)
 from .registry import ToolRegistry
 from .store import InstalledTool, ToolStore
 from .tool_manifest import (
@@ -77,6 +86,14 @@ __all__ = [
     "find_tool_manifest",
     "validate_tool_manifest",
     "validate_tool_name",
+    # Policy
+    "ToolPolicyAction",
+    "ToolPolicyConfig",
+    "ToolPolicyDecision",
+    "ToolPolicyEngine",
+    "get_tool_policy_engine",
+    "load_tool_policy",
+    "reload_tool_policy",
     # Exceptions
     "ToolError",
     "ToolNotFoundError",
