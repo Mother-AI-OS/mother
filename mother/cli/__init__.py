@@ -534,6 +534,169 @@ def create_parser() -> argparse.ArgumentParser:
         help="Output as JSON",
     )
 
+    # tools command
+    tools_parser = subparsers.add_parser(
+        "tools",
+        help="Manage external tools",
+        description="Install, uninstall, enable, and disable external tool repositories",
+    )
+    tools_subparsers = tools_parser.add_subparsers(
+        dest="tools_command",
+        help="Tool management commands",
+    )
+
+    # tools list
+    tools_list = tools_subparsers.add_parser(
+        "list",
+        help="List tools",
+    )
+    tools_list.add_argument(
+        "--installed",
+        action="store_true",
+        help="Show only installed tools",
+    )
+    tools_list.add_argument(
+        "--available",
+        action="store_true",
+        help="Show only available (not installed) tools",
+    )
+    tools_list.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # tools status
+    tools_status = tools_subparsers.add_parser(
+        "status",
+        help="Show detailed tool status",
+    )
+    tools_status.add_argument(
+        "name",
+        help="Tool name",
+    )
+    tools_status.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # tools install
+    tools_install = tools_subparsers.add_parser(
+        "install",
+        help="Install a tool",
+    )
+    tools_install.add_argument(
+        "source",
+        help="Tool source: local path, git URL, or catalog name",
+    )
+    tools_install.add_argument(
+        "--enable",
+        "-e",
+        action="store_true",
+        help="Enable tool after installation",
+    )
+    tools_install.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Skip confirmation for high-risk tools",
+    )
+    tools_install.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # tools uninstall
+    tools_uninstall = tools_subparsers.add_parser(
+        "uninstall",
+        help="Uninstall a tool",
+    )
+    tools_uninstall.add_argument(
+        "name",
+        help="Tool name to uninstall",
+    )
+    tools_uninstall.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Skip confirmation",
+    )
+    tools_uninstall.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # tools enable
+    tools_enable = tools_subparsers.add_parser(
+        "enable",
+        help="Enable an installed tool",
+    )
+    tools_enable.add_argument(
+        "name",
+        help="Tool name to enable",
+    )
+    tools_enable.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # tools disable
+    tools_disable = tools_subparsers.add_parser(
+        "disable",
+        help="Disable an installed tool",
+    )
+    tools_disable.add_argument(
+        "name",
+        help="Tool name to disable",
+    )
+    tools_disable.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # tools search
+    tools_search = tools_subparsers.add_parser(
+        "search",
+        help="Search the tool catalog",
+    )
+    tools_search.add_argument(
+        "query",
+        help="Search query",
+    )
+    tools_search.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
+    # tools health
+    tools_health = tools_subparsers.add_parser(
+        "health",
+        help="Check health of an installed tool",
+    )
+    tools_health.add_argument(
+        "name",
+        help="Tool name to check",
+    )
+    tools_health.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON",
+    )
+
     return parser
 
 
@@ -766,6 +929,69 @@ def run_import(args: argparse.Namespace) -> int:
     )
 
 
+def run_tools(args: argparse.Namespace) -> int:
+    """Run tools management commands."""
+    from .tools_cmd import (
+        cmd_disable,
+        cmd_enable,
+        cmd_health,
+        cmd_install,
+        cmd_list,
+        cmd_search,
+        cmd_status,
+        cmd_uninstall,
+    )
+
+    if args.tools_command == "list":
+        return cmd_list(
+            show_installed=args.installed,
+            show_available=args.available,
+            json_output=args.json_output,
+        )
+    elif args.tools_command == "status":
+        return cmd_status(
+            name=args.name,
+            json_output=args.json_output,
+        )
+    elif args.tools_command == "install":
+        return cmd_install(
+            source=args.source,
+            enable=args.enable,
+            yes=args.yes,
+            json_output=args.json_output,
+        )
+    elif args.tools_command == "uninstall":
+        return cmd_uninstall(
+            name=args.name,
+            yes=args.yes,
+            json_output=args.json_output,
+        )
+    elif args.tools_command == "enable":
+        return cmd_enable(
+            name=args.name,
+            json_output=args.json_output,
+        )
+    elif args.tools_command == "disable":
+        return cmd_disable(
+            name=args.name,
+            json_output=args.json_output,
+        )
+    elif args.tools_command == "search":
+        return cmd_search(
+            query=args.query,
+            json_output=args.json_output,
+        )
+    elif args.tools_command == "health":
+        return cmd_health(
+            name=args.name,
+            json_output=args.json_output,
+        )
+    else:
+        print("Usage: mother tools <command>")
+        print("Commands: list, status, install, uninstall, enable, disable, search, health")
+        return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     """Main CLI entry point."""
     parser = create_parser()
@@ -801,6 +1027,8 @@ def main(argv: list[str] | None = None) -> int:
             return run_export(args)
         elif args.command == "import":
             return run_import(args)
+        elif args.command == "tools":
+            return run_tools(args)
         else:
             parser.print_help()
             return 1
