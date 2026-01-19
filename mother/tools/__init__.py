@@ -4,13 +4,16 @@ This module provides:
 - Legacy ToolWrapper for CLI tool wrapping (deprecated, use plugins)
 - ToolRegistry for plugin-based tool management
 - External tool manifest schema for tool repo integration
+- ExternalToolRegistry for managing external tool repo installations
 
 External Tools:
     The tool manifest system (mother-tool.yaml) allows external tool repos
-    to integrate with Mother. See mother.tools.tool_manifest for schema details.
+    to integrate with Mother. Use ExternalToolRegistry to install and manage
+    external tools. See mother.tools.tool_manifest for schema details.
 """
 
 from .base import ToolParameter, ToolResult, ToolWrapper
+from .catalog import CatalogEntry, ToolCatalog
 from .exceptions import (
     CatalogError,
     ToolAlreadyInstalledError,
@@ -23,7 +26,9 @@ from .exceptions import (
     ToolPolicyViolationError,
     ToolValidationError,
 )
+from .external_registry import ExternalToolRegistry, InstallSource, ToolInfo, ToolStatus
 from .registry import ToolRegistry
+from .store import InstalledTool, ToolStore
 from .tool_manifest import (
     CLIIntegration,
     ConfigField,
@@ -48,6 +53,15 @@ __all__ = [
     "ToolParameter",
     # Plugin-based registry
     "ToolRegistry",
+    # External tool registry
+    "ExternalToolRegistry",
+    "ToolStore",
+    "InstalledTool",
+    "ToolCatalog",
+    "CatalogEntry",
+    "ToolInfo",
+    "ToolStatus",
+    "InstallSource",
     # External tool manifest
     "ToolManifest",
     "ToolMetadata",

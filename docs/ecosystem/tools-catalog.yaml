@@ -1,0 +1,148 @@
+# Mother AI OS - Known Tools Catalog
+#
+# This catalog lists external tool repositories that are known to be
+# compatible with Mother. Tools can be installed via:
+#
+#   mother tools install <name>
+#
+# Tools are installed disabled by default. Enable with:
+#
+#   mother tools enable <name>
+
+version: "1.0"
+updated: "2026-01-19"
+
+tools:
+  # Content & Communication
+  - name: contentcraft
+    description: "AI content creation for social media, blogs, and YouTube"
+    repository: "https://github.com/Mother-AI-OS/contentcraft"
+    version: "0.1.0"
+    risk_level: low
+    integration_types:
+      - cli
+      - python
+    homepage: "https://github.com/Mother-AI-OS/contentcraft"
+    author: "Mother AI OS Team"
+    tags:
+      - content
+      - social-media
+      - ai
+      - writing
+
+  - name: mailcraft
+    description: "Email management with LLM-powered categorization and smart replies"
+    repository: "https://github.com/Mother-AI-OS/mailcraft"
+    version: "0.1.0"
+    risk_level: medium
+    integration_types:
+      - cli
+      - python
+    homepage: "https://github.com/Mother-AI-OS/mailcraft"
+    author: "Mother AI OS Team"
+    tags:
+      - email
+      - imap
+      - smtp
+      - ai
+
+  # Data & Documents
+  - name: datacraft
+    description: "Document processing, embeddings, and vector search"
+    repository: "https://github.com/Mother-AI-OS/datacraft"
+    version: "0.1.0"
+    risk_level: low
+    integration_types:
+      - cli
+      - python
+    homepage: "https://github.com/Mother-AI-OS/datacraft"
+    author: "Mother AI OS Team"
+    tags:
+      - documents
+      - embeddings
+      - search
+      - pdf
+      - ocr
+
+  # Business & Legal
+  - name: leadengine
+    description: "German tender and lead discovery from public procurement sources"
+    repository: "https://github.com/Mother-AI-OS/leadengine"
+    version: "0.1.0"
+    risk_level: medium
+    integration_types:
+      - cli
+      - http
+    homepage: "https://github.com/Mother-AI-OS/leadengine"
+    author: "Mother AI OS Team"
+    tags:
+      - leads
+      - tenders
+      - germany
+      - procurement
+
+  - name: lawkraft-transmit
+    description: "Document transmission via email, fax, postal mail, and beA (German legal)"
+    repository: "https://github.com/Mother-AI-OS/lawkraft-transmit"
+    version: "0.1.0"
+    risk_level: medium
+    integration_types:
+      - python
+    homepage: "https://github.com/Mother-AI-OS/lawkraft-transmit"
+    author: "Lawkraft"
+    tags:
+      - legal
+      - documents
+      - transmission
+      - bea
+      - germany
+
+  # Finance & Tax
+  - name: taxlord
+    description: "German tax automation and bookkeeping with ELSTER integration"
+    repository: "https://github.com/Mother-AI-OS/taxlord"
+    version: "0.1.0"
+    risk_level: high
+    integration_types:
+      - http
+      - cli
+    homepage: "https://github.com/Mother-AI-OS/taxlord"
+    author: "Mother AI OS Team"
+    tags:
+      - tax
+      - elster
+      - bookkeeping
+      - germany
+      - finance
+
+  # Productivity
+  - name: acnjxn
+    description: "Task management with Google Tasks synchronization"
+    repository: "https://github.com/Mother-AI-OS/acnjxn"
+    version: "0.1.0"
+    risk_level: low
+    integration_types:
+      - cli
+      - python
+    homepage: "https://github.com/Mother-AI-OS/acnjxn"
+    author: "Mother AI OS Team"
+    tags:
+      - tasks
+      - productivity
+      - google-tasks
+      - sync
+
+  # Utilities
+  - name: helpers
+    description: "Utility scripts including PDF merge and document transmission"
+    repository: "https://github.com/Mother-AI-OS/helpers"
+    version: "0.1.0"
+    risk_level: low
+    integration_types:
+      - cli
+    homepage: "https://github.com/Mother-AI-OS/helpers"
+    author: "Mother AI OS Team"
+    tags:
+      - utilities
+      - pdf
+      - scripts
