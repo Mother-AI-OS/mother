@@ -1,0 +1,101 @@
+# Example Mother Tool Manifest
+# This is a reference implementation showing all available options
+
+schema_version: "1.0"
+
+tool:
+  # Required: Tool name (lowercase, hyphens allowed, 2-64 chars)
+  name: example-tool
+
+  # Required: Semantic version
+  version: 1.0.0
+
+  # Required: Short description
+  description: An example tool demonstrating Mother tool integration
+
+  # Optional: Author information
+  author: Mother AI Team
+
+  # Optional: License
+  license: MIT
+
+  # Optional: Homepage URL
+  homepage: https://github.com/mother-ai/example-tool
+
+  # Optional: Repository URL
+  repository: https://github.com/mother-ai/example-tool
+
+  # Optional: Risk level (low, medium, high, critical)
+  # Determines policy behavior for installation/usage
+  risk_level: low
+
+  # Optional: Tags for discovery
+  tags:
+    - example
+    - demo
+    - documentation
+
+# Required: Integration configuration
+integration:
+  # Required: Integration type (cli, python, http, docker)
+  type: cli
+
+  # CLI-specific configuration
+  cli:
+    # Required: Main binary name
+    binary: example-tool
+
+    # Optional: Command to verify installation
+    install_check: ["example-tool", "--version"]
+
+    # Optional: Working directory (supports ${VAR} expansion)
+    working_dir: "${PROJECT_ROOT}"
+
+    # Optional: Default timeout in seconds
+    timeout: 30
+
+    # Optional: Environment variables
+    env:
+      EXAMPLE_CONFIG: "${HOME}/.config/example-tool/config.yaml"
+
+    # Optional: Command definitions
+    commands:
+      - name: run
+        description: Run the example tool
+        args: ["run", "--input", "{input}"]
+        confirmation_required: false
+
+      - name: process
+        description: Process a file with the example tool
+        args: ["process", "--file", "{file}", "--output", "{output}"]
+        confirmation_required: true  # Requires user confirmation
+
+# Optional: Configurable options
+config:
+  - name: api_key
+    type: string
+    required: false
+    secret: true  # Marked as sensitive
+    description: Optional API key for enhanced features
+
+  - name: output_format
+    type: string
+    default: "json"
+    choices: ["json", "yaml", "text"]
+    description: Output format
+
+  - name: verbose
+    type: boolean
+    default: false
+    description: Enable verbose output
+
+# Optional: Required permissions
+permissions:
+  - filesystem_read
+  - filesystem_write
+
+# Optional: Metadata for catalog display
+metadata:
+  category: utilities
+  min_mother_version: "1.0.0"
+  documentation: https://github.com/mother-ai/example-tool/wiki
