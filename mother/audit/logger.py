@@ -65,6 +65,13 @@ class AuditEventType(str, Enum):
     PLUGIN_UNLOADED = "plugin_unloaded"
     PLUGIN_ERROR = "plugin_error"
 
+    # Tool events
+    TOOL_INSTALLED = "tool_installed"
+    TOOL_UNINSTALLED = "tool_uninstalled"
+    TOOL_ENABLED = "tool_enabled"
+    TOOL_DISABLED = "tool_disabled"
+    TOOL_INSTALL_DENIED = "tool_install_denied"
+
     # Data events
     DATA_ACCESS = "data_access"
     DATA_EXPORT = "data_export"
@@ -650,6 +657,48 @@ class AuditLogger:
             reason=f"Missing scope: {required_scope}",
             source_ip=source_ip,
             metadata={"required_scope": required_scope, **metadata},
+        )
+        self._write_entry(entry)
+
+    def log_tool_event(
+        self,
+        event_type: AuditEventType,
+        tool_name: str,
+        tool_version: str | None = None,
+        source: str | None = None,
+        risk_level: str | None = None,
+        actor: dict[str, Any] | None = None,
+        allowed: bool = True,
+        reason: str | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log a tool management event.
+
+        Args:
+            event_type: TOOL_INSTALLED, TOOL_UNINSTALLED, TOOL_ENABLED, etc.
+            tool_name: Name of the tool
+            tool_version: Version of the tool
+            source: Installation source
+            risk_level: Risk level of the tool
+            actor: Actor performing the action
+            allowed: Whether the action was allowed
+            reason: Reason for denial or additional context
+            **metadata: Additional metadata
+        """
+        entry = AuditEntry(
+            event_type=event_type,
+            actor=actor,
+            user_id=actor.get("name") if actor else None,
+            allowed=allowed,
+            reason=reason,
+            risk_tier=risk_level,
+            metadata={
+                "tool_name": tool_name,
+                "tool_version": tool_version,
+                "source": source,
+                "risk_level": risk_level,
+                **metadata,
+            },
         )
         self._write_entry(entry)
 

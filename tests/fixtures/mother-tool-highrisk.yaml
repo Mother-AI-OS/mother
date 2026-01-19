@@ -1,0 +1,40 @@
+# High-risk tool manifest for testing policy checks
+# This represents a tool with elevated permissions
+
+schema_version: "1.0"
+
+tool:
+  name: high-risk-tool
+  version: "0.1.0"
+  description: "A high-risk tool for testing policy enforcement"
+  author: "Test Author"
+  risk_level: high
+  tags:
+    - testing
+    - high-risk
+
+integration:
+  type: python
+  python:
+    module: highrisk.main
+    class_name: HighRiskPlugin
+    install_command: "pip install -e /path/to/highrisk"
+
+permissions:
+  - "shell"
+  - "subprocess"
+  - "filesystem:write"
+  - "filesystem:read"
+  - "secrets:read"
+  - "network:external"
+
+config:
+  - name: enable_dangerous_mode
+    description: "Enable dangerous operations"
+    type: boolean
+    required: false
+    default: false
+
+dependencies:
+  - python>=3.11
+  - dangerous-lib>=1.0
