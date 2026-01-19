@@ -1,0 +1,45 @@
+# Sample tool manifest for testing
+# This represents a typical CLI-based tool integration
+
+schema_version: "1.0"
+
+tool:
+  name: sample-tool
+  version: "1.2.3"
+  description: "A sample tool for testing the tool registry"
+  author: "Mother AI OS Team"
+  homepage: "https://example.com/sample-tool"
+  repository: "https://github.com/example/sample-tool"
+  license: "MIT"
+  risk_level: low
+  tags:
+    - testing
+    - sample
+    - cli
+
+integration:
+  type: cli
+  cli:
+    binary: sample-tool
+    install_command: "pip install sample-tool"
+    health_check: "sample-tool --version"
+    output_format: json
+
+permissions:
+  - "filesystem:read"
+  - "network:external"
+
+config:
+  - name: api_key
+    description: "API key for external service"
+    type: string
+    required: false
+    secret: true
+  - name: output_dir
+    description: "Directory for output files"
+    type: path
+    required: false
+    default: "./output"
+
+dependencies:
+  - python>=3.11
