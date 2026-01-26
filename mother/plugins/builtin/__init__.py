@@ -18,6 +18,7 @@ Plugins:
 - google_docs: Google Docs template management (optional)
 - tor: Tor network and darknet access (anonymous browsing, .onion sites)
 - tor_shell: Shell command wrappers for darknet functionality
+- ssh: SSH access to remote VMs (command execution, file operations)
 """
 
 from .datacraft import DatacraftPlugin
@@ -27,6 +28,7 @@ from .german import LeadsPlugin, TaxlordPlugin
 from .google import GoogleDocsPlugin
 from .pdf import PDFPlugin
 from .shell import ShellPlugin
+from .ssh import SSHPlugin
 from .tasks import TasksPlugin
 from .tor import TorPlugin
 from .tor_shell import TorShellPlugin
@@ -49,6 +51,7 @@ BUILTIN_PLUGINS: dict[str, type] = {
     "google-docs": GoogleDocsPlugin,
     "tor": TorPlugin,
     "tor-shell": TorShellPlugin,
+    "ssh": SSHPlugin,
 }
 
 
@@ -81,6 +84,7 @@ __all__ = [
     "LeadsPlugin",
     "PDFPlugin",
     "ShellPlugin",
+    "SSHPlugin",
     "TasksPlugin",
     "TaxlordPlugin",
     "TorPlugin",

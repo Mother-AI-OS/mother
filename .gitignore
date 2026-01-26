@@ -37,6 +37,9 @@ env/
 .env
 .env.local
 
+# VM credentials (config stored in ~/.config/mother/vms.yaml)
+vms.yaml
+
 # Testing
 .pytest_cache/
 .coverage

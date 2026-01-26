@@ -1,0 +1,30 @@
+# VM Configuration Example
+# Copy to ~/.config/mother/vms.yaml and update with your VM details
+
+vms:
+  # Example VM configuration
+  my-server:
+    host: "your-vm-ip-address"
+    user: your-username
+    ssh_key: ~/.ssh/your_key
+    requires_passphrase: false
+    port: 22  # Optional, defaults to 22
+    projects:
+      - name: my-project
+        path: /path/to/project
+        type: python_package  # or: web_app, nextjs_app, etc.
+        description: Project description
+        readme_path: /path/to/project/README.md
+
+  # Add more VMs as needed
+  another-vm:
+    host: "another-ip"
+    user: username
+    ssh_key: ~/.ssh/another_key
+    requires_passphrase: true
+    projects:
+      - name: another-project
+        path: /home/user/project
+        type: web_app
+        description: Another project
+        readme_path: /home/user/project/README.md
