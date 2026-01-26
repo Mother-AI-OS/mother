@@ -55,6 +55,8 @@ dependencies = [
     "pypdf>=4.0.0",  # PDF manipulation (merge, split, etc.)
     "python-docx>=1.1.0",  # DOCX document parsing
     "httpx[socks]>=0.26.0",  # HTTP client with SOCKS proxy support for Tor
+    "paramiko>=3.0.0",  # SSH protocol implementation
+    "scp>=0.14.0",  # SCP file transfer
 ]
 
 [project.optional-dependencies]
