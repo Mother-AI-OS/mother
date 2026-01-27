@@ -166,5 +166,4 @@ allowed_tools:
 ## Next Steps
 
 - [Creating Tools](/docs/tools/creating-tools) - Build your own tool
-- [Tool Catalog](/docs/tools/catalog) - Browse available tools
 - [CLI Reference](/docs/tools/cli-reference) - Full command reference
