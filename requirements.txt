@@ -1,0 +1,31 @@
+# Mother AI OS - Core Dependencies
+# Auto-generated from pyproject.toml dependencies
+
+# Web framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# LLM providers
+anthropic>=0.40.0
+openai>=1.0.0
+zhipuai>=2.0.0
+google-genai>=1.0.0
+
+# Core dependencies
+numpy>=1.26.0
+pydantic>=2.6.0
+pydantic-settings>=2.1.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
+keyring>=25.0.0
+pypdf>=4.0.0
+python-docx>=1.1.0
+httpx[socks]>=0.26.0
+
+# Development dependencies
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+ruff>=0.1.0
+mypy>=1.8.0
+types-PyYAML>=6.0.0
