@@ -117,11 +117,16 @@ class EmailAccountStore:
         return [EmailAccount.from_dict(name, data) for name, data in accounts_data.items()]
 
     def get_account(self, name: str) -> EmailAccount | None:
-        """Get a specific account by name."""
+        """Get a specific account by name or email address."""
         accounts_data = self._load_accounts_data()
-        if name not in accounts_data:
-            return None
-        return EmailAccount.from_dict(name, accounts_data[name])
+        # Direct match by account name
+        if name in accounts_data:
+            return EmailAccount.from_dict(name, accounts_data[name])
+        # Fallback: search by email address
+        for account_name, data in accounts_data.items():
+            if data.get("email") == name:
+                return EmailAccount.from_dict(account_name, data)
+        return None
 
     def get_default_account(self) -> EmailAccount | None:
         """Get the default email account."""
