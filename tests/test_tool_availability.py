@@ -1,6 +1,6 @@
 """Comprehensive tool availability test suite for Mother AI OS.
 
-Verifies that all 14 builtin plugins (119 capabilities) and 8 external
+Verifies that all 16 builtin plugins (144 capabilities) and 8 external
 tool repos are available end-to-end. Catches:
 - Missing plugins or capabilities after code changes
 - External CLIs that become unavailable
@@ -70,6 +70,16 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
         "ledgers", "elster_status", "vat", "sync",
     ],
     "leads": ["fetch", "list", "show", "analyze", "status"],
+    "mailcraft": [
+        "fetch", "list", "search", "read", "send", "categorize",
+        "cleanup", "clean_spam", "batch_delete", "learn_from_trash",
+        "semantic_search", "stats",
+    ],
+    "mattercraft": [
+        "create", "list", "show", "search", "edit", "archive",
+        "delete", "ingest", "query", "entities", "timeline",
+        "tenders_list", "tenders_import",
+    ],
     "google-docs": ["list", "get", "send", "status"],
     "tor": [
         "tor_check_status", "tor_fetch", "tor_browse", "tor_start",
@@ -87,7 +97,7 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
     ],
 }
 
-EXPECTED_TOTAL_CAPABILITIES = 119
+EXPECTED_TOTAL_CAPABILITIES = 144
 
 # Capabilities that MUST require confirmation (destructive / side-effect ops)
 DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
@@ -114,6 +124,15 @@ DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
     ("transmit", "fax"),
     ("transmit", "post"),
     ("transmit", "bea"),
+    # mailcraft
+    ("mailcraft", "send"),
+    ("mailcraft", "cleanup"),
+    ("mailcraft", "clean_spam"),
+    ("mailcraft", "batch_delete"),
+    # mattercraft
+    ("mattercraft", "archive"),
+    ("mattercraft", "delete"),
+    ("mattercraft", "tenders_import"),
     # google-docs
     ("google-docs", "send"),
     # tor
@@ -171,6 +190,24 @@ READ_ONLY_CAPABILITIES: list[tuple[str, str]] = [
     ("leads", "show"),
     ("leads", "status"),
     ("leads", "analyze"),
+    ("mailcraft", "fetch"),
+    ("mailcraft", "list"),
+    ("mailcraft", "search"),
+    ("mailcraft", "read"),
+    ("mailcraft", "categorize"),
+    ("mailcraft", "learn_from_trash"),
+    ("mailcraft", "semantic_search"),
+    ("mailcraft", "stats"),
+    ("mattercraft", "create"),
+    ("mattercraft", "list"),
+    ("mattercraft", "show"),
+    ("mattercraft", "search"),
+    ("mattercraft", "edit"),
+    ("mattercraft", "ingest"),
+    ("mattercraft", "query"),
+    ("mattercraft", "entities"),
+    ("mattercraft", "timeline"),
+    ("mattercraft", "tenders_list"),
     ("google-docs", "list"),
     ("google-docs", "get"),
     ("google-docs", "status"),
@@ -227,10 +264,10 @@ def _instantiate_plugin(name: str) -> PluginBase:
 
 
 class TestBuiltinPluginRegistry:
-    """Verify all 14 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
+    """Verify all 16 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
 
     def test_all_plugins_registered(self) -> None:
-        """Assert exactly 14 plugins with expected names."""
+        """Assert exactly 16 plugins with expected names."""
         expected_names = set(EXPECTED_PLUGINS.keys())
         actual_names = set(BUILTIN_PLUGINS.keys())
         assert actual_names == expected_names, (
@@ -238,7 +275,7 @@ class TestBuiltinPluginRegistry:
             f"  Missing: {expected_names - actual_names}\n"
             f"  Extra:   {actual_names - expected_names}"
         )
-        assert len(BUILTIN_PLUGINS) == 14
+        assert len(BUILTIN_PLUGINS) == 16
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
     def test_all_plugins_instantiate(self, plugin_name: str) -> None:
@@ -296,7 +333,7 @@ class TestPluginCapabilities:
         )
 
     def test_total_capability_count(self) -> None:
-        """Sum of all capabilities should be exactly 119."""
+        """Sum of all capabilities should be exactly 144."""
         total = 0
         for plugin_name in EXPECTED_PLUGINS:
             plugin = _instantiate_plugin(plugin_name)
@@ -372,7 +409,7 @@ class TestAnthropicSchemaGeneration:
             )
 
     def test_all_schemas_combined_no_name_collisions(self) -> None:
-        """Collect all 119 schemas and verify no name collisions."""
+        """Collect all 144 schemas and verify no name collisions."""
         all_names: list[str] = []
         for plugin_name in EXPECTED_PLUGINS:
             plugin = _instantiate_plugin(plugin_name)
