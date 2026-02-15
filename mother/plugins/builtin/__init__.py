@@ -15,6 +15,8 @@ Plugins:
 - transmit: Document transmission (email, fax, post, beA)
 - taxlord: German tax and document management (optional)
 - leads: German tender and lead generation (optional)
+- mailcraft: AI-powered email management (categorization, triage, cleanup)
+- mattercraft: Legal matter management with knowledge graph RAG
 - google_docs: Google Docs template management (optional)
 - tor: Tor network and darknet access (anonymous browsing, .onion sites)
 - tor_shell: Shell command wrappers for darknet functionality
@@ -26,6 +28,8 @@ from .email import EmailPlugin
 from .filesystem import FilesystemPlugin
 from .german import LeadsPlugin, TaxlordPlugin
 from .google import GoogleDocsPlugin
+from .mailcraft import MailcraftPlugin
+from .mattercraft import MattercraftPlugin
 from .pdf import PDFPlugin
 from .shell import ShellPlugin
 from .ssh import SSHPlugin
@@ -48,6 +52,8 @@ BUILTIN_PLUGINS: dict[str, type] = {
     "transmit": TransmitPlugin,
     "taxlord": TaxlordPlugin,
     "leads": LeadsPlugin,
+    "mailcraft": MailcraftPlugin,
+    "mattercraft": MattercraftPlugin,
     "google-docs": GoogleDocsPlugin,
     "tor": TorPlugin,
     "tor-shell": TorShellPlugin,
@@ -82,6 +88,8 @@ __all__ = [
     "FilesystemPlugin",
     "GoogleDocsPlugin",
     "LeadsPlugin",
+    "MailcraftPlugin",
+    "MattercraftPlugin",
     "PDFPlugin",
     "ShellPlugin",
     "SSHPlugin",
