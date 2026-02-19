@@ -206,10 +206,11 @@ class ExecutorBase(ABC):
             return
 
         engine = get_policy_engine()
-        decision = engine.evaluate(capability, params, context)
+        full_capability = f"{self.plugin_name}_{capability}"
+        decision = engine.evaluate(full_capability, params, context)
 
         if not decision.allowed:
-            logger.warning(f"Policy violation: {capability} - {decision.reason} (rules: {decision.matched_rules})")
+            logger.warning(f"Policy violation: {full_capability} - {decision.reason} (rules: {decision.matched_rules})")
             raise PolicyViolationError(
                 plugin_name=self.plugin_name,
                 capability=capability,

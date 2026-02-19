@@ -11,6 +11,7 @@ from . import __version__
 from .agent.core import MotherAgent
 from .api.routes import init_dependencies, router
 from .config.settings import get_settings
+from .plugins import PluginConfig
 from .tools.registry import ToolRegistry
 
 # Configure logging
@@ -28,8 +29,11 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     logger.info(f"Starting Mother Agent v{__version__}")
 
-    # Initialize tool registry
-    registry = ToolRegistry(settings=settings)
+    # Initialize tool registry with mattercraft explicitly enabled
+    plugin_config = PluginConfig(
+        explicitly_enabled_plugins=["mattercraft"],
+    )
+    registry = ToolRegistry(settings=settings, plugin_config=plugin_config)
     logger.info(f"Loaded {len(registry.wrappers)} tools: {list(registry.wrappers.keys())}")
 
     # Initialize plugin system
