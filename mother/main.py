@@ -29,9 +29,9 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     logger.info(f"Starting Mother Agent v{__version__}")
 
-    # Initialize tool registry with mattercraft explicitly enabled
+    # Initialize tool registry with high-risk plugins explicitly enabled
     plugin_config = PluginConfig(
-        explicitly_enabled_plugins=["mattercraft"],
+        explicitly_enabled_plugins=["mattercraft", "contentcraft", "longcraft"],
     )
     registry = ToolRegistry(settings=settings, plugin_config=plugin_config)
     logger.info(f"Loaded {len(registry.wrappers)} tools: {list(registry.wrappers.keys())}")
