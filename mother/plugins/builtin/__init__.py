@@ -18,6 +18,8 @@ Plugins:
 - mailcraft: AI-powered email management (categorization, triage, cleanup)
 - mattercraft: Legal matter management with knowledge graph RAG
 - acnjxn: AI-enhanced task management with value alignment and Google Tasks sync
+- contentcraft: AI-powered content creation and multi-platform publishing
+- longcraft: Persona-driven content generation with fine-tuning
 - google_docs: Google Docs template management (optional)
 - tor: Tor network and darknet access (anonymous browsing, .onion sites)
 - tor_shell: Shell command wrappers for darknet functionality
@@ -25,11 +27,13 @@ Plugins:
 """
 
 from .acnjxn import AcnjxnPlugin
+from .contentcraft import ContentcraftPlugin
 from .datacraft import DatacraftPlugin
 from .email import EmailPlugin
 from .filesystem import FilesystemPlugin
 from .german import LeadsPlugin, TaxlordPlugin
 from .google import GoogleDocsPlugin
+from .longcraft import LongcraftPlugin
 from .mailcraft import MailcraftPlugin
 from .mattercraft import MattercraftPlugin
 from .pdf import PDFPlugin
@@ -45,6 +49,7 @@ from .web import WebPlugin
 # Maps plugin name -> plugin class
 BUILTIN_PLUGINS: dict[str, type] = {
     "acnjxn": AcnjxnPlugin,
+    "contentcraft": ContentcraftPlugin,
     "filesystem": FilesystemPlugin,
     "shell": ShellPlugin,
     "web": WebPlugin,
@@ -55,6 +60,7 @@ BUILTIN_PLUGINS: dict[str, type] = {
     "transmit": TransmitPlugin,
     "taxlord": TaxlordPlugin,
     "leads": LeadsPlugin,
+    "longcraft": LongcraftPlugin,
     "mailcraft": MailcraftPlugin,
     "mattercraft": MattercraftPlugin,
     "google-docs": GoogleDocsPlugin,
@@ -87,11 +93,13 @@ def get_builtin_plugin(name: str) -> type | None:
 
 __all__ = [
     "AcnjxnPlugin",
+    "ContentcraftPlugin",
     "DatacraftPlugin",
     "EmailPlugin",
     "FilesystemPlugin",
     "GoogleDocsPlugin",
     "LeadsPlugin",
+    "LongcraftPlugin",
     "MailcraftPlugin",
     "MattercraftPlugin",
     "PDFPlugin",
