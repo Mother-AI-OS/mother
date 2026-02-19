@@ -17,12 +17,14 @@ Plugins:
 - leads: German tender and lead generation (optional)
 - mailcraft: AI-powered email management (categorization, triage, cleanup)
 - mattercraft: Legal matter management with knowledge graph RAG
+- acnjxn: AI-enhanced task management with value alignment and Google Tasks sync
 - google_docs: Google Docs template management (optional)
 - tor: Tor network and darknet access (anonymous browsing, .onion sites)
 - tor_shell: Shell command wrappers for darknet functionality
 - ssh: SSH access to remote VMs (command execution, file operations)
 """
 
+from .acnjxn import AcnjxnPlugin
 from .datacraft import DatacraftPlugin
 from .email import EmailPlugin
 from .filesystem import FilesystemPlugin
@@ -42,6 +44,7 @@ from .web import WebPlugin
 # Registry of built-in plugins
 # Maps plugin name -> plugin class
 BUILTIN_PLUGINS: dict[str, type] = {
+    "acnjxn": AcnjxnPlugin,
     "filesystem": FilesystemPlugin,
     "shell": ShellPlugin,
     "web": WebPlugin,
@@ -83,6 +86,7 @@ def get_builtin_plugin(name: str) -> type | None:
 
 
 __all__ = [
+    "AcnjxnPlugin",
     "DatacraftPlugin",
     "EmailPlugin",
     "FilesystemPlugin",
