@@ -1,6 +1,6 @@
 ---
 slug: transforming-business-with-mother-ai-os
-title: Transforming Business with Mother AI OS in Automation
+title: "Transforming Business with Mother AI OS in Automation"
 authors: [david]
 tags: [AI, automation, machinelearning, datamanagement, infrastructure, contentgeneration, codereview]
 date: 2026-03-13

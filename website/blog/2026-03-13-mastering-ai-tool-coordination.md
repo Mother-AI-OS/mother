@@ -1,6 +1,6 @@
 ---
 slug: mastering-ai-tool-coordination
-title: Mastering AI Tool Coordination: CLI Orchestration Patterns
+title: "Mastering AI Tool Coordination: CLI Orchestration Patterns"
 authors: [david]
 tags: [AI, CLI, orchestration, automation, workflows, errorhandling, datascience]
 date: 2026-03-13
