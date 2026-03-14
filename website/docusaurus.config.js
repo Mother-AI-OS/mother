@@ -138,6 +138,10 @@ const config = {
                 href: 'https://huckesanker.com',
               },
               {
+                label: 'Quantum AI — Trading Research',
+                href: 'https://quantum-ai-trading-bot.info',
+              },
+              {
                 label: 'LinkedIn',
                 href: 'https://de.linkedin.com/in/sankerlaw',
               },
