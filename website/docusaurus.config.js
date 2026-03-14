@@ -118,6 +118,31 @@ const config = {
               },
             ],
           },
+          {
+            title: 'Ecosystem',
+            items: [
+              {
+                label: 'Lawkraft — AI Consulting',
+                href: 'https://lawkraft.com',
+              },
+              {
+                label: 'UAPK Gateway — AI Governance',
+                href: 'https://uapk.info',
+              },
+              {
+                label: 'Morpheus Mark — IP Enforcement',
+                href: 'https://morpheusmark.com',
+              },
+              {
+                label: 'Hucke & Sanker — Law Firm',
+                href: 'https://huckesanker.com',
+              },
+              {
+                label: 'LinkedIn',
+                href: 'https://de.linkedin.com/in/sankerlaw',
+              },
+            ],
+          },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} David Sanker. Built with Docusaurus.`,
       },
