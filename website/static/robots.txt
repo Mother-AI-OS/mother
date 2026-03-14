@@ -1,0 +1,45 @@
+# robots.txt — AI-optimized for AEO/GEO visibility
+#
+# This file explicitly allows AI crawlers to index content.
+# Our content is designed to be cited by AI search engines.
+
+# Default: allow all crawlers
+User-agent: *
+Allow: /
+
+# AI Search Crawlers — explicitly allowed
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+
+# Google AI (Gemini, AI Overviews)
+User-agent: Google-Extended
+Allow: /
+
+# Common Crawl (used by many AI systems)
+User-agent: CCBot
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Anthropic
+User-agent: ClaudeBot
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+# Microsoft Copilot / Bing
+User-agent: Bingbot
+Allow: /
+
+# Apple (Siri, Spotlight)
+User-agent: Applebot
+Allow: /
+
+# Sitemap
+Sitemap: https://mother-ai-os.github.io/mother/sitemap.xml

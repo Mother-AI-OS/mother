@@ -1,0 +1,483 @@
+{
+  "brand": "Mother AI OS",
+  "description": "Open-source AI agent operating system for orchestrating multi-agent workflows and autonomous task execution.",
+  "url": "https://mother-ai-os.github.io/mother/",
+  "updated": "2026-03-14",
+  "topics": [
+    {
+      "name": "AI Agent OS",
+      "definition": "An operating system designed to orchestrate multiple AI agents, managing task allocation, inter-agent communication, and resource scheduling."
+    },
+    {
+      "name": "Multi-Agent Orchestration",
+      "definition": "Coordination of multiple AI agents working collaboratively on complex tasks, handling dependencies, conflicts, and resource sharing."
+    },
+    {
+      "name": "Autonomous Task Execution",
+      "definition": "AI systems that independently plan, execute, and verify task completion without human intervention for each step."
+    }
+  ],
+  "articles": [
+    {
+      "title": "Transforming Business with Mother AI OS in Automation",
+      "url": "https://mother-ai-os.github.io/mother/blog/2026-01-29-title-transforming-business-with-mother-ai-os-in-a/",
+      "date": "2026-03-13",
+      "keywords": [
+        "Real-world automation examples using Mother AI OS covering code review, content generation, data pipeline, and infrastructure management use cases",
+        "AI",
+        "automation",
+        "machinelearning",
+        "datamanagement",
+        "infrastructure",
+        "contentgeneration",
+        "codereview"
+      ]
+    },
+    {
+      "title": "Mastering AI Tool Coordination: CLI Orchestration Patterns",
+      "url": "https://mother-ai-os.github.io/mother/blog/2026-01-29-mastering-ai-tool-coordination-cli-orchestration-p/",
+      "date": "2026-03-13",
+      "keywords": [
+        "Mother AI OS CLI orchestration patterns. Technical guide to coordinating multiple AI tools via command-line interface covering workflows, error handling, and automation",
+        "AI",
+        "CLI",
+        "orchestration",
+        "automation",
+        "workflows",
+        "errorhandling",
+        "datascience"
+      ]
+    },
+    {
+      "title": "Unlocking the Potential: A Developer's Guide to the Plugin API Reference",
+      "url": "/blog/2026-03-10-unlocking-the-potential-a-developers-guide-to-the-",
+      "date": "2026-03-10",
+      "keywords": [
+        "The Plugin API Reference: A Developer's Cheat Sheet",
+        "pluginapi",
+        "softwaredevelopment",
+        "APIintegration",
+        "devtools",
+        "apidesign"
+      ]
+    },
+    {
+      "title": "Unlocking Mother AI OS: Mastering YAML, Env Vars, and Runtime Overrides",
+      "url": "/blog/2026-03-10-unlocking-mother-ai-os-mastering-yaml-env-vars-and",
+      "date": "2026-03-10",
+      "keywords": [
+        "Mother AI OS Configuration Deep Dive: YAML, Env Vars, and Runtime Overrides",
+        "AIConfiguration",
+        "MotherAI",
+        "YAML",
+        "EnvironmentVariables",
+        "RuntimeOverrides"
+      ]
+    },
+    {
+      "title": "Unlocking Efficiency: Webhook Integrations Between Mother AI OS and Popular Collaboration Tools",
+      "url": "/blog/2026-03-10-unlocking-efficiency-webhook-integrations-between-",
+      "date": "2026-03-10",
+      "keywords": [
+        "Webhook Integrations: Connecting Mother AI OS to GitHub, Jira, and Slack",
+        "AIintegration",
+        "webhook",
+        "productivitytools",
+        "techworkflow",
+        "collaborationtools"
+      ]
+    },
+    {
+      "title": "Unleashing the Power of Autonomous Content: Building Pipelines with Mother AI OS and ContentCraft",
+      "url": "/blog/2026-03-10-unleashing-the-power-of-autonomous-content-buildin",
+      "date": "2026-03-10",
+      "keywords": [
+        "Building an Autonomous Content Pipeline with Mother AI OS and ContentCraft",
+        "AIContent",
+        "MachineLearning",
+        "ContentAutomation",
+        "DigitalTransformation",
+        "ContentStrategy"
+      ]
+    },
+    {
+      "title": "Understanding Mother AI OS: Design Decisions, Trade-offs, and Implementation Insights",
+      "url": "/blog/2026-03-10-understanding-mother-ai-os-design-decisions-trade-",
+      "date": "2026-03-10",
+      "keywords": [
+        "The Architecture of Mother AI OS: Design Decisions and Trade-offs",
+        "AI",
+        "Technology",
+        "UserExperience",
+        "Security",
+        "Scalability"
+      ]
+    },
+    {
+      "title": "UAPK Gateway: Enabling Robust Governance for Mother AI OS Agents",
+      "url": "/blog/2026-03-10-uapk-gateway-enabling-robust-governance-for-mother",
+      "date": "2026-03-10",
+      "keywords": [
+        "How UAPK Gateway Provides Governance for Mother AI OS Agents",
+        "AIgovernance",
+        "UAPKGateway",
+        "AIsecurity",
+        "AIcompliance",
+        "ethicalAI"
+      ]
+    },
+    {
+      "title": "Testing Multi-Agent Workflows: Navigating Unit, Integration, and Chaos Testing for Robust Systems",
+      "url": "/blog/2026-03-10-testing-multi-agent-workflows-navigating-unit-inte",
+      "date": "2026-03-10",
+      "keywords": [
+        "Testing Multi-Agent Workflows: Unit Tests, Integration Tests, and Chaos Testing",
+        "multi-agent-testing",
+        "software-resilience",
+        "chaos-engineering",
+        "integration-testing",
+        "automation"
+      ]
+    },
+    {
+      "title": "TITLE**: Unveiling Mother AI OS: The Path to Crafting an Advanced Agent Orchestration System",
+      "url": "/blog/2026-03-10-title-unveiling-mother-ai-os-the-path-to-crafting-",
+      "date": "2026-03-10",
+      "keywords": [
+        "The Story Behind Mother AI OS: Why I Built an Agent Orchestration System"
+      ]
+    },
+    {
+      "title": "Secure Credential Management in Mother AI OS: Implementation and Best Practices",
+      "url": "/blog/2026-01-29-secure-credential-management-in-mother-ai-os-imple",
+      "date": "2026-01-29",
+      "keywords": [
+        "Mother AI OS secure credential management for AI tool access. Implementation of secrets storage, rotation, scope limitation, and secure distribution",
+        "AIsecurity",
+        "credentialmanagement",
+        "MotherAIOS",
+        "datasecurity",
+        "secretsmanagement",
+        "securedistribution",
+        "cybersecurity"
+      ]
+    },
+    {
+      "title": "Secure AI: Mastering Local-First Architecture for AI Agents",
+      "url": "/blog/2026-01-29-title-secure-ai-mastering-local-first-architecture",
+      "date": "2026-03-06",
+      "keywords": [
+        "Mother AI OS local-first architecture for AI agent security. Data privacy, local processing, secure credential storage, and network isolation strategies",
+        "AIsecurity",
+        "DataPrivacy",
+        "LocalFirst",
+        "SecureAI",
+        "NetworkIsolation",
+        "EdgeComputing",
+        "Encryption"
+      ]
+    },
+    {
+      "title": "Revolutionizing AI Coordination with Mother AI OS",
+      "url": "/blog/2026-01-29-title-revolutionizing-ai-coordination-with-mother-",
+      "date": "2026-02-20",
+      "keywords": [
+        "Mother AI OS is an agent operating system layer (not kernel replacement) for coordinating AI tools. Architecture covering CLI orchestration, plugin system, and local-first design",
+        "AI",
+        "operating",
+        "system",
+        "CLI",
+        "plugin",
+        "system",
+        "local-first",
+        "AI",
+        "tools",
+        "technology",
+        "integration"
+      ]
+    },
+    {
+      "title": "Open Source Excellence: Navigating Mother AI OS Development",
+      "url": "/blog/2026-01-29-title-open-source-excellence-navigating-mother-ai-",
+      "date": "2026-01-29",
+      "keywords": [
+        "Mother AI OS open source development model covering community contributions, governance, release management, and maintaining project quality",
+        "AI",
+        "development",
+        "open-source",
+        "software",
+        "community",
+        "contributions",
+        "software",
+        "governance",
+        "project",
+        "management",
+        "AI",
+        "applications",
+        "software",
+        "quality"
+      ]
+    },
+    {
+      "title": "Navigating the Mother AI OS Plugin Marketplace: Discovery, Installation, and Configuration",
+      "url": "/blog/2026-03-10-navigating-the-mother-ai-os-plugin-marketplace-dis",
+      "date": "2026-03-10",
+      "keywords": [
+        "Mother AI OS Plugin Marketplace: Discovery, Installation, and Configuration",
+        "AI",
+        "plugins",
+        "MotherAI",
+        "techinnovation",
+        "digitaltransformation"
+      ]
+    },
+    {
+      "title": "Navigating Performance Tuning: Optimizing Mother AI OS for High-Throughput Workloads",
+      "url": "/blog/2026-03-10-navigating-performance-tuning-optimizing-mother-ai",
+      "date": "2026-03-10",
+      "keywords": [
+        "Performance Tuning: Optimizing Mother AI OS for High-Throughput Workloads",
+        "AIOptimization",
+        "CPUPerformance",
+        "MemoryManagement",
+        "AsyncIO",
+        "PerformanceTuning"
+      ]
+    },
+    {
+      "title": "Mother AI OS: Future Roadmap and Evolutionary Vision",
+      "url": "/blog/2026-01-29-title-mother-ai-os-future-roadmap-and-evolutionary",
+      "date": "2026-01-29",
+      "keywords": [
+        "Mother AI OS development roadmap covering planned features, community requests, architectural improvements, and long-term vision for agent operating system evolution",
+        "AI",
+        "operating",
+        "systems",
+        "Mother",
+        "AI",
+        "OS",
+        "technology",
+        "roadmap",
+        "AI",
+        "development",
+        "machine",
+        "learning",
+        "innovation"
+      ]
+    },
+    {
+      "title": "Mother AI OS: Error Handling in Multi-Tool Workflows",
+      "url": "/blog/2026-01-29-mother-ai-os-error-handling-in-multi-tool-workflow",
+      "date": "2026-01-29",
+      "keywords": [
+        "Mother AI OS error handling architecture. Patterns for graceful degradation, retry logic, fallback mechanisms, and recovery strategies in multi-tool AI workflows",
+        "AIworkflow",
+        "errorhandling",
+        "MotherAIOS",
+        "gracefuldegradation",
+        "retrylogic",
+        "fallbackmechanisms",
+        "AIarchitecture"
+      ]
+    },
+    {
+      "title": "Mother AI OS vs. LangChain vs. CrewAI: A Practical Comparison",
+      "url": "/blog/2026-03-10-mother-ai-os-vs-langchain-vs-crewai-a-practical-co",
+      "date": "2026-03-10",
+      "keywords": [
+        "Mother AI OS vs. LangChain vs. CrewAI: A Practical Comparison"
+      ]
+    },
+    {
+      "title": "Migrating from LangChain to Mother AI OS: A Step-by-Step Guide",
+      "url": "/blog/2026-03-10-migrating-from-langchain-to-mother-ai-os-a-step-by",
+      "date": "2026-03-10",
+      "keywords": [
+        "Migrating from LangChain to Mother AI OS: A Step-by-Step Guide",
+        "AI_Migration",
+        "MotherAIOS",
+        "LangChainTransition",
+        "AIPlatform",
+        "TechMigration"
+      ]
+    },
+    {
+      "title": "Mastering Multi-Website Management with Mother AI OS",
+      "url": "/blog/2026-03-10-mastering-multi-website-management-with-mother-ai-",
+      "date": "2026-03-10",
+      "keywords": [
+        "How We Use Mother AI OS to Manage Seven Websites Simultaneously",
+        "AI",
+        "website",
+        "management",
+        "automation",
+        "digital",
+        "strategy",
+        "technology",
+        "management"
+      ]
+    },
+    {
+      "title": "Mastering Mother AI OS: A Comprehensive Beginner to Advanced Guide",
+      "url": "/blog/2026-01-29-title-mastering-mother-ai-os-a-comprehensive-begin",
+      "date": "2026-01-29",
+      "keywords": [
+        "Comprehensive getting started guide for Mother AI OS covering installation, first plugin, creating workflows, and progressing from beginner to advanced usage",
+        "AI",
+        "MotherAIOS",
+        "MachineLearning",
+        "WorkflowAutomation",
+        "TechGuide",
+        "ArtificialIntelligence",
+        "SoftwareDevelopment"
+      ]
+    },
+    {
+      "title": "Mastering Mother AI OS Configuration Management",
+      "url": "/blog/2026-01-29-mastering-mother-ai-os-configuration-management",
+      "date": "2026-01-29",
+      "keywords": [
+        "Mother AI OS configuration management system. User profiles, environment variables, secrets management, and portable configuration across installations",
+        "AI",
+        "ConfigurationManagement",
+        "MotherAIOS",
+        "DevOps",
+        "SecretsManagement",
+        "CloudComputing",
+        "ITInfrastructure"
+      ]
+    },
+    {
+      "title": "Mastering Error Recovery Patterns in Multi-Agent Systems: Code Examples & Strategies",
+      "url": "/blog/2026-03-10-mastering-error-recovery-patterns-in-multi-agent-s",
+      "date": "2026-03-10",
+      "keywords": [
+        "Error Recovery Patterns in Multi-Agent Systems: Code Examples",
+        "errorrecovery",
+        "multiagentsystems",
+        "AI",
+        "distributedcomputing",
+        "systemsengineering"
+      ]
+    },
+    {
+      "title": "Mastering Autonomous Workflows in Mother AI OS",
+      "url": "/blog/2026-01-29-title-mastering-autonomous-workflows-in-mother-ai-",
+      "date": "2026-01-29",
+      "keywords": [
+        "Creating autonomous workflows in Mother AI OS that coordinate multiple AI tools. Real examples of multi-step automation including error recovery and adaptive execution",
+        "AIautomation",
+        "MotherAIOS",
+        "WorkflowAutomation",
+        "ErrorRecovery",
+        "AdaptiveExecution",
+        "AItools",
+        "BusinessEfficiency"
+      ]
+    },
+    {
+      "title": "Mastering AI Oversight: Audit Logging and Policy Enforcement",
+      "url": "/blog/2026-01-29-mastering-ai-oversight-audit-logging-and-policy-en",
+      "date": "2026-03-11",
+      "keywords": [
+        "Mother AI OS audit logging and policy enforcement for AI agent actions. Implementation of action logs, policy rules, approval workflows, and forensic capabilities",
+        "AI",
+        "AuditLogging",
+        "PolicyEnforcement",
+        "AICompliance",
+        "AIGovernance",
+        "CyberSecurity",
+        "DataProtection"
+      ]
+    },
+    {
+      "title": "Mastering AI OS Monitoring: Logging, Metrics, and More",
+      "url": "/blog/2026-01-29-title-mastering-ai-os-monitoring-logging-metrics-a",
+      "date": "2026-01-29",
+      "keywords": [
+        "Mother AI OS monitoring and observability. Implementing logging, metrics, tracing, and debugging capabilities for complex AI agent workflows",
+        "AI",
+        "monitoring",
+        "observability",
+        "logging",
+        "metrics",
+        "tracing",
+        "debugging",
+        "best",
+        "practices"
+      ]
+    },
+    {
+      "title": "Making the Most of Multi-LLM Configurations: Mother AI OS with OpenAI and Anthropic",
+      "url": "/blog/2026-03-10-making-the-most-of-multi-llm-configurations-mother",
+      "date": "2026-03-10",
+      "keywords": [
+        "Mother AI OS + OpenAI + Anthropic: Configuring Multiple LLM Providers",
+        "**",
+        "LLM",
+        "AIIntegration",
+        "MotherAIOS",
+        "OpenAI",
+        "Anthropic"
+      ]
+    },
+    {
+      "title": "Local-First AI: Embracing Independence with Mother AI OS",
+      "url": "/blog/2026-03-10-local-first-ai-embracing-independence-with-mother-",
+      "date": "2026-03-10",
+      "keywords": [
+        "Local-First AI: Running Mother AI OS Without Cloud Dependencies",
+        "AIprivacy",
+        "localAI",
+        "MotherAIOS",
+        "AIfuture",
+        "digitaltransformation"
+      ]
+    },
+    {
+      "title": "Integrating AI Tools with Mother AI OS: Best Practices and Patterns",
+      "url": "/blog/2026-01-29-title-integrating-ai-tools-with-mother-ai-os-best-",
+      "date": "2026-01-29",
+      "keywords": [
+        "Mother AI OS integration patterns for AI tools. Best practices for wrapping CLI tools, API integrations, and creating unified interfaces across heterogeneous AI systems",
+        "AI",
+        "integration",
+        "Mother",
+        "AI",
+        "OS",
+        "CLI",
+        "tools",
+        "API",
+        "integration",
+        "unified",
+        "interfaces",
+        "AI",
+        "systems",
+        "best",
+        "practices"
+      ]
+    }
+  ],
+  "ecosystem": [
+    {
+      "name": "UAPK Gateway",
+      "url": "https://uapk.info",
+      "role": "AI Governance"
+    },
+    {
+      "name": "Lawkraft",
+      "url": "https://lawkraft.com",
+      "role": "AI Consulting"
+    },
+    {
+      "name": "Morpheus Mark",
+      "url": "https://morpheusmark.com",
+      "role": "IP Enforcement"
+    },
+    {
+      "name": "Quantum AI Trading",
+      "url": "https://quantum-ai-trading-bot.info",
+      "role": "Trading Research"
+    }
+  ]
+}
