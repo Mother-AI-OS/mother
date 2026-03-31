@@ -116,6 +116,10 @@ const config = {
                 label: 'GitHub',
                 href: 'https://github.com/Mother-AI-OS/mother',
               },
+              {
+                label: 'Imprint',
+                to: '/imprint',
+              },
             ],
           },
           {
