@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import {useEffect, useRef} from 'react';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
@@ -227,6 +228,39 @@ curl -X POST localhost:8080/command \\
   );
 }
 
+function BookingWidget() {
+  const widgetRef = useRef(null);
+
+  useEffect(() => {
+    if (!widgetRef.current) return;
+    // Only load once
+    if (document.querySelector('script[src*="book.lawkraft.com/widget/scheduler.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'https://book.lawkraft.com/widget/scheduler.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  return (
+    <section className={styles.cta}>
+      <div className="container text--center">
+        <Heading as="h2">Book a Free Architecture Discovery Call</Heading>
+        <p style={{fontSize: '1.2rem', marginBottom: '2rem'}}>
+          20 minutes with David Sanker — explore how Mother AI OS fits your stack.
+        </p>
+        <div
+          ref={widgetRef}
+          id="fc-scheduler"
+          data-brand="mother_ai"
+          data-type="discovery-call"
+          data-api="https://book.lawkraft.com"
+          style={{maxWidth: '520px', margin: '0 auto'}}
+        />
+      </div>
+    </section>
+  );
+}
+
 function CTA() {
   return (
     <section className={styles.cta}>
@@ -268,6 +302,7 @@ export default function Home() {
         <HomepageFeatures />
         <BuiltInPlugins />
         <QuickStart />
+        <BookingWidget />
         <CTA />
       </main>
     </Layout>
