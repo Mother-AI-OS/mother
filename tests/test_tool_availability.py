@@ -1,6 +1,6 @@
 """Comprehensive tool availability test suite for Mother AI OS.
 
-Verifies that all 16 builtin plugins (144 capabilities) and 8 external
+Verifies that all 19 builtin plugins (216 capabilities) and 8 external
 tool repos are available end-to-end. Catches:
 - Missing plugins or capabilities after code changes
 - External CLIs that become unavailable
@@ -65,7 +65,7 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
         "email", "fax", "post", "bea", "channels", "history",
         "get", "stats",
     ],
-    "taxlord": [
+    "taxcraft": [
         "ingest", "search", "ask", "balance", "report", "documents",
         "ledgers", "elster_status", "vat", "sync",
     ],
@@ -95,9 +95,32 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
         "connect", "run_command", "read_file", "list_directory",
         "download_file", "upload_file", "list_vms", "list_projects",
     ],
+    "taskcraft": [
+        "focus", "top", "list", "inbox", "search", "status", "soul", "goals",
+        "clients", "sync_status", "ingest_stats", "ingest_recent", "weigh",
+        "conflict", "ask", "add", "complete",
+    ],
+    "contentcraft": [
+        "status", "published", "portfolio_stats", "portfolio_projects",
+        "drafts_list", "drafts_show", "drafts_approve", "drafts_reject",
+        "drafts_submit", "drafts_sync", "drafts_export", "drafts_import",
+        "generate", "quick_post", "generate_variants", "regenerate", "render",
+        "publish", "publish_both", "deploy", "queue_list", "queue_schedule",
+        "queue_process", "series_list", "series_show", "series_progress",
+        "series_create", "series_generate", "series_publish", "sources_list",
+        "sources_fetch", "analytics_summary", "analytics_post", "persona_list",
+        "persona_show", "voice_list", "voice_show", "contracts_show",
+        "contracts_validate", "batch_status", "batch_run", "verify_remote",
+    ],
+    "longcraft": [
+        "persona_list", "persona_show", "persona_init", "write", "book_init",
+        "book_outline", "book_write", "book_lint", "export", "train_ingest",
+        "train_build_sft", "train_build_dpo", "train_sft",
+    ],
 }
 
-EXPECTED_TOTAL_CAPABILITIES = 144
+# 144 (16 plugins) + taskcraft 17 + contentcraft 42 + longcraft 13 = 216
+EXPECTED_TOTAL_CAPABILITIES = 216
 
 # Capabilities that MUST require confirmation (destructive / side-effect ops)
 DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
@@ -225,7 +248,7 @@ READ_ONLY_CAPABILITIES: list[tuple[str, str]] = [
 # External CLI tool binaries
 EXTERNAL_CLI_TOOLS: dict[str, str] = {
     "leads": "leads",
-    "taxlord": "taxlord",
+    "taxcraft": "taxcraft",
     "mattercraft": "mattercraft",
     "mailcraft": "mailcraft",
     "gcp-draft": "gcp-draft",
@@ -242,7 +265,7 @@ CATALOG_TOOL_NAMES = [
     "datacraft",
     "leadengine",
     "lawkraft-transmit",
-    "taxlord",
+    "taxcraft",
     "acnjxn",
     "helpers",
 ]
@@ -264,10 +287,10 @@ def _instantiate_plugin(name: str) -> PluginBase:
 
 
 class TestBuiltinPluginRegistry:
-    """Verify all 16 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
+    """Verify all 19 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
 
     def test_all_plugins_registered(self) -> None:
-        """Assert exactly 16 plugins with expected names."""
+        """Assert exactly 19 plugins with expected names."""
         expected_names = set(EXPECTED_PLUGINS.keys())
         actual_names = set(BUILTIN_PLUGINS.keys())
         assert actual_names == expected_names, (
@@ -275,7 +298,7 @@ class TestBuiltinPluginRegistry:
             f"  Missing: {expected_names - actual_names}\n"
             f"  Extra:   {actual_names - expected_names}"
         )
-        assert len(BUILTIN_PLUGINS) == 16
+        assert len(BUILTIN_PLUGINS) == len(EXPECTED_PLUGINS) == 19
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
     def test_all_plugins_instantiate(self, plugin_name: str) -> None:
@@ -766,8 +789,8 @@ class TestPluginExecution:
 
     async def test_taxlord_elster_status(self) -> None:
         """taxlord.elster_status executes (skipped if CLI unavailable)."""
-        if shutil.which("taxlord") is None:
+        if shutil.which("taxcraft") is None:
             pytest.skip("taxlord CLI not available")
-        plugin = _instantiate_plugin("taxlord")
+        plugin = _instantiate_plugin("taxcraft")
         result = await plugin.execute("elster_status", {})
         assert isinstance(result, PluginResult)

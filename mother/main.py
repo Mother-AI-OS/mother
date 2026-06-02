@@ -1,6 +1,7 @@
 """Mother Agent - FastAPI application entry point."""
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -29,9 +30,18 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     logger.info(f"Starting Mother Agent v{__version__}")
 
-    # Initialize tool registry with high-risk plugins explicitly enabled
+    # Initialize tool registry with high-risk plugins explicitly enabled.
+    # Configurable via MOTHER_ENABLED_PLUGINS (comma-separated); defaults to the
+    # owner's own *Craft tools. Override with "" to enable none.
+    _default_enabled = ["mattercraft", "contentcraft", "longcraft"]
+    _env_enabled = os.environ.get("MOTHER_ENABLED_PLUGINS")
+    enabled_plugins = (
+        [p.strip() for p in _env_enabled.split(",") if p.strip()]
+        if _env_enabled is not None
+        else _default_enabled
+    )
     plugin_config = PluginConfig(
-        explicitly_enabled_plugins=["mattercraft", "contentcraft", "longcraft"],
+        explicitly_enabled_plugins=enabled_plugins,
     )
     registry = ToolRegistry(settings=settings, plugin_config=plugin_config)
     logger.info(f"Loaded {len(registry.wrappers)} tools: {list(registry.wrappers.keys())}")

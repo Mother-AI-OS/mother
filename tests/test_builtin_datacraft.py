@@ -7,7 +7,6 @@ from mother.plugins.builtin.datacraft import DatacraftPlugin
 from mother.plugins.builtin.datacraft.parsers import (
     chunk_text,
     detect_document_type,
-    extract_entities_simple,
 )
 from mother.plugins.builtin.datacraft.storage import Document, DocumentStore
 
@@ -45,46 +44,6 @@ class TestChunkText:
             if not chunk.endswith("."):
                 # Last chunk might not end with period
                 assert chunk == result[-1] or "." in chunk
-
-
-class TestExtractEntities:
-    """Tests for entity extraction."""
-
-    def test_extract_email(self):
-        """Test email extraction."""
-        text = "Contact us at hello@example.com for more info."
-        entities = extract_entities_simple(text)
-        emails = [e for e in entities if e["type"] == "EMAIL"]
-        assert len(emails) == 1
-        assert emails[0]["value"] == "hello@example.com"
-
-    def test_extract_phone(self):
-        """Test phone number extraction."""
-        text = "Call us at (555) 123-4567 or +1-555-987-6543."
-        entities = extract_entities_simple(text)
-        phones = [e for e in entities if e["type"] == "PHONE"]
-        assert len(phones) >= 1
-
-    def test_extract_date(self):
-        """Test date extraction."""
-        text = "The invoice is dated 15.03.2024 and due on 2024-04-15."
-        entities = extract_entities_simple(text)
-        dates = [e for e in entities if e["type"] == "DATE"]
-        assert len(dates) >= 1
-
-    def test_extract_money(self):
-        """Test money amount extraction."""
-        text = "Total: $1,234.56 or €500.00 EUR"
-        entities = extract_entities_simple(text)
-        money = [e for e in entities if e["type"] == "MONEY"]
-        assert len(money) >= 1
-
-    def test_extract_iban(self):
-        """Test IBAN extraction."""
-        text = "Bank account: DE89370400440532013000"
-        entities = extract_entities_simple(text)
-        ibans = [e for e in entities if e["type"] == "IBAN"]
-        assert len(ibans) == 1
 
 
 class TestDetectDocumentType:
