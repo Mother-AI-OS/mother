@@ -31,10 +31,10 @@ def _check_optional_features() -> dict:
     home = Path.home()
     features = {}
 
-    # German legal tools (taxlord, leads)
+    # German legal tools (taxcraft, leads)
     features["german_legal"] = {
-        "taxlord": (home / ".local" / "bin" / "taxlord").exists()
-        or (home / "projects" / "taxlord" / ".venv" / "bin" / "taxlord").exists(),
+        "taxcraft": (home / ".local" / "bin" / "taxcraft").exists()
+        or (home / "projects" / "taxlord" / ".venv" / "bin" / "taxcraft").exists(),
         "leads": (home / ".local" / "bin" / "leads").exists(),
     }
 

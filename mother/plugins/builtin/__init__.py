@@ -13,25 +13,26 @@ Plugins:
 - datacraft: Document processing (parse, search, extract tables)
 - tasks: Task management (add, list, complete, prioritize)
 - transmit: Document transmission (email, fax, post, beA)
-- taxlord: German tax and document management (optional)
+- taxcraft: German tax and document management (optional)
 - leads: German tender and lead generation (optional)
 - mailcraft: AI-powered email management (categorization, triage, cleanup)
 - mattercraft: Legal matter management with knowledge graph RAG
-- acnjxn: AI-enhanced task management with value alignment and Google Tasks sync
+- taskcraft: AI-enhanced task management with value alignment and Google Tasks sync
 - contentcraft: AI-powered content creation and multi-platform publishing
 - longcraft: Persona-driven content generation with fine-tuning
 - google_docs: Google Docs template management (optional)
 - tor: Tor network and darknet access (anonymous browsing, .onion sites)
-- tor_shell: Shell command wrappers for darknet functionality
+  — HIGH-RISK: registered but not enabled by default; blocked by safe_mode.
+- tor_shell: Shell command wrappers for darknet functionality — HIGH-RISK, see tor.
 - ssh: SSH access to remote VMs (command execution, file operations)
 """
 
-from .acnjxn import AcnjxnPlugin
+from .taskcraft import TaskcraftPlugin
 from .contentcraft import ContentcraftPlugin
 from .datacraft import DatacraftPlugin
 from .email import EmailPlugin
 from .filesystem import FilesystemPlugin
-from .german import LeadsPlugin, TaxlordPlugin
+from .german import LeadsPlugin, TaxCraftPlugin
 from .google import GoogleDocsPlugin
 from .longcraft import LongcraftPlugin
 from .mailcraft import MailcraftPlugin
@@ -48,7 +49,7 @@ from .web import WebPlugin
 # Registry of built-in plugins
 # Maps plugin name -> plugin class
 BUILTIN_PLUGINS: dict[str, type] = {
-    "acnjxn": AcnjxnPlugin,
+    "taskcraft": TaskcraftPlugin,
     "contentcraft": ContentcraftPlugin,
     "filesystem": FilesystemPlugin,
     "shell": ShellPlugin,
@@ -58,12 +59,16 @@ BUILTIN_PLUGINS: dict[str, type] = {
     "datacraft": DatacraftPlugin,
     "tasks": TasksPlugin,
     "transmit": TransmitPlugin,
-    "taxlord": TaxlordPlugin,
+    "taxcraft": TaxCraftPlugin,
     "leads": LeadsPlugin,
     "longcraft": LongcraftPlugin,
     "mailcraft": MailcraftPlugin,
     "mattercraft": MattercraftPlugin,
     "google-docs": GoogleDocsPlugin,
+    # Tor / tor-shell are registered but high-risk: they are NOT in the default
+    # enabled set (see explicitly_enabled_plugins in main.py) and safe_mode
+    # (default True) blocks all high-risk capabilities, so they only run when a
+    # user explicitly enables them. Keep them out of any default-enabled list.
     "tor": TorPlugin,
     "tor-shell": TorShellPlugin,
     "ssh": SSHPlugin,
@@ -92,7 +97,7 @@ def get_builtin_plugin(name: str) -> type | None:
 
 
 __all__ = [
-    "AcnjxnPlugin",
+    "TaskcraftPlugin",
     "ContentcraftPlugin",
     "DatacraftPlugin",
     "EmailPlugin",
@@ -106,7 +111,7 @@ __all__ = [
     "ShellPlugin",
     "SSHPlugin",
     "TasksPlugin",
-    "TaxlordPlugin",
+    "TaxCraftPlugin",
     "TorPlugin",
     "TorShellPlugin",
     "TransmitPlugin",

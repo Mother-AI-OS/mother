@@ -9,7 +9,7 @@ All tool functionality is now provided by plugins in mother.plugins.builtin:
 - datacraft: Document processing and search
 - tasks: Task management
 - transmit: Document transmission (email, fax, post, beA)
-- taxlord: German tax automation
+- taxcraft: German tax automation
 - leads: Lead generation
 - google-docs: Google Docs integration
 """
