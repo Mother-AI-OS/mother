@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .. import __version__
 from ..config.settings import get_settings
-from ..plugins import PluginConfig, PluginManager
+from ..plugins import PluginConfig, PluginManager, resolve_enabled_plugins
 from ..tools.registry import ToolRegistry
 
 
@@ -63,7 +63,7 @@ async def show_status(json_output: bool = False) -> int:
     settings = get_settings()
 
     # Initialize plugin manager
-    plugin_config = PluginConfig()
+    plugin_config = PluginConfig(explicitly_enabled_plugins=resolve_enabled_plugins())
     plugin_manager = PluginManager(plugin_config)
     plugin_manager.discover()
     await plugin_manager.load_all()
