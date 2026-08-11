@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from ..plugins import PluginConfig, PluginInfo, PluginManager
+from ..plugins import PluginConfig, PluginInfo, PluginManager, resolve_enabled_plugins
 
 
 def _get_plugin_manager() -> PluginManager:
@@ -13,6 +13,9 @@ def _get_plugin_manager() -> PluginManager:
     config = PluginConfig(
         auto_discover=True,
         auto_load=False,  # Don't auto-load for CLI inspection
+        # Mirror the server's enabled set, otherwise `mother plugin list`
+        # reports plugins as skipped that the running server actually loads.
+        explicitly_enabled_plugins=resolve_enabled_plugins(),
     )
     return PluginManager(config)
 

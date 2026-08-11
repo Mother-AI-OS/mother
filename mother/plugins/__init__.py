@@ -26,6 +26,7 @@ Example usage:
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -136,6 +137,40 @@ __all__ = [
     "PluginValidationError",
     "PolicyViolationError",
 ]
+
+
+# Builtin plugins that are disabled-by-default (they declare filesystem:write)
+# but are sanctioned for this operator, so both the server and the CLI enable
+# them explicitly. Keep this list and mother_policy.yaml in agreement: every
+# name here should have per-capability allow/confirm rules in the policy.
+#
+# Deliberately NOT included:
+#   taxcraft      risk_level HIGH — files real ELSTER tax returns; owner decision
+#   leads         no authored policy rules yet
+#   filesystem    unscoped write access
+#   web           unscoped fetch + write
+#   darkweb-osint HIGH by design; contained, explicit-enable only
+DEFAULT_ENABLED_HIGH_RISK_PLUGINS = [
+    "mattercraft",
+    "contentcraft",
+    "longcraft",
+    "pdf",
+    "datacraft",
+]
+
+
+def resolve_enabled_plugins() -> list[str]:
+    """Resolve which disabled-by-default plugins to explicitly enable.
+
+    Single source of truth for the server (mother.main) and the CLI
+    (mother plugin / mother status) so the two cannot report different
+    plugin sets. Override with MOTHER_ENABLED_PLUGINS (comma-separated);
+    set it to "" to enable none.
+    """
+    env = os.environ.get("MOTHER_ENABLED_PLUGINS")
+    if env is None:
+        return list(DEFAULT_ENABLED_HIGH_RISK_PLUGINS)
+    return [p.strip() for p in env.split(",") if p.strip()]
 
 
 @dataclass

@@ -1,6 +1,6 @@
 """Comprehensive tool availability test suite for Mother AI OS.
 
-Verifies that all 19 builtin plugins (216 capabilities) and 8 external
+Verifies that all 20 builtin plugins (219 capabilities) and 9 external
 tool repos are available end-to-end. Catches:
 - Missing plugins or capabilities after code changes
 - External CLIs that become unavailable
@@ -12,14 +12,13 @@ tool repos are available end-to-end. Catches:
 from __future__ import annotations
 
 import shutil
-import tempfile
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
 
-from mother.plugins.base import PluginBase, PluginResult, ResultStatus
+from mother.plugins.base import PluginBase, PluginResult
 from mother.plugins.builtin import (
     BUILTIN_PLUGINS,
     get_builtin_plugin,
@@ -32,95 +31,258 @@ from mother.plugins.builtin import (
 
 EXPECTED_PLUGINS: dict[str, list[str]] = {
     "filesystem": [
-        "read_file", "write_file", "append_file", "list_directory",
-        "file_info", "delete_file", "copy_file", "move_file",
-        "create_directory", "exists",
+        "read_file",
+        "write_file",
+        "append_file",
+        "list_directory",
+        "file_info",
+        "delete_file",
+        "copy_file",
+        "move_file",
+        "create_directory",
+        "exists",
     ],
     "shell": [
-        "run_command", "run_script", "get_env", "list_env", "which",
-        "get_cwd", "hostname", "whoami", "command_exists", "system_info",
+        "run_command",
+        "run_script",
+        "get_env",
+        "list_env",
+        "which",
+        "get_cwd",
+        "hostname",
+        "whoami",
+        "command_exists",
+        "system_info",
     ],
     "web": [
-        "fetch", "get", "post", "head", "download", "check_url",
-        "get_json", "extract_links", "parse_url", "encode_url",
+        "fetch",
+        "get",
+        "post",
+        "head",
+        "download",
+        "check_url",
+        "get_json",
+        "extract_links",
+        "parse_url",
+        "encode_url",
     ],
     "email": [
-        "list_accounts", "list_folders", "list_messages", "search_messages",
-        "read_message", "send_message", "unread_count", "mark_message",
-        "delete_message", "move_message",
+        "list_accounts",
+        "list_folders",
+        "list_messages",
+        "search_messages",
+        "read_message",
+        "send_message",
+        "unread_count",
+        "mark_message",
+        "delete_message",
+        "move_message",
     ],
     "pdf": [
-        "merge", "split", "extract_pages", "info", "rotate",
-        "delete_pages", "count_pages",
+        "merge",
+        "split",
+        "extract_pages",
+        "info",
+        "rotate",
+        "delete_pages",
+        "count_pages",
     ],
     "datacraft": [
-        "process", "search", "tables", "get", "list", "stats",
-        "graph", "delete",
+        "process",
+        "search",
+        "tables",
+        "get",
+        "list",
+        "stats",
+        "graph",
+        "delete",
     ],
     "tasks": [
-        "focus", "top", "add", "list", "complete", "update",
-        "delete", "get", "search", "stats", "areas",
+        "focus",
+        "top",
+        "add",
+        "list",
+        "complete",
+        "update",
+        "delete",
+        "get",
+        "search",
+        "stats",
+        "areas",
     ],
     "transmit": [
-        "email", "fax", "post", "bea", "channels", "history",
-        "get", "stats",
+        "email",
+        "fax",
+        "post",
+        "bea",
+        "channels",
+        "history",
+        "get",
+        "stats",
     ],
     "taxcraft": [
-        "ingest", "search", "ask", "balance", "report", "documents",
-        "ledgers", "elster_status", "vat", "sync",
+        "ingest",
+        "search",
+        "ask",
+        "balance",
+        "report",
+        "documents",
+        "ledgers",
+        "elster_status",
+        "vat",
+        "sync",
     ],
     "leads": ["fetch", "list", "show", "analyze", "status"],
     "mailcraft": [
-        "fetch", "list", "search", "read", "send", "categorize",
-        "cleanup", "clean_spam", "batch_delete", "learn_from_trash",
-        "semantic_search", "stats",
+        "fetch",
+        "list",
+        "search",
+        "read",
+        "send",
+        "categorize",
+        "cleanup",
+        "clean_spam",
+        "batch_delete",
+        "learn_from_trash",
+        "semantic_search",
+        "stats",
     ],
     "mattercraft": [
-        "create", "list", "show", "search", "edit", "archive",
-        "delete", "ingest", "query", "entities", "timeline",
-        "tenders_list", "tenders_import",
+        "create",
+        "list",
+        "show",
+        "search",
+        "edit",
+        "archive",
+        "delete",
+        "ingest",
+        "query",
+        "entities",
+        "timeline",
+        "tenders_list",
+        "tenders_import",
     ],
     "google-docs": ["list", "get", "send", "status"],
     "tor": [
-        "tor_check_status", "tor_fetch", "tor_browse", "tor_start",
-        "tor_stop", "tor_new_identity", "tor_verified_sites",
-        "darknet_bbc", "darknet_cia", "darknet_ddg",
+        "tor_check_status",
+        "tor_fetch",
+        "tor_browse",
+        "tor_start",
+        "tor_stop",
+        "tor_new_identity",
+        "tor_verified_sites",
+        "darknet_bbc",
+        "darknet_cia",
+        "darknet_ddg",
     ],
     "tor-shell": [
-        "darknet_dw", "darknet_voa", "darknet_rferl", "darknet_bellingcat",
-        "darknet_propublica", "darknet_nyt", "darknet_bookmarks",
+        "darknet_dw",
+        "darknet_voa",
+        "darknet_rferl",
+        "darknet_bellingcat",
+        "darknet_propublica",
+        "darknet_nyt",
+        "darknet_bookmarks",
         "darknet_news",
     ],
     "ssh": [
-        "connect", "run_command", "read_file", "list_directory",
-        "download_file", "upload_file", "list_vms", "list_projects",
+        "connect",
+        "run_command",
+        "read_file",
+        "list_directory",
+        "download_file",
+        "upload_file",
+        "list_vms",
+        "list_projects",
+    ],
+    "darkweb-osint": [
+        "robin_investigate",
+        "robin_search",
+        "robin_health",
     ],
     "taskcraft": [
-        "focus", "top", "list", "inbox", "search", "status", "soul", "goals",
-        "clients", "sync_status", "ingest_stats", "ingest_recent", "weigh",
-        "conflict", "ask", "add", "complete",
+        "focus",
+        "top",
+        "list",
+        "inbox",
+        "search",
+        "status",
+        "soul",
+        "goals",
+        "clients",
+        "sync_status",
+        "ingest_stats",
+        "ingest_recent",
+        "weigh",
+        "conflict",
+        "ask",
+        "add",
+        "complete",
     ],
     "contentcraft": [
-        "status", "published", "portfolio_stats", "portfolio_projects",
-        "drafts_list", "drafts_show", "drafts_approve", "drafts_reject",
-        "drafts_submit", "drafts_sync", "drafts_export", "drafts_import",
-        "generate", "quick_post", "generate_variants", "regenerate", "render",
-        "publish", "publish_both", "deploy", "queue_list", "queue_schedule",
-        "queue_process", "series_list", "series_show", "series_progress",
-        "series_create", "series_generate", "series_publish", "sources_list",
-        "sources_fetch", "analytics_summary", "analytics_post", "persona_list",
-        "persona_show", "voice_list", "voice_show", "contracts_show",
-        "contracts_validate", "batch_status", "batch_run", "verify_remote",
+        "status",
+        "published",
+        "portfolio_stats",
+        "portfolio_projects",
+        "drafts_list",
+        "drafts_show",
+        "drafts_approve",
+        "drafts_reject",
+        "drafts_submit",
+        "drafts_sync",
+        "drafts_export",
+        "drafts_import",
+        "generate",
+        "quick_post",
+        "generate_variants",
+        "regenerate",
+        "render",
+        "publish",
+        "publish_both",
+        "deploy",
+        "queue_list",
+        "queue_schedule",
+        "queue_process",
+        "series_list",
+        "series_show",
+        "series_progress",
+        "series_create",
+        "series_generate",
+        "series_publish",
+        "sources_list",
+        "sources_fetch",
+        "analytics_summary",
+        "analytics_post",
+        "persona_list",
+        "persona_show",
+        "voice_list",
+        "voice_show",
+        "contracts_show",
+        "contracts_validate",
+        "batch_status",
+        "batch_run",
+        "verify_remote",
     ],
     "longcraft": [
-        "persona_list", "persona_show", "persona_init", "write", "book_init",
-        "book_outline", "book_write", "book_lint", "export", "train_ingest",
-        "train_build_sft", "train_build_dpo", "train_sft",
+        "persona_list",
+        "persona_show",
+        "persona_init",
+        "write",
+        "book_init",
+        "book_outline",
+        "book_write",
+        "book_lint",
+        "export",
+        "train_ingest",
+        "train_build_sft",
+        "train_build_dpo",
+        "train_sft",
     ],
 }
 
-# 144 (16 plugins) + taskcraft 17 + contentcraft 42 + longcraft 13 = 216
-EXPECTED_TOTAL_CAPABILITIES = 216
+# 144 (16 plugins) + taskcraft 17 + contentcraft 42 + longcraft 13
+# + darkweb-osint 3 = 219
+EXPECTED_TOTAL_CAPABILITIES = 219
 
 # Capabilities that MUST require confirmation (destructive / side-effect ops)
 DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
@@ -268,12 +430,14 @@ CATALOG_TOOL_NAMES = [
     "taxcraft",
     "acnjxn",
     "helpers",
+    "flycraft",
 ]
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _instantiate_plugin(name: str) -> PluginBase:
     """Instantiate a builtin plugin by name with empty config."""
@@ -287,10 +451,10 @@ def _instantiate_plugin(name: str) -> PluginBase:
 
 
 class TestBuiltinPluginRegistry:
-    """Verify all 19 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
+    """Verify all 20 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
 
     def test_all_plugins_registered(self) -> None:
-        """Assert exactly 19 plugins with expected names."""
+        """Assert exactly 20 plugins with expected names."""
         expected_names = set(EXPECTED_PLUGINS.keys())
         actual_names = set(BUILTIN_PLUGINS.keys())
         assert actual_names == expected_names, (
@@ -298,7 +462,7 @@ class TestBuiltinPluginRegistry:
             f"  Missing: {expected_names - actual_names}\n"
             f"  Extra:   {actual_names - expected_names}"
         )
-        assert len(BUILTIN_PLUGINS) == len(EXPECTED_PLUGINS) == 19
+        assert len(BUILTIN_PLUGINS) == len(EXPECTED_PLUGINS) == 20
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
     def test_all_plugins_instantiate(self, plugin_name: str) -> None:
@@ -338,9 +502,7 @@ class TestPluginCapabilities:
         sorted(EXPECTED_PLUGINS.items()),
         ids=sorted(EXPECTED_PLUGINS.keys()),
     )
-    def test_plugin_capabilities(
-        self, plugin_name: str, expected_caps: list[str]
-    ) -> None:
+    def test_plugin_capabilities(self, plugin_name: str, expected_caps: list[str]) -> None:
         """Each plugin has the exact expected capabilities (name and count)."""
         plugin = _instantiate_plugin(plugin_name)
         actual_caps = [c.name for c in plugin.get_capabilities()]
@@ -351,8 +513,7 @@ class TestPluginCapabilities:
             f"  Extra:   {set(actual_caps) - set(expected_caps)}"
         )
         assert len(actual_caps) == len(expected_caps), (
-            f"Plugin '{plugin_name}' expected {len(expected_caps)} "
-            f"capabilities, got {len(actual_caps)}"
+            f"Plugin '{plugin_name}' expected {len(expected_caps)} capabilities, got {len(actual_caps)}"
         )
 
     def test_total_capability_count(self) -> None:
@@ -366,15 +527,12 @@ class TestPluginCapabilities:
         )
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
-    def test_no_duplicate_capability_names_within_plugin(
-        self, plugin_name: str
-    ) -> None:
+    def test_no_duplicate_capability_names_within_plugin(self, plugin_name: str) -> None:
         """Each plugin's capabilities have unique names."""
         plugin = _instantiate_plugin(plugin_name)
         names = [c.name for c in plugin.get_capabilities()]
         assert len(names) == len(set(names)), (
-            f"Plugin '{plugin_name}' has duplicate capability names: "
-            f"{[n for n in names if names.count(n) > 1]}"
+            f"Plugin '{plugin_name}' has duplicate capability names: {[n for n in names if names.count(n) > 1]}"
         )
 
 
@@ -406,12 +564,8 @@ class TestAnthropicSchemaGeneration:
             assert "input_schema" in schema, f"Missing 'input_schema' in schema: {schema}"
 
             input_schema = schema["input_schema"]
-            assert input_schema.get("type") == "object", (
-                f"input_schema.type should be 'object' for {schema['name']}"
-            )
-            assert "properties" in input_schema, (
-                f"Missing 'properties' in input_schema for {schema['name']}"
-            )
+            assert input_schema.get("type") == "object", f"input_schema.type should be 'object' for {schema['name']}"
+            assert "properties" in input_schema, f"Missing 'properties' in input_schema for {schema['name']}"
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
     def test_schema_naming_convention(self, plugin_name: str) -> None:
@@ -427,8 +581,7 @@ class TestAnthropicSchemaGeneration:
             # Extract capability part after the plugin prefix
             cap_part = tool_name[len(plugin_name) + 1 :]
             assert cap_part in cap_names, (
-                f"Schema name '{tool_name}' has capability '{cap_part}' "
-                f"not found in plugin capabilities: {cap_names}"
+                f"Schema name '{tool_name}' has capability '{cap_part}' not found in plugin capabilities: {cap_names}"
             )
 
     def test_all_schemas_combined_no_name_collisions(self) -> None:
@@ -441,8 +594,7 @@ class TestAnthropicSchemaGeneration:
 
         assert len(all_names) == EXPECTED_TOTAL_CAPABILITIES
         assert len(all_names) == len(set(all_names)), (
-            f"Schema name collisions: "
-            f"{[n for n in all_names if all_names.count(n) > 1]}"
+            f"Schema name collisions: {[n for n in all_names if all_names.count(n) > 1]}"
         )
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
@@ -458,8 +610,7 @@ class TestAnthropicSchemaGeneration:
             schema_required = schema.get("input_schema", {}).get("required", [])
             for param_name in required_param_names:
                 assert param_name in schema_required, (
-                    f"Required param '{param_name}' missing from schema "
-                    f"'required' list for {plugin_name}.{cap.name}"
+                    f"Required param '{param_name}' missing from schema 'required' list for {plugin_name}.{cap.name}"
                 )
 
 
@@ -476,18 +627,13 @@ class TestConfirmationFlags:
         DESTRUCTIVE_CAPABILITIES,
         ids=[f"{p}.{c}" for p, c in DESTRUCTIVE_CAPABILITIES],
     )
-    def test_destructive_capabilities_require_confirmation(
-        self, plugin_name: str, cap_name: str
-    ) -> None:
+    def test_destructive_capabilities_require_confirmation(self, plugin_name: str, cap_name: str) -> None:
         """Destructive capabilities MUST require confirmation."""
         plugin = _instantiate_plugin(plugin_name)
         cap = plugin.get_capability(cap_name)
-        assert cap is not None, (
-            f"Capability '{cap_name}' not found in plugin '{plugin_name}'"
-        )
+        assert cap is not None, f"Capability '{cap_name}' not found in plugin '{plugin_name}'"
         assert cap.confirmation_required is True, (
-            f"{plugin_name}.{cap_name} should require confirmation "
-            f"(destructive operation)"
+            f"{plugin_name}.{cap_name} should require confirmation (destructive operation)"
         )
 
     @pytest.mark.parametrize(
@@ -495,18 +641,13 @@ class TestConfirmationFlags:
         READ_ONLY_CAPABILITIES,
         ids=[f"{p}.{c}" for p, c in READ_ONLY_CAPABILITIES],
     )
-    def test_read_only_capabilities_no_confirmation(
-        self, plugin_name: str, cap_name: str
-    ) -> None:
+    def test_read_only_capabilities_no_confirmation(self, plugin_name: str, cap_name: str) -> None:
         """Read-only capabilities MUST NOT require confirmation."""
         plugin = _instantiate_plugin(plugin_name)
         cap = plugin.get_capability(cap_name)
-        assert cap is not None, (
-            f"Capability '{cap_name}' not found in plugin '{plugin_name}'"
-        )
+        assert cap is not None, f"Capability '{cap_name}' not found in plugin '{plugin_name}'"
         assert cap.confirmation_required is False, (
-            f"{plugin_name}.{cap_name} should NOT require confirmation "
-            f"(read-only operation)"
+            f"{plugin_name}.{cap_name} should NOT require confirmation (read-only operation)"
         )
 
 
@@ -526,10 +667,7 @@ class TestExternalToolCLIs:
     def test_cli_tool_available(self, tool_name: str, binary: str) -> None:
         """External CLI binary exists in PATH."""
         path = shutil.which(binary)
-        assert path is not None, (
-            f"CLI tool '{binary}' (for {tool_name}) not found in PATH. "
-            f"Is it installed?"
-        )
+        assert path is not None, f"CLI tool '{binary}' (for {tool_name}) not found in PATH. Is it installed?"
 
     # CLIs that don't support --help (e.g. interactive scripts)
     _NO_HELP_FLAG = {"gcp-draft"}
@@ -571,9 +709,7 @@ class TestToolsCatalog:
     @pytest.fixture()
     def catalog(self) -> dict[str, Any]:
         """Load the tools catalog."""
-        assert TOOLS_CATALOG_PATH.exists(), (
-            f"Tools catalog not found at {TOOLS_CATALOG_PATH}"
-        )
+        assert TOOLS_CATALOG_PATH.exists(), f"Tools catalog not found at {TOOLS_CATALOG_PATH}"
         with open(TOOLS_CATALOG_PATH) as f:
             return yaml.safe_load(f)
 
@@ -588,45 +724,39 @@ class TestToolsCatalog:
         tool_names = {t["name"] for t in catalog["tools"]}
         expected = set(CATALOG_TOOL_NAMES)
         assert expected == tool_names, (
-            f"Catalog tool mismatch.\n"
-            f"  Missing: {expected - tool_names}\n"
-            f"  Extra:   {tool_names - expected}"
+            f"Catalog tool mismatch.\n  Missing: {expected - tool_names}\n  Extra:   {tool_names - expected}"
         )
 
-    def test_catalog_entries_have_required_fields(
-        self, catalog: dict[str, Any]
-    ) -> None:
+    def test_catalog_entries_have_required_fields(self, catalog: dict[str, Any]) -> None:
         """Each entry has name, description, repository, version, risk_level,
         integration_types."""
         required_fields = {
-            "name", "description", "repository", "version",
-            "risk_level", "integration_types",
+            "name",
+            "description",
+            "repository",
+            "version",
+            "risk_level",
+            "integration_types",
         }
         for tool in catalog["tools"]:
             missing = required_fields - set(tool.keys())
-            assert not missing, (
-                f"Tool '{tool.get('name', '?')}' missing fields: {missing}"
-            )
+            assert not missing, f"Tool '{tool.get('name', '?')}' missing fields: {missing}"
 
     def test_catalog_risk_levels_valid(self, catalog: dict[str, Any]) -> None:
         """Each risk_level is low/medium/high/critical."""
         valid_levels = {"low", "medium", "high", "critical"}
         for tool in catalog["tools"]:
             assert tool["risk_level"] in valid_levels, (
-                f"Tool '{tool['name']}' has invalid risk_level: "
-                f"'{tool['risk_level']}' (expected one of {valid_levels})"
+                f"Tool '{tool['name']}' has invalid risk_level: '{tool['risk_level']}' (expected one of {valid_levels})"
             )
 
-    def test_catalog_integration_types_valid(
-        self, catalog: dict[str, Any]
-    ) -> None:
+    def test_catalog_integration_types_valid(self, catalog: dict[str, Any]) -> None:
         """Each integration type is cli/python/http/docker."""
         valid_types = {"cli", "python", "http", "docker"}
         for tool in catalog["tools"]:
             for itype in tool["integration_types"]:
                 assert itype in valid_types, (
-                    f"Tool '{tool['name']}' has invalid integration_type: "
-                    f"'{itype}' (expected one of {valid_types})"
+                    f"Tool '{tool['name']}' has invalid integration_type: '{itype}' (expected one of {valid_types})"
                 )
 
 
@@ -704,9 +834,7 @@ class TestPluginExecution:
     async def test_web_parse_url(self) -> None:
         """web.parse_url decomposes a URL."""
         plugin = _instantiate_plugin("web")
-        result = await plugin.execute(
-            "parse_url", {"url": "https://example.com/path?q=1"}
-        )
+        result = await plugin.execute("parse_url", {"url": "https://example.com/path?q=1"})
         assert result.success is True
         assert result.data["scheme"] == "https"
         assert result.data["hostname"] == "example.com"
@@ -768,9 +896,7 @@ class TestPluginExecution:
     # -- unknown capability --
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
-    async def test_unknown_capability_returns_error(
-        self, plugin_name: str
-    ) -> None:
+    async def test_unknown_capability_returns_error(self, plugin_name: str) -> None:
         """All plugins return UNKNOWN_CAPABILITY for bogus capability names."""
         plugin = _instantiate_plugin(plugin_name)
         result = await plugin.execute("__nonexistent_capability__", {})
