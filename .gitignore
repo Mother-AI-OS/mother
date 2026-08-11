@@ -72,3 +72,8 @@ uv.lock
 logs/
 workspace/
 config/
+
+# Tool-generated context/caches (auto-written, not source)
+.codegraph/
+CLAUDE.md
+!/CLAUDE.md
