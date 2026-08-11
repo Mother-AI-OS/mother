@@ -223,6 +223,7 @@ class PolicyEngine:
             r"^shell_",  # Shell execution
             r"^tor_",  # Tor/darknet
             r"^tor-shell_",  # Tor shell
+            r"^robin_",  # Dark web OSINT (robin engine) over Tor
             r"_delete$",  # Delete operations
             r"_write$",  # Write operations (to unknown locations)
             r"_execute$",  # Generic execute

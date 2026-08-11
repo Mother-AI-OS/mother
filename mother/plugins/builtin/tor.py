@@ -172,6 +172,13 @@ class TorPlugin(PluginBase):
         self._tor_proxy_port = config.get("tor_proxy_port", 9050) if config else 9050
         self._tor_control_port = config.get("tor_control_port", 9051) if config else 9051
         self._tor_dns_port = config.get("tor_dns_port", 9053) if config else 9053
+        # Control-port auth cookie (Debian default when CookieAuthentication 1
+        # is set in torrc). Read at NEWNYM time; null-auth fallback if absent.
+        self._tor_cookie_path = (
+            config.get("tor_cookie_path", "/run/tor/control.authcookie")
+            if config
+            else "/run/tor/control.authcookie"
+        )
 
         # Browser for interactive browsing
         self._browser = config.get("browser", "w3m") if config else "w3m"
@@ -523,8 +530,16 @@ class TorPlugin(PluginBase):
             sock.settimeout(5)
             sock.connect((self._tor_proxy_host, self._tor_control_port))
 
-            # Authenticate (default is no password for local)
-            sock.sendall(b'AUTHENTICATE ""\r\n')
+            # Authenticate with the control cookie (CookieAuthentication 1 in
+            # torrc). Fall back to null auth if the cookie file is missing or
+            # unreadable (e.g. no group membership yet).
+            try:
+                with open(self._tor_cookie_path, "rb") as fh:
+                    cookie_hex = fh.read().hex()
+                auth_cmd = f"AUTHENTICATE {cookie_hex}\r\n".encode()
+            except OSError:
+                auth_cmd = b"AUTHENTICATE\r\n"
+            sock.sendall(auth_cmd)
             auth_response = sock.recv(1024).decode()
 
             if "250" not in auth_response:

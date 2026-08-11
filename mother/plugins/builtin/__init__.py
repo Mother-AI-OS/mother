@@ -38,6 +38,7 @@ from .longcraft import LongcraftPlugin
 from .mailcraft import MailcraftPlugin
 from .mattercraft import MattercraftPlugin
 from .pdf import PDFPlugin
+from .robin_plugin import RobinPlugin
 from .shell import ShellPlugin
 from .ssh import SSHPlugin
 from .tasks import TasksPlugin
@@ -71,6 +72,11 @@ BUILTIN_PLUGINS: dict[str, type] = {
     # user explicitly enables them. Keep them out of any default-enabled list.
     "tor": TorPlugin,
     "tor-shell": TorShellPlugin,
+    # Dark web OSINT (vendored robin engine) is HIGH-RISK: risk_level=HIGH makes it
+    # disabled-by-default, its robin_* capabilities are blocked by safe_mode (see the
+    # ^robin_ pattern in policy/engine.py), and it is deliberately kept out of any
+    # default-enabled list. It only runs when a user explicitly enables it.
+    "darkweb-osint": RobinPlugin,
     "ssh": SSHPlugin,
 }
 
@@ -108,6 +114,7 @@ __all__ = [
     "MailcraftPlugin",
     "MattercraftPlugin",
     "PDFPlugin",
+    "RobinPlugin",
     "ShellPlugin",
     "SSHPlugin",
     "TasksPlugin",
