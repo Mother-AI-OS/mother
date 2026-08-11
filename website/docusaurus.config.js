@@ -21,26 +21,17 @@ const config = {
     locales: ['en'],
   },
 
-  headTags: [
-    {
-      tagName: 'script',
-      attributes: { async: 'true', src: 'https://www.googletagmanager.com/gtag/js?id=AW-672519410' },
-    },
-    {
-      tagName: 'script',
-      attributes: {},
-      innerHTML: `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'AW-672519410');
-        _linkedin_partner_id = "520105121";
-        window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
-        window._linkedin_data_partner_ids.push(_linkedin_partner_id);
-        (function(l){if(!l){window.lintrk=function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]}var s=document.getElementsByTagName("script")[0];var b=document.createElement("script");b.type="text/javascript";b.async=true;b.src="https://snap.licdn.com/li.lms-analytics/insight.min.js";s.parentNode.insertBefore(b,s);})(window.lintrk);
-      `,
-    },
-  ],
+  // Ad tracking removed 2026-08-11.
+  //
+  // This site loaded AW-672519410 — the Google tag of a DEACTIVATED Ads
+  // account — plus the LinkedIn Insight Tag, both unconditionally and with no
+  // consent gate. The 2026-08-09 sweep that reported the dead tag "gone from
+  // every site" only covered the seven sites on the Projects VM; this one and
+  // uapk.info were never touched, so both kept setting cookies for a tag that
+  // could never record anything.
+  //
+  // Nothing replaces it: no campaign points at this domain. Re-add gated, and
+  // with the live account, only when one does.
 
   presets: [
     [
@@ -59,10 +50,7 @@ const config = {
           },
           editUrl: 'https://github.com/Mother-AI-OS/mother/tree/main/website/',
         },
-        gtag: {
-          trackingID: 'AW-672519410',
-          anonymizeIP: true,
-        },
+        // gtag preset removed 2026-08-11 — same deactivated account as above.
         theme: {
           customCss: './src/css/custom.css',
         },
