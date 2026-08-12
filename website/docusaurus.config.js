@@ -21,6 +21,20 @@ const config = {
     locales: ['en'],
   },
 
+  // Plausible (self-hosted, cookieless) — added 2026-08-12. Ungated by
+  // design: no cookie, no identifier, so it needs no consent gate and keeps
+  // working for visitors who decline. This site measured nothing before.
+  headTags: [
+    {
+      tagName: 'script',
+      attributes: {
+        defer: 'true',
+        'data-domain': 'mother-ai-os.github.io',
+        src: 'https://analytics.david-sanker.com/js/script.js',
+      },
+    },
+  ],
+
   // Ad tracking removed 2026-08-11.
   //
   // This site loaded AW-672519410 — the Google tag of a DEACTIVATED Ads
