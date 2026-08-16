@@ -1,4 +1,4 @@
-"""Shared SSH client library for Mother AI OS and ContentCraft.
+"""Shared SSH client library for Mother AI OS.
 
 This module provides reusable SSH connection management, file operations,
 and VM configuration loading for accessing remote virtual machines.

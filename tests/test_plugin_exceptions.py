@@ -150,10 +150,10 @@ class TestCapabilityNotFoundError:
 
     def test_capability_not_found_with_plugin(self) -> None:
         """Test capability not found with plugin name."""
-        error = CapabilityNotFoundError("send_email", plugin_name="mailcraft")
+        error = CapabilityNotFoundError("send_email", plugin_name="demo-mail")
         assert error.capability_name == "send_email"
-        assert error.plugin_name == "mailcraft"
-        assert "[mailcraft]" in str(error)
+        assert error.plugin_name == "demo-mail"
+        assert "[demo-mail]" in str(error)
 
 
 class TestExecutionError:

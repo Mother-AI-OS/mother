@@ -157,18 +157,18 @@ class TestInstallSource:
     def test_parse_catalog_explicit(self, temp_registry):
         """Test parsing explicit catalog source."""
         registry, _ = temp_registry
-        source_type, name = registry._parse_source("catalog:contentcraft")
+        source_type, name = registry._parse_source("catalog:mytool")
 
         assert source_type == InstallSource.CATALOG
-        assert name == "contentcraft"
+        assert name == "mytool"
 
     def test_parse_catalog_implicit(self, temp_registry):
         """Test parsing implicit catalog source from name."""
         registry, _ = temp_registry
-        source_type, name = registry._parse_source("contentcraft")
+        source_type, name = registry._parse_source("mytool")
 
         assert source_type == InstallSource.CATALOG
-        assert name == "contentcraft"
+        assert name == "mytool"
 
 
 class TestExternalToolRegistry:

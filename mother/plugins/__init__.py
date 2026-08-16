@@ -13,7 +13,7 @@ Example usage:
     await manager.initialize()
 
     # Execute a capability
-    result = await manager.execute("mailcraft_send_email", {
+    result = await manager.execute("email_send_message", {
         "to": "user@example.com",
         "subject": "Hello",
         "body": "World"
@@ -140,20 +140,18 @@ __all__ = [
 
 
 # Builtin plugins that are disabled-by-default (they declare filesystem:write)
-# but are sanctioned for this operator, so both the server and the CLI enable
-# them explicitly. Keep this list and mother_policy.yaml in agreement: every
-# name here should have per-capability allow/confirm rules in the policy.
+# but are safe enough to enable out of the box, so both the server and the CLI
+# enable them explicitly. Keep this list and mother_policy.yaml in agreement:
+# every name here should have per-capability allow/confirm rules in the policy.
 #
 # Deliberately NOT included:
-#   taxcraft      risk_level HIGH — files real ELSTER tax returns; owner decision
-#   leads         no authored policy rules yet
 #   filesystem    unscoped write access
 #   web           unscoped fetch + write
 #   darkweb-osint HIGH by design; contained, explicit-enable only
+#
+# Plugins installed via the "mother.plugins" entry-point group are never added
+# here implicitly — an operator enables them with MOTHER_ENABLED_PLUGINS.
 DEFAULT_ENABLED_HIGH_RISK_PLUGINS = [
-    "mattercraft",
-    "contentcraft",
-    "longcraft",
     "pdf",
     "datacraft",
 ]

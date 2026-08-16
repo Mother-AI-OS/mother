@@ -460,7 +460,7 @@ class TestAuditLogger:
         """Test logging plugin load."""
         audit_logger.log_plugin_event(
             event_type=AuditEventType.PLUGIN_LOADED,
-            plugin="mailcraft",
+            plugin="demo-mail",
             details="Loaded successfully",
             version="2.0.0",
         )
@@ -469,7 +469,7 @@ class TestAuditLogger:
         entry = json.loads(log_content.strip())
 
         assert entry["event_type"] == "plugin_loaded"
-        assert entry["plugin"] == "mailcraft"
+        assert entry["plugin"] == "demo-mail"
 
     def test_sensitive_data_redaction_in_params(self, audit_logger, temp_log_dir):
         """Test that sensitive data is redacted in params."""

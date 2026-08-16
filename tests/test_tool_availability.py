@@ -1,7 +1,7 @@
 """Comprehensive tool availability test suite for Mother AI OS.
 
-Verifies that all 20 builtin plugins (219 capabilities) and 9 external
-tool repos are available end-to-end. Catches:
+Verifies that the builtin plugins and their capabilities are available
+end-to-end. Catches:
 - Missing plugins or capabilities after code changes
 - External CLIs that become unavailable
 - Broken Anthropic tool schema generation
@@ -110,58 +110,6 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
         "stats",
         "areas",
     ],
-    "transmit": [
-        "email",
-        "fax",
-        "post",
-        "bea",
-        "channels",
-        "history",
-        "get",
-        "stats",
-    ],
-    "taxcraft": [
-        "ingest",
-        "search",
-        "ask",
-        "balance",
-        "report",
-        "documents",
-        "ledgers",
-        "elster_status",
-        "vat",
-        "sync",
-    ],
-    "leads": ["fetch", "list", "show", "analyze", "status"],
-    "mailcraft": [
-        "fetch",
-        "list",
-        "search",
-        "read",
-        "send",
-        "categorize",
-        "cleanup",
-        "clean_spam",
-        "batch_delete",
-        "learn_from_trash",
-        "semantic_search",
-        "stats",
-    ],
-    "mattercraft": [
-        "create",
-        "list",
-        "show",
-        "search",
-        "edit",
-        "archive",
-        "delete",
-        "ingest",
-        "query",
-        "entities",
-        "timeline",
-        "tenders_list",
-        "tenders_import",
-    ],
     "google-docs": ["list", "get", "send", "status"],
     "tor": [
         "tor_check_status",
@@ -200,89 +148,10 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
         "robin_search",
         "robin_health",
     ],
-    "taskcraft": [
-        "focus",
-        "top",
-        "list",
-        "inbox",
-        "search",
-        "status",
-        "soul",
-        "goals",
-        "clients",
-        "sync_status",
-        "ingest_stats",
-        "ingest_recent",
-        "weigh",
-        "conflict",
-        "ask",
-        "add",
-        "complete",
-    ],
-    "contentcraft": [
-        "status",
-        "published",
-        "portfolio_stats",
-        "portfolio_projects",
-        "drafts_list",
-        "drafts_show",
-        "drafts_approve",
-        "drafts_reject",
-        "drafts_submit",
-        "drafts_sync",
-        "drafts_export",
-        "drafts_import",
-        "generate",
-        "quick_post",
-        "generate_variants",
-        "regenerate",
-        "render",
-        "publish",
-        "publish_both",
-        "deploy",
-        "queue_list",
-        "queue_schedule",
-        "queue_process",
-        "series_list",
-        "series_show",
-        "series_progress",
-        "series_create",
-        "series_generate",
-        "series_publish",
-        "sources_list",
-        "sources_fetch",
-        "analytics_summary",
-        "analytics_post",
-        "persona_list",
-        "persona_show",
-        "voice_list",
-        "voice_show",
-        "contracts_show",
-        "contracts_validate",
-        "batch_status",
-        "batch_run",
-        "verify_remote",
-    ],
-    "longcraft": [
-        "persona_list",
-        "persona_show",
-        "persona_init",
-        "write",
-        "book_init",
-        "book_outline",
-        "book_write",
-        "book_lint",
-        "export",
-        "train_ingest",
-        "train_build_sft",
-        "train_build_dpo",
-        "train_sft",
-    ],
 }
 
-# 144 (16 plugins) + taskcraft 17 + contentcraft 42 + longcraft 13
-# + darkweb-osint 3 = 219
-EXPECTED_TOTAL_CAPABILITIES = 219
+# Sum of EXPECTED_PLUGINS above (12 builtin plugins).
+EXPECTED_TOTAL_CAPABILITIES = 99
 
 # Capabilities that MUST require confirmation (destructive / side-effect ops)
 DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
@@ -304,20 +173,6 @@ DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
     ("datacraft", "delete"),
     # tasks
     ("tasks", "delete"),
-    # transmit (all sending channels)
-    ("transmit", "email"),
-    ("transmit", "fax"),
-    ("transmit", "post"),
-    ("transmit", "bea"),
-    # mailcraft
-    ("mailcraft", "send"),
-    ("mailcraft", "cleanup"),
-    ("mailcraft", "clean_spam"),
-    ("mailcraft", "batch_delete"),
-    # mattercraft
-    ("mattercraft", "archive"),
-    ("mattercraft", "delete"),
-    ("mattercraft", "tenders_import"),
     # google-docs
     ("google-docs", "send"),
     # tor
@@ -367,32 +222,6 @@ READ_ONLY_CAPABILITIES: list[tuple[str, str]] = [
     ("datacraft", "stats"),
     ("datacraft", "search"),
     ("datacraft", "get"),
-    ("transmit", "channels"),
-    ("transmit", "history"),
-    ("transmit", "get"),
-    ("transmit", "stats"),
-    ("leads", "list"),
-    ("leads", "show"),
-    ("leads", "status"),
-    ("leads", "analyze"),
-    ("mailcraft", "fetch"),
-    ("mailcraft", "list"),
-    ("mailcraft", "search"),
-    ("mailcraft", "read"),
-    ("mailcraft", "categorize"),
-    ("mailcraft", "learn_from_trash"),
-    ("mailcraft", "semantic_search"),
-    ("mailcraft", "stats"),
-    ("mattercraft", "create"),
-    ("mattercraft", "list"),
-    ("mattercraft", "show"),
-    ("mattercraft", "search"),
-    ("mattercraft", "edit"),
-    ("mattercraft", "ingest"),
-    ("mattercraft", "query"),
-    ("mattercraft", "entities"),
-    ("mattercraft", "timeline"),
-    ("mattercraft", "tenders_list"),
     ("google-docs", "list"),
     ("google-docs", "get"),
     ("google-docs", "status"),
@@ -409,29 +238,16 @@ READ_ONLY_CAPABILITIES: list[tuple[str, str]] = [
 
 # External CLI tool binaries
 EXTERNAL_CLI_TOOLS: dict[str, str] = {
-    "leads": "leads",
-    "taxcraft": "taxcraft",
-    "mattercraft": "mattercraft",
-    "mailcraft": "mailcraft",
     "gcp-draft": "gcp-draft",
     "datacraft": "datacraft",
-    "contentcraft": "contentcraft",
 }
 
 # Tools catalog path
-TOOLS_CATALOG_PATH = Path(__file__).parent.parent / "docs" / "ecosystem" / "tools-catalog.yaml"
+TOOLS_CATALOG_PATH = Path(__file__).parent.parent / "mother" / "tools" / "tools-catalog.yaml"
 
-CATALOG_TOOL_NAMES = [
-    "contentcraft",
-    "mailcraft",
-    "datacraft",
-    "leadengine",
-    "lawkraft-transmit",
-    "taxcraft",
-    "acnjxn",
-    "helpers",
-    "flycraft",
-]
+# The shipped catalog endorses no third-party tools by default; operators
+# supply their own via MOTHER_CATALOG_PATH. Tests therefore validate the
+# catalog's shape, not a fixed roster.
 
 
 # ---------------------------------------------------------------------------
@@ -454,7 +270,7 @@ class TestBuiltinPluginRegistry:
     """Verify all 20 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
 
     def test_all_plugins_registered(self) -> None:
-        """Assert exactly 20 plugins with expected names."""
+        """Assert exactly 12 builtin plugins with expected names."""
         expected_names = set(EXPECTED_PLUGINS.keys())
         actual_names = set(BUILTIN_PLUGINS.keys())
         assert actual_names == expected_names, (
@@ -462,7 +278,7 @@ class TestBuiltinPluginRegistry:
             f"  Missing: {expected_names - actual_names}\n"
             f"  Extra:   {actual_names - expected_names}"
         )
-        assert len(BUILTIN_PLUGINS) == len(EXPECTED_PLUGINS) == 20
+        assert len(BUILTIN_PLUGINS) == len(EXPECTED_PLUGINS) == 12
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
     def test_all_plugins_instantiate(self, plugin_name: str) -> None:
@@ -719,13 +535,10 @@ class TestToolsCatalog:
         assert "tools" in catalog
         assert isinstance(catalog["tools"], list)
 
-    def test_catalog_contains_all_known_tools(self, catalog: dict[str, Any]) -> None:
-        """All 8 tool names are present."""
-        tool_names = {t["name"] for t in catalog["tools"]}
-        expected = set(CATALOG_TOOL_NAMES)
-        assert expected == tool_names, (
-            f"Catalog tool mismatch.\n  Missing: {expected - tool_names}\n  Extra:   {tool_names - expected}"
-        )
+    def test_catalog_tool_names_unique(self, catalog: dict[str, Any]) -> None:
+        """Tool names are unique (duplicates would silently shadow)."""
+        names = [t["name"] for t in catalog["tools"]]
+        assert len(names) == len(set(names)), f"Duplicate catalog entries: {names}"
 
     def test_catalog_entries_have_required_fields(self, catalog: dict[str, Any]) -> None:
         """Each entry has name, description, repository, version, risk_level,
@@ -879,20 +692,6 @@ class TestPluginExecution:
         result = await plugin.execute("stats", {})
         assert isinstance(result, PluginResult)
 
-    # -- transmit --
-
-    async def test_transmit_channels(self) -> None:
-        """transmit.channels executes without error."""
-        plugin = _instantiate_plugin("transmit")
-        result = await plugin.execute("channels", {})
-        assert isinstance(result, PluginResult)
-
-    async def test_transmit_stats(self) -> None:
-        """transmit.stats executes without error."""
-        plugin = _instantiate_plugin("transmit")
-        result = await plugin.execute("stats", {})
-        assert isinstance(result, PluginResult)
-
     # -- unknown capability --
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
@@ -902,21 +701,3 @@ class TestPluginExecution:
         result = await plugin.execute("__nonexistent_capability__", {})
         assert result.success is False
         assert result.error_code == "UNKNOWN_CAPABILITY"
-
-    # -- leads / taxlord (skipif not available) --
-
-    async def test_leads_status(self) -> None:
-        """leads.status executes (skipped if CLI unavailable)."""
-        if shutil.which("leads") is None:
-            pytest.skip("leads CLI not available")
-        plugin = _instantiate_plugin("leads")
-        result = await plugin.execute("status", {})
-        assert isinstance(result, PluginResult)
-
-    async def test_taxlord_elster_status(self) -> None:
-        """taxlord.elster_status executes (skipped if CLI unavailable)."""
-        if shutil.which("taxcraft") is None:
-            pytest.skip("taxlord CLI not available")
-        plugin = _instantiate_plugin("taxcraft")
-        result = await plugin.execute("elster_status", {})
-        assert isinstance(result, PluginResult)

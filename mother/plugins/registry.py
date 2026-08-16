@@ -163,7 +163,7 @@ class PluginRegistry:
         """Parse a full capability name into plugin and capability parts.
 
         Args:
-            full_name: Full name like "mailcraft_send_email"
+            full_name: Full name like "email_send_message"
 
         Returns:
             Tuple of (plugin_name, capability_name)

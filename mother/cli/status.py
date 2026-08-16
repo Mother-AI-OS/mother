@@ -31,13 +31,6 @@ def _check_optional_features() -> dict:
     home = Path.home()
     features = {}
 
-    # German legal tools (taxcraft, leads)
-    features["german_legal"] = {
-        "taxcraft": (home / ".local" / "bin" / "taxcraft").exists()
-        or (home / "projects" / "taxlord" / ".venv" / "bin" / "taxcraft").exists(),
-        "leads": (home / ".local" / "bin" / "leads").exists(),
-    }
-
     # Google integration
     features["google"] = {
         "gcp_draft": (home / ".local" / "bin" / "gcp-draft").exists(),

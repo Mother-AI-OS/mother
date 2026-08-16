@@ -84,18 +84,17 @@ class TestToolCatalog:
     """Tests for ToolCatalog class."""
 
     def test_load_real_catalog(self):
-        """Test loading the real tools catalog."""
-        # Use the default path
+        """The catalog shipped in the package parses and is well formed."""
+        # Use the default path (mother/tools/tools-catalog.yaml)
         catalog = ToolCatalog()
         catalog.load()
 
+        # The shipped catalog endorses no third-party tools by default, so the
+        # roster may legitimately be empty; assert shape rather than contents.
         entries = catalog.list_entries()
-        assert len(entries) > 0
-
-        # Check for known tools
-        contentcraft = catalog.get_entry("contentcraft")
-        assert contentcraft is not None
-        assert contentcraft.name == "contentcraft"
+        assert isinstance(entries, list)
+        names = [e.name for e in entries]
+        assert len(names) == len(set(names)), f"duplicate catalog entries: {names}"
 
     def test_load_custom_catalog(self):
         """Test loading a custom catalog file."""
@@ -145,11 +144,6 @@ class TestToolCatalog:
         catalog = ToolCatalog()
         catalog.load()
 
-        # Get existing
-        entry = catalog.get_entry("contentcraft")
-        assert entry is not None
-        assert entry.name == "contentcraft"
-
         # Get non-existing
         entry = catalog.get_entry("nonexistent-tool")
         assert entry is None
@@ -159,7 +153,6 @@ class TestToolCatalog:
         catalog = ToolCatalog()
         catalog.load()
 
-        assert catalog.has_entry("contentcraft") is True
         assert catalog.has_entry("nonexistent-tool") is False
 
     def test_search_by_name(self):

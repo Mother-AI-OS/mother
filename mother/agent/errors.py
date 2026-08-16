@@ -94,7 +94,7 @@ class ErrorHandler:
 
     RECOVERY_SUGGESTIONS = {
         ErrorCategory.AUTHENTICATION: (
-            "Check that MAILCRAFT_PASSWORD or other credentials are set correctly in the environment or .env file."
+            "Check that the tool's credentials are set correctly in the environment or .env file."
         ),
         ErrorCategory.PERMISSION: (
             "Verify file permissions and folder access. You may need to run with elevated privileges or fix ownership."

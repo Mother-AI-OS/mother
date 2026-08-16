@@ -57,7 +57,7 @@ class TestAgentError:
         error = AgentError(
             category=ErrorCategory.AUTHENTICATION,
             message="Auth failed",
-            tool_name="mailcraft",
+            tool_name="demo-mail",
             command="login",
             recoverable=False,
             suggestion="Check credentials",
@@ -65,7 +65,7 @@ class TestAgentError:
 
         assert error.category == ErrorCategory.AUTHENTICATION
         assert error.message == "Auth failed"
-        assert error.tool_name == "mailcraft"
+        assert error.tool_name == "demo-mail"
         assert error.command == "login"
         assert error.recoverable is False
         assert error.suggestion == "Check credentials"
@@ -261,7 +261,7 @@ class TestErrorHandler:
         error = AgentError(
             category=ErrorCategory.AUTHENTICATION,
             message="Auth failed",
-            tool_name="mailcraft",
+            tool_name="demo-mail",
             command="login",
             suggestion="Check password",
             recoverable=True,
@@ -269,7 +269,7 @@ class TestErrorHandler:
 
         result = handler.format_for_claude(error)
 
-        assert "Tool: mailcraft" in result
+        assert "Tool: demo-mail" in result
         assert "Command: login" in result
         assert "Suggestion: Check password" in result
         assert "recoverable" in result.lower()

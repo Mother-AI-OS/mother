@@ -134,12 +134,14 @@ Response:
 | **pdf** | merge, split, extract, rotate, compress PDFs |
 | **datacraft** | parse documents, search, extract tables |
 | **tasks** | add, list, complete, prioritize tasks |
-| **transmit** | send documents via email, fax, post, beA |
+| **ssh** | run commands and move files on remote hosts |
+| **google-docs** | Google Docs templates (optional) |
 | **tor** | anonymous browsing, .onion sites, Tor proxy |
 | **tor-shell** | curl/wget/ssh/nmap through Tor network |
-| **taxlord** | German tax & document management (optional) |
-| **leads** | German tender discovery (optional) |
-| **google-docs** | Google Docs templates (optional) |
+| **darkweb-osint** | dark web OSINT over the vendored robin engine |
+
+`tor`, `tor-shell` and `darkweb-osint` are **high-risk**: they are disabled by
+default, blocked by `safe_mode`, and only run when explicitly enabled.
 
 ### Ecosystem: Tool Repos
 
@@ -148,13 +150,9 @@ Mother is designed to work **standalone** with its built-in plugins. However, it
 ```
 /projects/                          # Your development root
 ├── mother/                         # Mother AI OS (this repo)
-│   └── Built-in: filesystem, email, shell, web, pdf, tasks, tor
+│   └── Built-in: filesystem, shell, web, email, pdf, datacraft, tasks, ssh
 │
-├── contentcraft/                   # Standalone: AI content creation
-├── datacraft/                      # Standalone: Document processing
-├── mailcraft/                      # Standalone: Email management
-├── taxlord/                        # Standalone: Tax & bookkeeping
-├── leadengine/                     # Standalone: Lead generation
+├── your-tool/                      # Standalone: your own CLI or service
 └── ...                             # Your own tools
 ```
 
@@ -164,17 +162,23 @@ Mother is designed to work **standalone** with its built-in plugins. However, it
 - Tool repos are never required — Mother works fine without them
 - Integration modes: Python plugin, CLI wrapper, HTTP service, Docker
 
-| Tool Repo | What It Does | Integration |
-|-----------|--------------|-------------|
-| [contentcraft](../contentcraft) | AI content for social media, blogs | CLI wrapper |
-| [datacraft](../datacraft) | Document parsing, embeddings, search | Python plugin |
-| [mailcraft](../mailcraft) | Email management with LLM categorization | CLI wrapper |
-| [taxlord](../taxlord) | German tax, ELSTER, invoices | HTTP service |
-| [leadengine](../leadengine) | German tender discovery | CLI wrapper |
+Plugin suites distributed separately register through the `mother.plugins`
+entry-point group and are discovered automatically on install — no fork and no
+patch to this repo:
+
+```toml
+# in your own package's pyproject.toml
+[project.entry-points."mother.plugins"]
+mytool = "mypackage.mytool:MyToolPlugin"
+```
+
+The target module exposes a module-level `MANIFEST` and the named
+`PluginBase` subclass. See the Integration Contract below for the full
+requirements.
 
 **Learn more:**
-- [Ecosystem Overview](docs/ecosystem/OVERVIEW.md) — Architecture and catalog
-- [Integration Contract](docs/ecosystem/INTEGRATION_CONTRACT.md) — Make your tool Mother-compatible
+- [Integration Contract](docs/dev/INTEGRATION_CONTRACT.md) — Make your tool Mother-compatible
+- [Creating Plugins](https://mother-ai-os.github.io/mother/docs/plugins/creating-plugins) — Step-by-step guide
 
 ### Permission & Confirmation System
 

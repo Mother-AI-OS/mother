@@ -464,7 +464,7 @@ class TestPluginRegistry:
         """Test searching capabilities by plugin name (covers line 295)."""
         registry = PluginRegistry()
         manifest1 = create_mock_manifest(
-            "mailcraft",
+            "demo-mail",
             [("send", "Send mail"), ("receive", "Receive mail")],
         )
         manifest2 = create_mock_manifest(
@@ -475,13 +475,13 @@ class TestPluginRegistry:
         registry.register(manifest1, create_mock_executor())
         registry.register(manifest2, create_mock_executor())
 
-        # Search by plugin name - should find mailcraft capabilities
-        results = registry.search_capabilities("mailcraft")
+        # Search by plugin name - should find demo-mail capabilities
+        results = registry.search_capabilities("demo-mail")
         assert len(results) >= 2
 
-        # All results should be from mailcraft plugin
+        # All results should be from demo-mail plugin
         result_plugins = [r.plugin_name for r in results]
-        assert all(p == "mailcraft" for p in result_plugins)
+        assert all(p == "demo-mail" for p in result_plugins)
 
     def test_list_capabilities_nonexistent_plugin(self) -> None:
         """Test listing capabilities for non-existent plugin returns empty list."""

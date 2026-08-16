@@ -7,6 +7,7 @@ that are known to be compatible with Mother.
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -18,7 +19,9 @@ from .exceptions import CatalogError
 logger = logging.getLogger("mother.tools.catalog")
 
 # Default catalog location (in the Mother repo)
-DEFAULT_CATALOG_PATH = Path(__file__).parent.parent.parent / "docs" / "ecosystem" / "tools-catalog.yaml"
+# Ships inside the package so it is present in an installed wheel, not just in
+# a source checkout. Override with MOTHER_CATALOG_PATH or ToolCatalog(path).
+DEFAULT_CATALOG_PATH = Path(__file__).parent / "tools-catalog.yaml"
 
 
 @dataclass
@@ -83,9 +86,11 @@ class ToolCatalog:
 
         Args:
             catalog_path: Path to catalog YAML file. Defaults to
-                         docs/ecosystem/tools-catalog.yaml in the Mother repo.
+                         MOTHER_CATALOG_PATH if set, otherwise the
+                         tools-catalog.yaml bundled with the package.
         """
-        self._catalog_path = catalog_path or DEFAULT_CATALOG_PATH
+        env_path = os.environ.get("MOTHER_CATALOG_PATH")
+        self._catalog_path = catalog_path or (Path(env_path) if env_path else DEFAULT_CATALOG_PATH)
         self._entries: dict[str, CatalogEntry] = {}
         self._loaded = False
         self._version: str = "unknown"

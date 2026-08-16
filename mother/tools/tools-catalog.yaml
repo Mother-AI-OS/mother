@@ -1,0 +1,40 @@
+# Mother AI OS - Known Tools Catalog
+#
+# This catalog lists external tool repositories that are known to be
+# compatible with Mother. Tools can be installed via:
+#
+#   mother tools install <name>
+#
+# Tools are installed disabled by default. Enable with:
+#
+#   mother tools enable <name>
+#
+# To use your own catalog instead of this one, set MOTHER_CATALOG_PATH to a
+# YAML file with the same shape, or pass catalog_path= to ToolCatalog().
+#
+# Entry schema:
+#   name               required, lowercase alphanumeric with hyphens
+#   description        required
+#   repository         required, git URL
+#   version            optional, default "latest"
+#   risk_level         optional, one of low|medium|high|critical (default low)
+#   integration_types  optional, any of python|cli|http|docker (default [cli])
+#   homepage           optional
+#   author             optional
+#   tags               optional
+#   deprecated         optional, default false
+#
+# See docs/dev/INTEGRATION_CONTRACT.md for what a tool repo must implement to
+# be Mother-compatible.
+
+version: "1.0"
+updated: "2026-08-16"
+
+# No third-party tools are endorsed by default. Mother's own built-in plugins
+# (filesystem, shell, web, email, pdf, datacraft, tasks, google-docs, ssh, tor,
+# darkweb-osint) are not catalog entries — they ship with the package.
+#
+# Private and third-party plugin suites should register through the
+# "mother.plugins" entry-point group rather than this catalog; the catalog is
+# only for tools installed via `mother tools install`.
+tools: []

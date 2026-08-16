@@ -246,8 +246,8 @@ My Data
             assert result is not None
             assert "Name" in result.headers
 
-    class TestParseMailcraftList:
-        """Tests for parse_mailcraft_list method."""
+    class TestParseEmailList:
+        """Tests for parse_email_list method."""
 
         @pytest.fixture
         def parser(self):
@@ -264,18 +264,18 @@ david@example.com - INBOX
 │       │ jane@test.com    │ RE: Project update    │ Dec 14      │
 └───────┴──────────────────┴───────────────────────┴─────────────┘
 """
-            emails = parser.parse_mailcraft_list(output)
+            emails = parser.parse_email_list(output)
             assert len(emails) >= 1
 
         def test_empty_output(self, parser):
             """Test parsing empty output."""
-            emails = parser.parse_mailcraft_list("")
+            emails = parser.parse_email_list("")
             assert emails == []
 
         def test_no_emails(self, parser):
             """Test output with no emails."""
             output = "No messages found"
-            emails = parser.parse_mailcraft_list(output)
+            emails = parser.parse_email_list(output)
             assert emails == []
 
     class TestExtractKeyValues:
@@ -595,8 +595,8 @@ class TestParseTableMultilineEdgeCases:
         assert "Notes" in result.headers
 
 
-class TestParseMailcraftListEdgeCases:
-    """Additional tests for parse_mailcraft_list edge cases."""
+class TestParseEmailListEdgeCases:
+    """Additional tests for parse_email_list edge cases."""
 
     @pytest.fixture
     def parser(self):
@@ -612,7 +612,7 @@ user@example.com - INBOX
 ├──────┼───────────────┼────────────────┼──────────┤
 │ NEW  │ third@ex.com  │ Third email    │ Last week│
 """
-        result = parser.parse_mailcraft_list(output)
+        result = parser.parse_email_list(output)
         assert len(result) == 3
         assert result[0]["from"] == "first@ex.com"
         assert result[1]["from"] == "second@ex.com"
@@ -623,7 +623,7 @@ user@example.com - INBOX
         output = """
 user@example.com - INBOX
 │ NEW │ only@ex.com │ Only email │ Today │"""
-        result = parser.parse_mailcraft_list(output)
+        result = parser.parse_email_list(output)
         assert len(result) == 1
         assert result[0]["from"] == "only@ex.com"
         assert result[0]["subject"] == "Only email"
@@ -640,6 +640,6 @@ user@example.com - INBOX
 │ ○      │ bob@ex.com   │ Test        │ 2024-01-02 │
 └────────┴──────────────┴─────────────┴────────────┘
 """
-        result = parser.parse_mailcraft_list(output)
+        result = parser.parse_email_list(output)
         # Should parse both emails
         assert len(result) >= 2

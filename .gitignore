@@ -77,3 +77,7 @@ config/
 .codegraph/
 CLAUDE.md
 !/CLAUDE.md
+
+# Local operator note: references private infrastructure (VM addresses).
+# Must never be committed to the public repo.
+MOTHER_OS_LINK.md

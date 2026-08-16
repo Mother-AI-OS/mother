@@ -131,7 +131,7 @@ class CapabilitySpec(BaseModel):
         Returns:
             Dict in Anthropic tool_use format
         """
-        # Tool name format: plugin_capability (e.g., mailcraft_send_email)
+        # Tool name format: plugin_capability (e.g., email_send_message)
         tool_name = f"{plugin_name}_{self.name}"
 
         # Build properties from parameters
@@ -182,7 +182,7 @@ class CLIExecutionSpec(BaseModel):
 class DockerExecutionSpec(BaseModel):
     """Configuration for Docker execution backend."""
 
-    image: str = Field(..., description="Docker image (e.g., 'lawkraft/plugin:1.0')")
+    image: str = Field(..., description="Docker image (e.g., 'myorg/plugin:1.0')")
     env: dict[str, str] = Field(default_factory=dict, description="Environment variables")
     volumes: dict[str, str] = Field(default_factory=dict, description="Volume mounts")
     network: str = Field(default="none", description="Network mode")

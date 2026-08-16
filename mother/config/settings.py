@@ -47,9 +47,6 @@ class Settings(BaseSettings):
     # Legacy alias (deprecated, use LLM_MODEL instead)
     claude_model: str = Field(default="claude-sonnet-4-20250514", alias="CLAUDE_MODEL")
 
-    # Tool Credentials
-    mailcraft_password: str | None = Field(None, alias="MAILCRAFT_PASSWORD")
-
     # Paths
     config_dir: Path = Field(
         default=Path.home() / ".config" / "mother",
@@ -61,18 +58,6 @@ class Settings(BaseSettings):
     )
 
     # Tool Paths
-    mailcraft_bin: Path = Field(
-        default=Path.home() / ".local" / "bin" / "mailcraft",
-        alias="MAILCRAFT_BIN",
-    )
-    leads_bin: Path = Field(
-        default=Path.home() / ".local" / "bin" / "leads",
-        alias="LEADS_BIN",
-    )
-    taxlord_dir: Path = Field(
-        default=Path.home() / "projects" / "taxlord",
-        alias="TAXLORD_DIR",
-    )
     gcp_draft_bin: Path = Field(
         default=Path.home() / ".local" / "bin" / "gcp-draft",
         alias="GCP_DRAFT_BIN",

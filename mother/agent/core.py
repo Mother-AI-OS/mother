@@ -11,6 +11,7 @@ Features:
 import json
 import logging
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -38,6 +39,27 @@ except ImportError:
     ResultStatus = None
 
 logger = logging.getLogger("mother.agent")
+
+
+# Optional per-tool action describers used to render confirmation prompts.
+# Core ships none: plugins that want a friendlier description than the generic
+# fallback register one at import time via register_action_describer(). This
+# keeps tool-specific phrasing out of the agent core.
+_ACTION_DESCRIBERS: dict[str, Callable[[str, dict[str, Any]], str | None]] = {}
+
+
+def register_action_describer(
+    tool_name: str,
+    describer: Callable[[str, dict[str, Any]], str | None],
+) -> None:
+    """Register a human-readable action describer for a tool.
+
+    Args:
+        tool_name: Plugin/tool name the describer applies to
+        describer: Callable ``(command, args) -> str | None``. Returning None
+            falls back to the generic description.
+    """
+    _ACTION_DESCRIBERS[tool_name] = describer
 
 
 class PlanStepStatus(Enum):
@@ -783,18 +805,15 @@ Respond ONLY with the JSON plan, no other text."""
 
     def _describe_action(self, tool_name: str, command: str, args: dict[str, Any]) -> str:
         """Create a human-readable description of an action."""
-        if tool_name == "mailcraft":
-            if command == "send":
-                to = args.get("to", [])
-                subject = args.get("subject", "")
-                return f"Send email to {', '.join(to)}\nSubject: {subject}"
-            elif command == "reply":
-                msg_id = args.get("message_id", "")
-                return f"Reply to email #{msg_id}"
-            elif command == "delete":
-                msg_id = args.get("message_id", "")
-                permanent = "permanently" if args.get("permanent") else "to trash"
-                return f"Delete email #{msg_id} ({permanent})"
+        describer = _ACTION_DESCRIBERS.get(tool_name)
+        if describer is not None:
+            try:
+                described = describer(command, args)
+            except Exception:  # a bad describer must never block confirmation
+                logger.warning("Action describer for %r failed", tool_name, exc_info=True)
+            else:
+                if described is not None:
+                    return described
 
         return f"Execute {tool_name} {command} with args: {json.dumps(args)}"
 

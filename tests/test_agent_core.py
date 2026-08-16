@@ -850,84 +850,61 @@ class TestMotherAgentMemory:
 class TestMotherAgentDescribeAction:
     """Tests for MotherAgent._describe_action method."""
 
-    @patch("mother.agent.core.AnthropicProvider")
-    def test_describe_action_mailcraft_send(self, mock_provider_class):
-        """Test describe_action for mailcraft send."""
+    @staticmethod
+    def _make_agent():
         from mother.agent.core import MotherAgent
 
-        mock_registry = MagicMock()
-
-        agent = MotherAgent(
-            tool_registry=mock_registry,
+        return MotherAgent(
+            tool_registry=MagicMock(),
             enable_memory=False,
             enable_cognitive=False,
             enable_session_persistence=False,
         )
 
-        desc = agent._describe_action(
-            "mailcraft",
-            "send",
-            {"to": ["user@example.com"], "subject": "Test Subject"},
-        )
+    @patch("mother.agent.core.AnthropicProvider")
+    def test_registered_describer_is_used(self, mock_provider_class):
+        """A registered describer overrides the generic description."""
+        from mother.agent.core import _ACTION_DESCRIBERS, register_action_describer
 
-        assert "Send email to user@example.com" in desc
-        assert "Test Subject" in desc
+        register_action_describer("mytool", lambda cmd, args: f"Do {cmd} for {args['who']}")
+        try:
+            desc = self._make_agent()._describe_action("mytool", "send", {"who": "alice"})
+            assert desc == "Do send for alice"
+        finally:
+            _ACTION_DESCRIBERS.pop("mytool", None)
 
     @patch("mother.agent.core.AnthropicProvider")
-    def test_describe_action_mailcraft_reply(self, mock_provider_class):
-        """Test describe_action for mailcraft reply."""
-        from mother.agent.core import MotherAgent
+    def test_describer_returning_none_falls_back(self, mock_provider_class):
+        """Returning None defers to the generic description."""
+        from mother.agent.core import _ACTION_DESCRIBERS, register_action_describer
 
-        mock_registry = MagicMock()
-
-        agent = MotherAgent(
-            tool_registry=mock_registry,
-            enable_memory=False,
-            enable_cognitive=False,
-            enable_session_persistence=False,
-        )
-
-        desc = agent._describe_action("mailcraft", "reply", {"message_id": "12345"})
-
-        assert "Reply to email #12345" in desc
+        register_action_describer("mytool", lambda cmd, args: None)
+        try:
+            desc = self._make_agent()._describe_action("mytool", "send", {"x": 1})
+            assert "Execute mytool send" in desc
+        finally:
+            _ACTION_DESCRIBERS.pop("mytool", None)
 
     @patch("mother.agent.core.AnthropicProvider")
-    def test_describe_action_mailcraft_delete(self, mock_provider_class):
-        """Test describe_action for mailcraft delete."""
-        from mother.agent.core import MotherAgent
+    def test_raising_describer_does_not_block_confirmation(self, mock_provider_class):
+        """A broken describer must not prevent the action being described."""
+        from mother.agent.core import _ACTION_DESCRIBERS, register_action_describer
 
-        mock_registry = MagicMock()
+        def boom(cmd, args):
+            raise RuntimeError("describer is broken")
 
-        agent = MotherAgent(
-            tool_registry=mock_registry,
-            enable_memory=False,
-            enable_cognitive=False,
-            enable_session_persistence=False,
-        )
-
-        desc = agent._describe_action("mailcraft", "delete", {"message_id": "12345", "permanent": True})
-
-        assert "Delete email #12345" in desc
-        assert "permanently" in desc
+        register_action_describer("mytool", boom)
+        try:
+            desc = self._make_agent()._describe_action("mytool", "send", {"x": 1})
+            assert "Execute mytool send" in desc
+        finally:
+            _ACTION_DESCRIBERS.pop("mytool", None)
 
     @patch("mother.agent.core.AnthropicProvider")
-    def test_describe_action_mailcraft_delete_to_trash(self, mock_provider_class):
-        """Test describe_action for mailcraft delete to trash."""
-        from mother.agent.core import MotherAgent
-
-        mock_registry = MagicMock()
-
-        agent = MotherAgent(
-            tool_registry=mock_registry,
-            enable_memory=False,
-            enable_cognitive=False,
-            enable_session_persistence=False,
-        )
-
-        desc = agent._describe_action("mailcraft", "delete", {"message_id": "12345", "permanent": False})
-
-        assert "Delete email #12345" in desc
-        assert "to trash" in desc
+    def test_unregistered_tool_uses_generic(self, mock_provider_class):
+        """A tool with no describer gets the generic description."""
+        desc = self._make_agent()._describe_action("othertool", "run", {"a": 1})
+        assert "Execute othertool run" in desc
 
     @patch("mother.agent.core.AnthropicProvider")
     def test_describe_action_generic(self, mock_provider_class):

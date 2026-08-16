@@ -256,7 +256,7 @@ class ExternalToolRegistry:
             source: Installation source:
                 - Local path: "/path/to/tool" or "local:/path/to/tool"
                 - Git URL: "git:https://github.com/org/repo" or "https://github.com/..."
-                - Catalog: "contentcraft" or "catalog:contentcraft"
+                - Catalog: "mytool" or "catalog:mytool"
             enabled: Whether to enable after install (default False)
             config_values: Initial configuration values
 

@@ -47,7 +47,10 @@ CAPABILITY_SCOPE_MAP: dict[str, str] = {
     # Datacraft
     r"^datacraft_(list|get|search|stats).*": "datacraft:read",
     r"^datacraft_(process|delete).*": "datacraft:write",
-    # Transmit
+    # Transmit. The transmit plugin ships separately (entry-point group
+    # "mother.plugins"), but these mappings MUST stay here: capability_to_scope
+    # falls back to "<prefix>:read" for unmapped names, which would classify a
+    # send as a read and let a read-only identity dispatch documents.
     r"^transmit_(channels|history|get).*": "transmit:read",
     r"^transmit_(email|fax|post|bea)$": "transmit:send",
     # Web

@@ -36,7 +36,7 @@ class TestValidateToolName:
         assert validate_tool_name("my-tool") is True
         assert validate_tool_name("tool123") is True
         assert validate_tool_name("my-awesome-tool-v2") is True
-        assert validate_tool_name("contentcraft") is True
+        assert validate_tool_name("mytool") is True
         assert validate_tool_name("lead-engine") is True
 
     def test_invalid_names_too_short(self):

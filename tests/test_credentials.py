@@ -26,7 +26,7 @@ class TestCredentialsModule:
 ANTHROPIC_API_KEY=test_anthropic_key
 OPENAI_API_KEY=test_openai_key
 MOTHER_HOST=localhost
-MAILCRAFT_PASSWORD=secret123
+TOOL_PASSWORD=secret123
 CUSTOM_VAR=custom_value
 """
         temp_credentials_file.write_text(content)

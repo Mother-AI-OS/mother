@@ -8,9 +8,6 @@ All tool functionality is now provided by plugins in mother.plugins.builtin:
 - pdf: PDF manipulation (merge, split, extract, rotate)
 - datacraft: Document processing and search
 - tasks: Task management
-- transmit: Document transmission (email, fax, post, beA)
-- taxcraft: German tax automation
-- leads: Lead generation
 - google-docs: Google Docs integration
 """
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mother-ai-os"
-version = "0.3.1"
+dynamic = ["version"]
 description = "Mother - AI Agent OS with extensible plugin system for orchestrating CLI tools via natural language"
 readme = "README.md"
 license = "MIT"
@@ -96,8 +96,17 @@ mother-credentials = "mother.credentials:main"
 # Built-in plugins are discovered via entry points
 # Third-party plugins register here: plugin_name = "package.module:PluginClass"
 
+# Single source of truth for the version: mother/__init__.py.
+# Previously pyproject, __init__.py, the PyPI release and the live /health
+# endpoint could all disagree.
+[tool.hatch.version]
+path = "mother/__init__.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["mother"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"mother/tools/tools-catalog.yaml" = "mother/tools/tools-catalog.yaml"
 
 [tool.ruff]
 line-length = 120

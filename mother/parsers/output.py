@@ -126,8 +126,8 @@ class OutputParser:
 
         return None
 
-    def parse_mailcraft_list(self, output: str) -> list[dict[str, Any]]:
-        """Parse mailcraft list output specifically."""
+    def parse_email_list(self, output: str) -> list[dict[str, Any]]:
+        """Parse an email-listing table into structured records."""
         emails = []
         clean = strip_ansi(output)
         lines = clean.split("\n")
@@ -138,7 +138,7 @@ class OutputParser:
             if "@" in line and ("INBOX" in line or "Sent" in line or "Drafts" in line):
                 break
 
-        # Look for table rows - mailcraft uses ┃ or │
+        # Look for table rows - box-drawing separators ┃ or │
         current_email = {}
         for line in lines:
             line = line.strip()

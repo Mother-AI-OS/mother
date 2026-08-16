@@ -12,8 +12,7 @@ CREDENTIALS_FILE = Path.home() / ".config" / "mother" / "credentials.env"
 CATEGORIES = {
     "AI API Keys": ["ANTHROPIC_", "OPENAI_", "CLAUDE_"],
     "Mother Agent": ["MOTHER_"],
-    "Mailcraft": ["MAILCRAFT_", "BEA_", "LETTERXPRESS_"],
-    "Taxlord": ["DATABASE_", "POSTGRES_", "ELSTER_", "DEFAULT_LEDGER"],
+    "Database": ["DATABASE_", "POSTGRES_"],
     "General": ["LOG_", "MAX_", "TOOL_"],
 }
 
