@@ -21,7 +21,7 @@ Moved to `mother-craft-plugins` (private, never published):
 `taxcraft`, `leads`, `transmit`.
 
 They wrapped non-public CLIs, and their capability descriptions named private
-business processes (beA, ELSTER, SKR03, brand rosters).
+business processes and brand rosters.
 
 **No core changes were needed to support this.** Mother already discovered
 plugins through the `mother.plugins` entry-point group
@@ -34,7 +34,7 @@ reads) and had its manifest `module=` path rewritten to `mother_craft.*`.
 
 ### 2. Private documents → deleted and purged from history
 
-- `docs/BUSINESS_PLAN.md` — pricing tiers, 70/30 revenue split, launch plan
+- the business plan — pricing tiers, revenue split, launch plan
 - `docs/ecosystem/OVERVIEW.md` — map of the author's private tool estate
 - `docs/ecosystem/tools-catalog.yaml` — catalog of non-public tool repos
 - `scripts/ecosystem_scan.py` — scanner for the same estate
