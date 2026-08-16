@@ -86,7 +86,7 @@ mother/
 The documentation claims vary:
 - Some places mention "3 built-in plugins"
 - Server logs show 14 plugins discovered
-- Built-in plugins directory has: datacraft, email, german, google, tasks, transmit + shell, tor, filesystem, web, pdf, taxlord, leads, google-docs
+- Built-in plugins directory has: datacraft, email, google, tasks, shell, tor, filesystem, web, pdf, google-docs, ssh
 
 **Fix needed**: Standardize on a packaging matrix showing core vs optional vs premium plugins.
 

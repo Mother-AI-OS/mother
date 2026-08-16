@@ -50,8 +50,8 @@ Mother constructs tool names as `{plugin}_{capability}`:
 
 ```
 datacraft_search_documents
-mailcraft_send_email
-taxlord_parse_invoice
+mytool_send_email
+mytool_parse_invoice
 ```
 
 ---
@@ -158,9 +158,9 @@ Default to `http://localhost:{port}` where port is tool-specific:
 
 | Tool | Default Port | Environment Variable |
 |------|--------------|---------------------|
-| taxlord | 9001 | `TAXLORD_PORT` |
+| mytool | 9001 | `MYTOOL_PORT` |
 | datacraft | 9002 | `DATACRAFT_PORT` |
-| leadengine | 9003 | `LEADENGINE_PORT` |
+| othertool | 9003 | `OTHERTOOL_PORT` |
 
 ### Endpoints
 

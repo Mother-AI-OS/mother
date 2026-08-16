@@ -15,13 +15,10 @@ not belong in an MIT-licensed public project:
 
 ### 1. `*Craft` plugins → private package
 
-Moved to `mother-craft-plugins` (private, never published):
-
-`contentcraft`, `longcraft`, `mailcraft`, `taskcraft`, `mattercraft`,
-`taxcraft`, `leads`, `transmit`.
-
-They wrapped non-public CLIs, and their capability descriptions named private
-business processes and brand rosters.
+Eight integration plugins moved to a private package (never published). They
+wrapped CLIs that are not publicly installable, and their capability
+descriptions named private business processes and brand rosters — so naming
+them here would reintroduce exactly what the move removed.
 
 **No core changes were needed to support this.** Mother already discovered
 plugins through the `mother.plugins` entry-point group
@@ -34,10 +31,10 @@ reads) and had its manifest `module=` path rewritten to `mother_craft.*`.
 
 ### 2. Private documents → deleted and purged from history
 
-- the business plan — pricing tiers, revenue split, launch plan
-- `docs/ecosystem/OVERVIEW.md` — map of the author's private tool estate
-- `docs/ecosystem/tools-catalog.yaml` — catalog of non-public tool repos
-- `scripts/ecosystem_scan.py` — scanner for the same estate
+- a business plan — pricing tiers, revenue split, launch plan
+- an overview document mapping the author's private tool estate
+- a catalog of non-public tool repositories
+- a scanner for the same estate
 
 `docs/ecosystem/INTEGRATION_CONTRACT.md` was **kept** — 634 lines of genuinely
 public developer documentation with no private references — and moved to
@@ -70,20 +67,19 @@ private brands.
   notice. Added `mother/plugins/builtin/robin_engine/LICENSE` (verified
   against upstream: MIT, Copyright (c) 2025 Apurv Singh Gautam).
 - **Agent core named a private tool.** `_describe_action` hard-coded a
-  `mailcraft` branch. Replaced with `register_action_describer()`, so
+  branch for one private plugin. Replaced with `register_action_describer()`, so
   tool-specific phrasing lives with the tool. The private package registers
   its own describer and behaviour is unchanged.
-- **Private config removed from core settings**: `mailcraft_password`,
-  `mailcraft_bin`, `leads_bin`, `taxlord_dir` (the last still referencing the
-  pre-rename `taxlord` path). None had consumers.
-- `parsers/output.py::parse_mailcraft_list` → `parse_email_list`; it is a
-  generic email-table parser and kept its tests.
+- **Private tool config removed from core settings** — four fields naming
+  private binaries and directories, none of which had consumers.
+- A parser named after a private tool was renamed to `parse_email_list`; it is
+  a generic email-table parser and kept its tests.
 
 ## The rule going forward
 
 Anything that names a private tool, brand, client, process or host does not go
-in this repo. Plugins for private tooling go in `mother-craft-plugins` and
+in this repo. Plugins for private tooling live in a separate private package and
 register via entry points.
 
-`MOTHER_OS_LINK.md` is `.gitignore`d — it references private infrastructure
-addresses and must never be committed here.
+Local operator notes that reference private infrastructure addresses are
+`.gitignore`d and must never be committed here.

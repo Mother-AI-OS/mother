@@ -288,7 +288,7 @@ mother tools doctor                  # Check all tools health
 
 - [ ] `mother tools list` shows catalog + installed
 - [ ] `mother tools install /path/to/tool` works for local
-- [ ] `mother tools install contentcraft` works for catalog
+- [ ] `mother tools install <name>` works for catalog
 - [ ] `mother tools enable/disable` toggles tool state
 - [ ] `mother tools uninstall` removes tool
 - [ ] `mother tools status` shows detailed info

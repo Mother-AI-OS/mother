@@ -68,8 +68,8 @@
 
 | Check | Status | Evidence |
 |-------|--------|----------|
-| Dockerfile exists | **PASS** | `/home/amakua/projects/mother/Dockerfile` |
-| docker-compose.yml exists | **PASS** | `/home/amakua/projects/mother/docker-compose.yml` |
+| Dockerfile exists | **PASS** | `<repo>/Dockerfile` |
+| docker-compose.yml exists | **PASS** | `<repo>/docker-compose.yml` |
 | Docker build | **WARN** | Docker not available in test environment |
 | Container health check | **WARN** | Not tested |
 
@@ -150,7 +150,7 @@ GEMINI_API_KEY=
 ```bash
 python3 -m venv /tmp/mother-fresh-venv
 source /tmp/mother-fresh-venv/bin/activate
-pip install /home/amakua/projects/mother
+pip install .
 ```
 
 | Check | Status | Evidence |

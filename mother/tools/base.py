@@ -151,7 +151,7 @@ class ToolWrapper(ABC):
         # Start with binary and extra args
         cmd_parts = [self.binary] + self.extra_args
 
-        # Handle subcommands (e.g., "elster.vat" -> "elster" "vat")
+        # Handle subcommands (e.g., "report.vat" -> "report" "vat")
         if "." in command:
             cmd_parts.extend(command.split("."))
         else:
