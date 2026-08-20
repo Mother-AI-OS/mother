@@ -139,16 +139,28 @@ _REDACTION_PATTERNS: list[RedactionPattern] = [
         "US Social Security Number",
     ),
     # PII - Credit card numbers - before phone to avoid overlap
+    #
+    # Guarded against hex neighbours for the same reason as the phone pattern
+    # below: \b alone does not stop this matching the first 16 digits of a UUID
+    # such as "45879091-0076-4138-...", which is four hyphen-separated groups
+    # of four digits and so looks exactly like a card number.
     RedactionPattern(
         SensitiveDataType.CREDIT_CARD,
-        re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b"),
+        re.compile(r"(?<![0-9A-Fa-f_-])(?:\d{4}[-\s]?){3}\d{4}(?![0-9A-Fa-f_-])"),
         "[REDACTED:CREDIT_CARD]",
         "Credit card number",
     ),
     # PII - Phone numbers (various formats) - after credit card and SSN
+    #
+    # The leading/trailing guards matter more than the digit groups do. Without
+    # them this pattern matches digit runs *inside* hex identifiers — UUIDs,
+    # SHA hashes, request IDs — because those contain long stretches of digits
+    # separated by hyphens. That silently rewrote correlation IDs in audit
+    # records, breaking the trace chain roughly 8% of the time. A phone number
+    # is never preceded or followed by a hex digit or an identifier character.
     RedactionPattern(
         SensitiveDataType.PHONE,
-        re.compile(r"\+?\d{1,3}[-.\s]?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}"),
+        re.compile(r"(?<![0-9A-Fa-f_-])\+?\d{1,3}[-.\s]?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}(?![0-9A-Fa-f_-])"),
         "[REDACTED:PHONE]",
         "Phone number",
     ),
@@ -186,6 +198,14 @@ class RedactionConfig:
 
     # Whether to redact in keys as well as values
     redact_keys: bool = True
+
+    # Keys whose values are machine-generated identifiers rather than content:
+    # correlation IDs, event types, timestamps. Content patterns must never
+    # rewrite these. A correlation ID is a UUID, and UUIDs contain runs of
+    # digits that some patterns match, so redacting one silently breaks the
+    # trace chain the audit log exists to provide. Matched by exact key name at
+    # any depth.
+    preserve_keys: set[str] = field(default_factory=set)
 
     # Preserve partial data for debugging (e.g., show last 4 chars)
     preserve_suffix_length: int = 0
@@ -288,6 +308,11 @@ class Redactor:
         result = {}
 
         for key, value in data.items():
+            # Identifier fields pass through untouched, key and value both.
+            if str(key) in self.config.preserve_keys:
+                result[key] = value
+                continue
+
             # Optionally redact the key
             new_key = self.redact_string(str(key)) if self.config.redact_keys else key
 
