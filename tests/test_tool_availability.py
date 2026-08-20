@@ -11,6 +11,7 @@ end-to-end. Catches:
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 from typing import Any
@@ -236,11 +237,30 @@ READ_ONLY_CAPABILITIES: list[tuple[str, str]] = [
     ("ssh", "list_directory"),
 ]
 
-# External CLI tool binaries
-EXTERNAL_CLI_TOOLS: dict[str, str] = {
-    "gcp-draft": "gcp-draft",
-    "datacraft": "datacraft",
-}
+
+# External CLI tool binaries.
+#
+# No built-in plugin requires an external CLI, so this is empty by default and
+# the checks below collect nothing. It is an *operator* check, not a repo one:
+# a deployment whose third-party plugins shell out to binaries can assert those
+# binaries are installed by setting MOTHER_TEST_EXTERNAL_CLIS to a
+# comma-separated list of "plugin=binary" pairs (or bare names when both are
+# the same), e.g. MOTHER_TEST_EXTERNAL_CLIS="myplugin=mybin,othertool".
+def _external_clis_from_env() -> dict[str, str]:
+    raw = os.environ.get("MOTHER_TEST_EXTERNAL_CLIS", "").strip()
+    if not raw:
+        return {}
+    tools: dict[str, str] = {}
+    for entry in raw.split(","):
+        entry = entry.strip()
+        if not entry:
+            continue
+        name, _, binary = entry.partition("=")
+        tools[name.strip()] = (binary or name).strip()
+    return tools
+
+
+EXTERNAL_CLI_TOOLS: dict[str, str] = _external_clis_from_env()
 
 # Tools catalog path
 TOOLS_CATALOG_PATH = Path(__file__).parent.parent / "mother" / "tools" / "tools-catalog.yaml"
@@ -486,7 +506,9 @@ class TestExternalToolCLIs:
         assert path is not None, f"CLI tool '{binary}' (for {tool_name}) not found in PATH. Is it installed?"
 
     # CLIs that don't support --help (e.g. interactive scripts)
-    _NO_HELP_FLAG = {"gcp-draft"}
+    # Binaries that are interactive and have no --help; set
+    # MOTHER_TEST_CLIS_WITHOUT_HELP to a comma-separated list to exempt them.
+    _NO_HELP_FLAG = {b.strip() for b in os.environ.get("MOTHER_TEST_CLIS_WITHOUT_HELP", "").split(",") if b.strip()}
 
     @pytest.mark.parametrize(
         "tool_name,binary",
