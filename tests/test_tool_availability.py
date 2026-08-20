@@ -111,7 +111,6 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
         "stats",
         "areas",
     ],
-    "google-docs": ["list", "get", "send", "status"],
     "tor": [
         "tor_check_status",
         "tor_fetch",
@@ -151,8 +150,8 @@ EXPECTED_PLUGINS: dict[str, list[str]] = {
     ],
 }
 
-# Sum of EXPECTED_PLUGINS above (12 builtin plugins).
-EXPECTED_TOTAL_CAPABILITIES = 99
+# Sum of EXPECTED_PLUGINS above (11 builtin plugins).
+EXPECTED_TOTAL_CAPABILITIES = 95
 
 # Capabilities that MUST require confirmation (destructive / side-effect ops)
 DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
@@ -174,8 +173,6 @@ DESTRUCTIVE_CAPABILITIES: list[tuple[str, str]] = [
     ("datacraft", "delete"),
     # tasks
     ("tasks", "delete"),
-    # google-docs
-    ("google-docs", "send"),
     # tor
     ("tor", "tor_start"),
     ("tor", "tor_stop"),
@@ -223,9 +220,6 @@ READ_ONLY_CAPABILITIES: list[tuple[str, str]] = [
     ("datacraft", "stats"),
     ("datacraft", "search"),
     ("datacraft", "get"),
-    ("google-docs", "list"),
-    ("google-docs", "get"),
-    ("google-docs", "status"),
     ("tor", "tor_check_status"),
     ("tor", "tor_verified_sites"),
     ("tor-shell", "darknet_bookmarks"),
@@ -290,7 +284,7 @@ class TestBuiltinPluginRegistry:
     """Verify all 20 plugins exist in BUILTIN_PLUGINS and can be instantiated."""
 
     def test_all_plugins_registered(self) -> None:
-        """Assert exactly 12 builtin plugins with expected names."""
+        """Assert exactly 11 builtin plugins with expected names."""
         expected_names = set(EXPECTED_PLUGINS.keys())
         actual_names = set(BUILTIN_PLUGINS.keys())
         assert actual_names == expected_names, (
@@ -298,7 +292,7 @@ class TestBuiltinPluginRegistry:
             f"  Missing: {expected_names - actual_names}\n"
             f"  Extra:   {actual_names - expected_names}"
         )
-        assert len(BUILTIN_PLUGINS) == len(EXPECTED_PLUGINS) == 12
+        assert len(BUILTIN_PLUGINS) == len(EXPECTED_PLUGINS) == 11
 
     @pytest.mark.parametrize("plugin_name", sorted(EXPECTED_PLUGINS.keys()))
     def test_all_plugins_instantiate(self, plugin_name: str) -> None:

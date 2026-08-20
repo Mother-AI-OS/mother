@@ -135,7 +135,6 @@ Response:
 | **datacraft** | parse documents, search, extract tables |
 | **tasks** | add, list, complete, prioritize tasks |
 | **ssh** | run commands and move files on remote hosts |
-| **google-docs** | Google Docs templates (optional) |
 | **tor** | anonymous browsing, .onion sites, Tor proxy |
 | **tor-shell** | curl/wget/ssh/nmap through Tor network |
 | **darkweb-osint** | dark web OSINT over the vendored robin engine |
