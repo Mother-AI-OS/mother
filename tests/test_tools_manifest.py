@@ -11,15 +11,11 @@ import yaml
 from mother.tools.exceptions import ToolManifestError, ToolManifestNotFoundError
 from mother.tools.tool_manifest import (
     CLIIntegration,
-    ConfigField,
     DockerIntegration,
     HTTPIntegration,
-    IntegrationSpec,
     IntegrationType,
     PythonIntegration,
     RiskLevel,
-    ToolManifest,
-    ToolMetadata,
     find_tool_manifest,
     load_tool_manifest,
     validate_tool_manifest,

@@ -382,9 +382,6 @@ class TestInstallFromGit:
         """Test installing from git URL (mocked)."""
         registry, tmpdir = temp_registry
 
-        # Create a mock tool directory that git would clone
-        mock_clone_dir = tmpdir / "mock_clone"
-
         manifest_data = {
             "schema_version": "1.0",
             "tool": {

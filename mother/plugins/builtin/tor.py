@@ -175,9 +175,7 @@ class TorPlugin(PluginBase):
         # Control-port auth cookie (Debian default when CookieAuthentication 1
         # is set in torrc). Read at NEWNYM time; null-auth fallback if absent.
         self._tor_cookie_path = (
-            config.get("tor_cookie_path", "/run/tor/control.authcookie")
-            if config
-            else "/run/tor/control.authcookie"
+            config.get("tor_cookie_path", "/run/tor/control.authcookie") if config else "/run/tor/control.authcookie"
         )
 
         # Browser for interactive browsing

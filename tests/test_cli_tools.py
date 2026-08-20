@@ -340,7 +340,7 @@ class TestHealthCommand:
         with patch("mother.cli.tools_cmd._get_registry", return_value=mock_registry):
             cmd_install(str(sample_tool_dir))
             # Note: Health may fail due to missing binary, but that's expected
-            result = cmd_health("sample-tool")
+            cmd_health("sample-tool")
 
         # Result may be 0 or 1 depending on binary availability
         captured = capsys.readouterr()
