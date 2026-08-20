@@ -226,13 +226,6 @@ class SSHPlugin(PluginBase):
 
     async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
         """Execute an SSH capability."""
-        # Check if VM registry loaded
-        if not self.vm_registry or not self.connection_pool:
-            return PluginResult.error_result(
-                "VM configuration not loaded. Check ~/.config/mother/vms.yaml",
-                code="CONFIG_ERROR",
-            )
-
         handlers = {
             "connect": self._connect,
             "run_command": self._run_command,
@@ -244,11 +237,21 @@ class SSHPlugin(PluginBase):
             "list_projects": self._list_projects,
         }
 
+        # Resolve the capability before checking configuration. A name this
+        # plugin does not implement is unknown whether or not any VM is
+        # configured, and answering a typo with "VM configuration not loaded"
+        # sends the caller after the wrong problem.
         handler = handlers.get(capability)
         if not handler:
             return PluginResult.error_result(
                 f"Unknown capability: {capability}",
                 code="UNKNOWN_CAPABILITY",
+            )
+
+        if not self.vm_registry or not self.connection_pool:
+            return PluginResult.error_result(
+                "VM configuration not loaded. Check ~/.config/mother/vms.yaml",
+                code="CONFIG_ERROR",
             )
 
         try:
