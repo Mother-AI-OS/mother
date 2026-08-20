@@ -46,7 +46,7 @@ def _create_manifest() -> PluginManifest:
                     ParameterSpec(
                         name="vm_name",
                         type=ParameterType.STRING,
-                        description="VM name (projects, trading, or uapk)",
+                        description="VM name, as defined in vms.yaml",
                         required=True,
                     ),
                 ],
@@ -60,7 +60,7 @@ def _create_manifest() -> PluginManifest:
                     ParameterSpec(
                         name="vm_name",
                         type=ParameterType.STRING,
-                        description="VM name (projects, trading, or uapk)",
+                        description="VM name, as defined in vms.yaml",
                         required=True,
                     ),
                     ParameterSpec(
@@ -86,7 +86,7 @@ def _create_manifest() -> PluginManifest:
                     ParameterSpec(
                         name="vm_name",
                         type=ParameterType.STRING,
-                        description="VM name (projects, trading, or uapk)",
+                        description="VM name, as defined in vms.yaml",
                         required=True,
                     ),
                     ParameterSpec(
@@ -112,7 +112,7 @@ def _create_manifest() -> PluginManifest:
                     ParameterSpec(
                         name="vm_name",
                         type=ParameterType.STRING,
-                        description="VM name (projects, trading, or uapk)",
+                        description="VM name, as defined in vms.yaml",
                         required=True,
                     ),
                     ParameterSpec(
@@ -132,7 +132,7 @@ def _create_manifest() -> PluginManifest:
                     ParameterSpec(
                         name="vm_name",
                         type=ParameterType.STRING,
-                        description="VM name (projects, trading, or uapk)",
+                        description="VM name, as defined in vms.yaml",
                         required=True,
                     ),
                     ParameterSpec(
@@ -158,7 +158,7 @@ def _create_manifest() -> PluginManifest:
                     ParameterSpec(
                         name="vm_name",
                         type=ParameterType.STRING,
-                        description="VM name (projects, trading, or uapk)",
+                        description="VM name, as defined in vms.yaml",
                         required=True,
                     ),
                     ParameterSpec(
@@ -189,7 +189,7 @@ def _create_manifest() -> PluginManifest:
                     ParameterSpec(
                         name="vm_name",
                         type=ParameterType.STRING,
-                        description="VM name (projects, trading, or uapk)",
+                        description="VM name, as defined in vms.yaml",
                         required=True,
                     ),
                 ],
@@ -218,9 +218,7 @@ class SSHPlugin(PluginBase):
         try:
             self.vm_registry = VMRegistry.load_from_yaml(config_path)
             self.connection_pool = SSHConnectionPool(self.vm_registry)
-            logger.info(
-                f"SSH plugin initialized with {len(self.vm_registry.list_vm_names())} VMs"
-            )
+            logger.info(f"SSH plugin initialized with {len(self.vm_registry.list_vm_names())} VMs")
         except Exception as e:
             logger.error(f"Failed to load VM configuration: {e}")
             self.vm_registry = None
@@ -302,9 +300,7 @@ class SSHPlugin(PluginBase):
             },
         )
 
-    async def _run_command(
-        self, vm_name: str, command: str, timeout: int = 30
-    ) -> PluginResult:
+    async def _run_command(self, vm_name: str, command: str, timeout: int = 30) -> PluginResult:
         """Execute a command on a VM."""
         conn = self.connection_pool.get_connection(vm_name)
         result = conn.run_command(command, timeout=timeout)
@@ -321,9 +317,7 @@ class SSHPlugin(PluginBase):
             },
         )
 
-    async def _read_file(
-        self, vm_name: str, remote_path: str, max_size: int = 1024 * 1024
-    ) -> PluginResult:
+    async def _read_file(self, vm_name: str, remote_path: str, max_size: int = 1024 * 1024) -> PluginResult:
         """Read a file from a VM."""
         conn = self.connection_pool.get_connection(vm_name)
         content = conn.read_file(remote_path, max_size=max_size)
@@ -364,9 +358,7 @@ class SSHPlugin(PluginBase):
             },
         )
 
-    async def _download_file(
-        self, vm_name: str, remote_path: str, local_path: str
-    ) -> PluginResult:
+    async def _download_file(self, vm_name: str, remote_path: str, local_path: str) -> PluginResult:
         """Download a file from a VM."""
         conn = self.connection_pool.get_connection(vm_name)
         success = conn.download_file(remote_path, local_path)
@@ -386,9 +378,7 @@ class SSHPlugin(PluginBase):
             },
         )
 
-    async def _upload_file(
-        self, vm_name: str, local_path: str, remote_path: str
-    ) -> PluginResult:
+    async def _upload_file(self, vm_name: str, local_path: str, remote_path: str) -> PluginResult:
         """Upload a file to a VM."""
         conn = self.connection_pool.get_connection(vm_name)
         success = conn.upload_file(local_path, remote_path)
@@ -415,7 +405,8 @@ class SSHPlugin(PluginBase):
         for vm in self.vm_registry.get_all_vms():
             # Try to connect and get status
             try:
-                conn = self.connection_pool.get_connection(vm.name)
+                # Called for its side effect: reaching the VM is the probe.
+                self.connection_pool.get_connection(vm.name)
                 connected = True
                 status = "connected"
             except Exception as e:
