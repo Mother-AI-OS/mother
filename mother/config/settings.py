@@ -57,12 +57,6 @@ class Settings(BaseSettings):
         alias="MOTHER_LOG_DIR",
     )
 
-    # Tool Paths
-    gcp_draft_bin: Path = Field(
-        default=Path.home() / ".local" / "bin" / "gcp-draft",
-        alias="GCP_DRAFT_BIN",
-    )
-
     # Security
     require_auth: bool = Field(default=True, alias="MOTHER_REQUIRE_AUTH")
 

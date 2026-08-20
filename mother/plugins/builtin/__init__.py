@@ -12,7 +12,6 @@ Plugins:
 - pdf: PDF manipulation (merge, split, extract, rotate)
 - datacraft: Document processing (parse, search, extract tables)
 - tasks: Task management (add, list, complete, prioritize)
-- google_docs: Google Docs template management (optional)
 - ssh: SSH access to remote hosts (command execution, file operations)
 - tor: Tor network access (anonymous browsing, .onion sites)
   — HIGH-RISK: registered but not enabled by default; blocked by safe_mode.
@@ -29,7 +28,6 @@ Third-party and private plugins are NOT listed here. They register through the
 from .datacraft import DatacraftPlugin
 from .email import EmailPlugin
 from .filesystem import FilesystemPlugin
-from .google import GoogleDocsPlugin
 from .pdf import PDFPlugin
 from .robin_plugin import RobinPlugin
 from .shell import ShellPlugin
@@ -49,7 +47,6 @@ BUILTIN_PLUGINS: dict[str, type] = {
     "pdf": PDFPlugin,
     "datacraft": DatacraftPlugin,
     "tasks": TasksPlugin,
-    "google-docs": GoogleDocsPlugin,
     # Tor / tor-shell are registered but high-risk: they are NOT in the default
     # enabled set (see explicitly_enabled_plugins in main.py) and safe_mode
     # (default True) blocks all high-risk capabilities, so they only run when a
@@ -90,7 +87,6 @@ __all__ = [
     "DatacraftPlugin",
     "EmailPlugin",
     "FilesystemPlugin",
-    "GoogleDocsPlugin",
     "PDFPlugin",
     "RobinPlugin",
     "ShellPlugin",

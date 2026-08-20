@@ -8,7 +8,6 @@ All tool functionality is now provided by plugins in mother.plugins.builtin:
 - pdf: PDF manipulation (merge, split, extract, rotate)
 - datacraft: Document processing and search
 - tasks: Task management
-- google-docs: Google Docs integration
 """
 
 import logging

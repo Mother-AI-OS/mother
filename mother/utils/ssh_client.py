@@ -190,9 +190,7 @@ class SSHConnection:
                 success=exit_code == 0,
             )
 
-            logger.debug(
-                f"Command on {self.config.name}: {command[:50]}... -> exit_code={exit_code}"
-            )
+            logger.debug(f"Command on {self.config.name}: {command[:50]}... -> exit_code={exit_code}")
             return result
 
         except Exception as e:
@@ -229,9 +227,7 @@ class SSHConnection:
             raise FileNotFoundError(f"File not found: {remote_path}")
 
         if file_size > max_size:
-            raise RuntimeError(
-                f"File too large: {file_size} bytes (max: {max_size} bytes)"
-            )
+            raise RuntimeError(f"File too large: {file_size} bytes (max: {max_size} bytes)")
 
         # Read file content
         cat_cmd = f"cat '{remote_path}'"
@@ -461,7 +457,7 @@ class VMRegistry:
         """Get VM configuration by name.
 
         Args:
-            name: VM name (e.g., 'projects', 'trading', 'uapk')
+            name: VM name, as defined in vms.yaml
 
         Returns:
             VMConfig object
@@ -533,7 +529,7 @@ class SSHConnectionPool:
             # Ensure connection is active
             try:
                 conn.connect()
-            except Exception as e:
+            except Exception:
                 # Remove dead connection from pool
                 del self._connections[vm_name]
                 raise

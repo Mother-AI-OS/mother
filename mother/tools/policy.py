@@ -44,12 +44,14 @@ class ToolPolicyConfig:
 
     enabled: bool = True
     default_action: ToolPolicyAction = ToolPolicyAction.CONFIRM
-    risk_rules: dict[str, ToolPolicyAction] = field(default_factory=lambda: {
-        "low": ToolPolicyAction.ALLOW,
-        "medium": ToolPolicyAction.CONFIRM,
-        "high": ToolPolicyAction.CONFIRM,
-        "critical": ToolPolicyAction.DENY,
-    })
+    risk_rules: dict[str, ToolPolicyAction] = field(
+        default_factory=lambda: {
+            "low": ToolPolicyAction.ALLOW,
+            "medium": ToolPolicyAction.CONFIRM,
+            "high": ToolPolicyAction.CONFIRM,
+            "critical": ToolPolicyAction.DENY,
+        }
+    )
     blocked_tools: list[str] = field(default_factory=list)
     allowed_tools: list[str] = field(default_factory=list)
 
@@ -216,9 +218,7 @@ class ToolPolicyEngine:
         decision = self.evaluate_install(tool_name, risk_level)
 
         if not decision.allowed:
-            raise ToolPolicyViolationError(
-                tool_name, "install", decision.reason, risk_level=str(decision.risk_level)
-            )
+            raise ToolPolicyViolationError(tool_name, "install", decision.reason, risk_level=str(decision.risk_level))
 
         if decision.requires_confirmation and not confirmed:
             raise ToolPolicyViolationError(
@@ -244,11 +244,13 @@ def load_tool_policy(path: Path | str | None = None) -> ToolPolicyConfig:
         search_paths.append(Path(path))
     else:
         # Default search locations
-        search_paths.extend([
-            Path("./mother_tool_policy.yaml"),
-            Path("./config/mother_tool_policy.yaml"),
-            Path.home() / ".config" / "mother" / "tool_policy.yaml",
-        ])
+        search_paths.extend(
+            [
+                Path("./mother_tool_policy.yaml"),
+                Path("./config/mother_tool_policy.yaml"),
+                Path.home() / ".config" / "mother" / "tool_policy.yaml",
+            ]
+        )
 
     for check_path in search_paths:
         if check_path.exists():
