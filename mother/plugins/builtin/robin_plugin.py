@@ -186,9 +186,7 @@ class RobinPlugin(PluginBase):
     def __init__(self, config: dict[str, Any] | None = None):
         """Initialize the dark web OSINT plugin."""
         super().__init__(_create_manifest(), config)
-        self._default_model = (
-            config.get("model", DEFAULT_MODEL) if config else DEFAULT_MODEL
-        )
+        self._default_model = config.get("model", DEFAULT_MODEL) if config else DEFAULT_MODEL
 
     async def execute(self, capability: str, params: dict[str, Any]) -> PluginResult:
         """Execute a dark web OSINT capability."""
@@ -252,9 +250,7 @@ class RobinPlugin(PluginBase):
         llm = engine.get_llm(model)
         refined = engine.refine_query(llm, query)
 
-        results = engine.get_search_results(
-            refined.replace(" ", "+"), max_workers=workers
-        )
+        results = engine.get_search_results(refined.replace(" ", "+"), max_workers=workers)
         if len(results) > max_results:
             results = results[:max_results]
 
@@ -315,9 +311,7 @@ class RobinPlugin(PluginBase):
 
         llm = engine.get_llm(model)
         refined = engine.refine_query(llm, query)
-        results = engine.get_search_results(
-            refined.replace(" ", "+"), max_workers=5
-        )
+        results = engine.get_search_results(refined.replace(" ", "+"), max_workers=5)
         if len(results) > max_results:
             results = results[:max_results]
         filtered = engine.filter_results(llm, refined, results) if results else []

@@ -60,14 +60,33 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Dark web OSINT plugin (vendored robin engine). HIGH-RISK and disabled by
+# default, so its heavy LangChain stack is NOT part of the base install:
+#   pip install "mother-ai-os[darkweb]"
+darkweb = [
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-google-genai>=2.0.0",
+    "langchain-ollama>=0.2.0",
+]
+
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
     "httpx>=0.26.0",
-    "ruff>=0.1.0",
+    # Pinned: ruff adds rules and changes formatting between minor releases,
+    # and CI installed it unpinned, so a ruff release could turn the build red
+    # with no change to this repo. Bump deliberately.
+    "ruff==0.16.3",
     "mypy>=1.8.0",
     "types-PyYAML>=6.0.0",
+    # The suite covers the darkweb plugin (all network/LLM calls mocked), so
+    # the engine must be importable for those tests to run rather than skip.
+    "mother-ai-os[darkweb]",
 ]
 
 # Edition-based feature packages
@@ -111,10 +130,29 @@ packages = ["mother"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+# Vendored third-party code is kept byte-for-byte as upstream ships it so it
+# stays diffable against upstream. Restyling it to our conventions would make
+# every future sync a manual merge.
+exclude = [
+    "mother/plugins/builtin/robin_engine",
+    # Documentation prose is not source. Recent ruff versions reformat Python
+    # blocks inside Markdown, which rewrites hand-laid-out teaching examples
+    # into formatter-optimal one-liners and makes the docs harder to read.
+    "**/*.md",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
-ignore = ["E501"]  # Line length handled by formatter
+ignore = [
+    "E501",  # Line length handled by formatter
+    # UP042 wants `class X(str, Enum)` rewritten to `StrEnum`. Do not: the two
+    # format differently under f-strings and str() — `(str, Enum)` yields
+    # "AuditEventType.CAPABILITY_REQUEST" where StrEnum yields
+    # "capability_request". Several of these enums are serialised into audit
+    # records, so the rewrite would silently change the content of already
+    # written logs. Revisit only with a migration for existing logs.
+    "UP042",
+]
 
 [tool.mypy]
 python_version = "3.11"

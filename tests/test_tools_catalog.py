@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 
 import pytest
 import yaml
@@ -226,7 +226,12 @@ class TestToolCatalog:
                 "version": "1.0",
                 "tools": [
                     {"name": "active-tool", "description": "Active", "repository": "https://r1"},
-                    {"name": "old-tool", "description": "Active but old", "repository": "https://r2", "deprecated": True},
+                    {
+                        "name": "old-tool",
+                        "description": "Active but old",
+                        "repository": "https://r2",
+                        "deprecated": True,
+                    },
                 ],
             }
             yaml.dump(data, f)

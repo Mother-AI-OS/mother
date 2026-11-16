@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import Any
 
 from ..tools import (
     ExternalToolRegistry,
@@ -434,11 +433,15 @@ def cmd_health(name: str, json_output: bool = False) -> int:
     healthy, message = registry.check_health(name)
 
     if json_output:
-        print(json.dumps({
-            "name": name,
-            "healthy": healthy,
-            "message": message,
-        }))
+        print(
+            json.dumps(
+                {
+                    "name": name,
+                    "healthy": healthy,
+                    "message": message,
+                }
+            )
+        )
     else:
         if healthy:
             print(f"{name}: healthy")

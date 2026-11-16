@@ -12,7 +12,6 @@ the plugin system for runtime capabilities.
 from __future__ import annotations
 
 import logging
-import os
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -27,7 +26,6 @@ from .exceptions import (
     ToolInstallError,
     ToolNotFoundError,
     ToolNotInstalledError,
-    ToolPolicyViolationError,
 )
 from .store import InstalledTool, ToolStore
 from .tool_manifest import ToolManifest, find_tool_manifest, load_tool_manifest
@@ -387,7 +385,7 @@ class ExternalToolRegistry:
             # Find and load manifest
             manifest_path = find_tool_manifest(clone_path)
             if not manifest_path:
-                raise ToolInstallError("unknown", f"No mother-tool.yaml found in repository")
+                raise ToolInstallError("unknown", "No mother-tool.yaml found in repository")
 
             manifest = load_tool_manifest(manifest_path)
 

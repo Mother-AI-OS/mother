@@ -691,3 +691,119 @@ class TestRedactionIntegrationWithLogger:
 
         log_content = (tmp_path / "audit.jsonl").read_text()
         assert "supersecret123" not in log_content
+
+
+class TestIdentifierPreservation:
+    """Identifiers must survive redaction intact.
+
+    Regression tests for a bug where the credit-card and phone patterns matched
+    digit runs inside hex identifiers. UUIDs contain hyphen-separated groups of
+    digits, so roughly 8% of correlation IDs were silently rewritten to
+    "[REDACTED:PHONE]" on their way into the log — breaking the very trace chain
+    the audit log exists to provide. Because it depended on the random UUID, it
+    surfaced only as an occasional flaky test.
+    """
+
+    # UUIDs whose digit layout previously tripped each pattern.
+    KNOWN_TRIPWIRES = [
+        "45879091-0076-4138-b353-04de7e8f6e28",  # looked like a credit card
+        "52263851-6065-4087-a841-b34e8624da53",  # looked like a credit card
+        "5112f27d-5fc0-45e6-96ba-9c0071705394",  # looked like a phone number
+        "37296360-7424-4b22-a4ba-beef1d07e213",  # looked like a phone number
+    ]
+
+    @pytest.mark.parametrize("value", KNOWN_TRIPWIRES)
+    def test_known_tripwire_uuids_survive(self, value):
+        """UUIDs that previously matched a PII pattern are left alone."""
+        assert get_redactor().redact_string(value) == value
+
+    def test_random_uuids_survive(self):
+        """No UUID should ever be treated as PII."""
+        import uuid
+
+        redactor = get_redactor()
+        mangled = [u for u in (str(uuid.uuid4()) for _ in range(5000)) if redactor.redact_string(u) != u]
+        assert mangled == [], f"{len(mangled)} UUIDs were redacted, e.g. {mangled[:3]}"
+
+    def test_sha256_hashes_survive(self):
+        """Content hashes are identifiers, not PII."""
+        import hashlib
+
+        redactor = get_redactor()
+        for i in range(2000):
+            digest = hashlib.sha256(str(i).encode()).hexdigest()
+            assert redactor.redact_string(digest) == digest
+
+    @pytest.mark.parametrize(
+        "value,expected_marker",
+        [
+            ("4111 1111 1111 1111", "[REDACTED:CREDIT_CARD]"),
+            ("4111-1111-1111-1111", "[REDACTED:CREDIT_CARD]"),
+            ("+49 151 23456789", "[REDACTED:PHONE]"),
+            ("555-123-4567", "[REDACTED:PHONE]"),
+            ("123-45-6789", "[REDACTED:SSN]"),
+        ],
+    )
+    def test_real_pii_is_still_redacted(self, value, expected_marker):
+        """Tightening the patterns must not stop them catching actual PII."""
+        assert get_redactor().redact_string(value) == expected_marker
+
+    def test_correlation_chain_survives_the_logger(self, tmp_path):
+        """The three entries of one request keep a single correlation ID."""
+        logger = AuditLogger(
+            AuditLogConfig(
+                log_path=tmp_path / "audit.jsonl",
+                async_write=False,
+                redact_sensitive=True,
+            )
+        )
+        try:
+            expected = []
+            for _ in range(300):
+                cid = logger.log_capability_request(capability="test", plugin="core")
+                logger.log_policy_decision(
+                    capability="test",
+                    plugin="core",
+                    action="allow",
+                    allowed=True,
+                    reason="Test",
+                    correlation_id=cid,
+                )
+                logger.log_capability_result(capability="test", plugin="core", success=True, correlation_id=cid)
+                expected.append(cid)
+        finally:
+            logger.close()
+
+        entries = [json.loads(line) for line in (tmp_path / "audit.jsonl").read_text().strip().split("\n")]
+        assert len(entries) == 3 * len(expected)
+
+        for i, cid in enumerate(expected):
+            written = {e["correlation_id"] for e in entries[i * 3 : i * 3 + 3]}
+            assert written == {cid}, f"request {i} lost its correlation ID: {written}"
+
+    def test_secrets_in_params_are_still_redacted(self, tmp_path):
+        """Preserving identifier fields must not leak the content fields."""
+        logger = AuditLogger(
+            AuditLogConfig(
+                log_path=tmp_path / "audit.jsonl",
+                async_write=False,
+                redact_sensitive=True,
+            )
+        )
+        try:
+            logger.log_capability_request(
+                capability="test",
+                plugin="core",
+                params={
+                    "api_key": "sk-ant-aaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "email": "someone@example.com",
+                    "phone": "+49 151 23456789",
+                },
+            )
+        finally:
+            logger.close()
+
+        log_content = (tmp_path / "audit.jsonl").read_text()
+        assert "sk-ant-aaaaaaaaaaaaaaaaaaaaaaaaaaaa" not in log_content
+        assert "someone@example.com" not in log_content
+        assert "23456789" not in log_content

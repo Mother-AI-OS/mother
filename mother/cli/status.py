@@ -1,7 +1,7 @@
 """Status CLI command."""
 
+import importlib.util
 import json
-from pathlib import Path
 
 from .. import __version__
 from ..config.settings import get_settings
@@ -27,18 +27,18 @@ def _check_email_config() -> dict:
 
 
 def _check_optional_features() -> dict:
-    """Check status of optional features."""
-    home = Path.home()
-    features = {}
+    """Report which optional extras of this package are installed.
 
-    # Google integration
-    features["google"] = {
-        "gcp_draft": (home / ".local" / "bin" / "gcp-draft").exists(),
-    }
+    Only extras that actually gate a built-in capability belong here. This
+    previously probed for two binaries that shipped with the author's private
+    tooling and that no code in this package ever called, so it reported on
+    software the user had no way to obtain.
+    """
+    features: dict[str, dict[str, bool]] = {}
 
-    # PDF tools
-    features["pdf"] = {
-        "pdf_merge": (home / ".local" / "bin" / "pdf-merge").exists(),
+    # The darkweb-osint plugin needs the "darkweb" extra (LangChain, bs4).
+    features["darkweb"] = {
+        "engine": importlib.util.find_spec("langchain_core") is not None,
     }
 
     return features

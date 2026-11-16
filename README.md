@@ -3,7 +3,7 @@
 **The AI agent operating system built by a lawyer, for organizations that need control.**
 
 [![CI](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml/badge.svg)](https://github.com/Mother-AI-OS/mother/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-74%25-green)](https://github.com/Mother-AI-OS/mother)
+[![Coverage](https://img.shields.io/badge/coverage-72%25-green)](https://github.com/Mother-AI-OS/mother)
 [![PyPI version](https://badge.fury.io/py/mother-ai-os.svg)](https://badge.fury.io/py/mother-ai-os)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -135,7 +135,6 @@ Response:
 | **datacraft** | parse documents, search, extract tables |
 | **tasks** | add, list, complete, prioritize tasks |
 | **ssh** | run commands and move files on remote hosts |
-| **google-docs** | Google Docs templates (optional) |
 | **tor** | anonymous browsing, .onion sites, Tor proxy |
 | **tor-shell** | curl/wget/ssh/nmap through Tor network |
 | **darkweb-osint** | dark web OSINT over the vendored robin engine |
@@ -178,7 +177,7 @@ requirements.
 
 **Learn more:**
 - [Integration Contract](docs/dev/INTEGRATION_CONTRACT.md) — Make your tool Mother-compatible
-- [Creating Plugins](https://mother-ai-os.github.io/mother/docs/plugins/creating-plugins) — Step-by-step guide
+- [Creating Plugins](https://mother-os.info/docs/plugins/creating-plugins/) — Step-by-step guide
 
 ### Permission & Confirmation System
 
@@ -414,14 +413,12 @@ execution:
 ```python
 from mother.plugins import PluginBase, PluginResult
 
+
 class MyPlugin(PluginBase):
     async def execute(self, capability: str, params: dict) -> PluginResult:
         if capability == "do_something":
             result = self._process(params["input"])
-            return PluginResult.success_result(
-                data={"result": result},
-                message="Task completed"
-            )
+            return PluginResult.success_result(data={"result": result}, message="Task completed")
         raise ValueError(f"Unknown capability: {capability}")
 ```
 
@@ -472,7 +469,7 @@ Need custom plugins, SLA, or on-premise deployment?
 # Install dev dependencies
 pip install -e ".[dev]"
 
-# Run tests (1,346 tests)
+# Run tests (2,211 tests)
 pytest
 
 # Type checking

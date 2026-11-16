@@ -19,6 +19,14 @@ from mother.policy.engine import PolicyEngine
 
 ENGINE = "mother.plugins.builtin.robin_engine"
 
+# The vendored engine needs the optional `darkweb` extra (LangChain, bs4,
+# requests). Import it up front so the whole module skips with a clear reason
+# when that extra is absent, rather than every patch() failing individually.
+pytest.importorskip(
+    ENGINE,
+    reason='darkweb extra not installed - run: pip install "mother-ai-os[darkweb]"',
+)
+
 
 class TestCreateManifest:
     def test_creates_valid_manifest(self):
@@ -65,9 +73,7 @@ class TestExecuteErrors:
     @pytest.mark.asyncio
     async def test_invalid_preset(self):
         plugin = RobinPlugin()
-        result = await plugin.execute(
-            "robin_investigate", {"query": "x", "preset": "bogus"}
-        )
+        result = await plugin.execute("robin_investigate", {"query": "x", "preset": "bogus"})
         assert result.success is False
         assert result.error_code == "INVALID_PRESET"
 
@@ -77,15 +83,15 @@ class TestInvestigate:
     async def test_full_pipeline(self):
         plugin = RobinPlugin()
         onion = [{"title": "t", "link": "http://abc.onion"}]
-        with patch(f"{ENGINE}.get_llm", return_value=MagicMock()), \
-             patch(f"{ENGINE}.refine_query", return_value="refined q") as refine, \
-             patch(f"{ENGINE}.get_search_results", return_value=onion) as search, \
-             patch(f"{ENGINE}.filter_results", return_value=onion), \
-             patch(f"{ENGINE}.scrape_multiple", return_value={"http://abc.onion": "text"}), \
-             patch(f"{ENGINE}.generate_summary", return_value="REPORT"):
-            result = await plugin.execute(
-                "robin_investigate", {"query": "acme leak", "preset": "threat_intel"}
-            )
+        with (
+            patch(f"{ENGINE}.get_llm", return_value=MagicMock()),
+            patch(f"{ENGINE}.refine_query", return_value="refined q") as refine,
+            patch(f"{ENGINE}.get_search_results", return_value=onion) as search,
+            patch(f"{ENGINE}.filter_results", return_value=onion),
+            patch(f"{ENGINE}.scrape_multiple", return_value={"http://abc.onion": "text"}),
+            patch(f"{ENGINE}.generate_summary", return_value="REPORT"),
+        ):
+            result = await plugin.execute("robin_investigate", {"query": "acme leak", "preset": "threat_intel"})
 
         assert result.success is True
         assert result.data["report"] == "REPORT"
@@ -98,11 +104,13 @@ class TestInvestigate:
     @pytest.mark.asyncio
     async def test_no_results_short_circuits(self):
         plugin = RobinPlugin()
-        with patch(f"{ENGINE}.get_llm", return_value=MagicMock()), \
-             patch(f"{ENGINE}.refine_query", return_value="q"), \
-             patch(f"{ENGINE}.get_search_results", return_value=[]), \
-             patch(f"{ENGINE}.filter_results") as flt, \
-             patch(f"{ENGINE}.generate_summary") as summ:
+        with (
+            patch(f"{ENGINE}.get_llm", return_value=MagicMock()),
+            patch(f"{ENGINE}.refine_query", return_value="q"),
+            patch(f"{ENGINE}.get_search_results", return_value=[]),
+            patch(f"{ENGINE}.filter_results") as flt,
+            patch(f"{ENGINE}.generate_summary") as summ,
+        ):
             result = await plugin.execute("robin_investigate", {"query": "nothing"})
 
         assert result.success is True
@@ -116,11 +124,13 @@ class TestSearch:
     async def test_search_only(self):
         plugin = RobinPlugin()
         onion = [{"title": "t", "link": "http://abc.onion"}]
-        with patch(f"{ENGINE}.get_llm", return_value=MagicMock()), \
-             patch(f"{ENGINE}.refine_query", return_value="q"), \
-             patch(f"{ENGINE}.get_search_results", return_value=onion), \
-             patch(f"{ENGINE}.filter_results", return_value=onion), \
-             patch(f"{ENGINE}.scrape_multiple") as scrape:
+        with (
+            patch(f"{ENGINE}.get_llm", return_value=MagicMock()),
+            patch(f"{ENGINE}.refine_query", return_value="q"),
+            patch(f"{ENGINE}.get_search_results", return_value=onion),
+            patch(f"{ENGINE}.filter_results", return_value=onion),
+            patch(f"{ENGINE}.scrape_multiple") as scrape,
+        ):
             result = await plugin.execute("robin_search", {"query": "acme"})
 
         assert result.success is True
@@ -132,9 +142,11 @@ class TestHealth:
     @pytest.mark.asyncio
     async def test_health(self):
         plugin = RobinPlugin()
-        with patch(f"{ENGINE}.check_tor_proxy", return_value={"status": "up"}), \
-             patch(f"{ENGINE}.check_search_engines", return_value=[{"status": "up"}, {"status": "down"}]), \
-             patch(f"{ENGINE}.check_llm_health", return_value={"status": "up", "provider": "Anthropic"}):
+        with (
+            patch(f"{ENGINE}.check_tor_proxy", return_value={"status": "up"}),
+            patch(f"{ENGINE}.check_search_engines", return_value=[{"status": "up"}, {"status": "down"}]),
+            patch(f"{ENGINE}.check_llm_health", return_value={"status": "up", "provider": "Anthropic"}),
+        ):
             result = await plugin.execute("robin_health", {})
 
         assert result.success is True
