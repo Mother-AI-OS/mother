@@ -81,7 +81,7 @@ dev = [
     # Pinned: ruff adds rules and changes formatting between minor releases,
     # and CI installed it unpinned, so a ruff release could turn the build red
     # with no change to this repo. Bump deliberately.
-    "ruff==0.16.3",
+    "ruff==0.17.6",
     "mypy>=1.8.0",
     "types-PyYAML>=6.0.0",
     # The suite covers the darkweb plugin (all network/LLM calls mocked), so
